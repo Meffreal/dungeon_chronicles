@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dungeon Chronicles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#060610; --bg2:#0b0b1c; --panel:#0f0f28; --panel2:#151535; --panel3:#1a1a45;
+  --border:#20204a; --border2:#40308a; --border3:#6050b0;
+  --accent:#b82030; --accent2:#e83040;
+  --gold:#c89010; --gold2:#e8b020; --gold3:#ffd060;
+  --text:#c0c0d8; --text2:#9898c0; --text3:#6868a0;
+  --green:#30a848; --green2:#50d070; --blue:#3070c8; --purple:#8030c0; --purple2:#b070f0;
+  --hp:#c02828; --mp:#2050c8; --xp:#28a840;
+  --common:#9d9d9d; --uncommon:#1eff00; --rare:#0070dd; --epic:#a335ee; --legend:#ff8000;
+  --frame1:#2a1800; --frame2:#7a5000; --frame3:#c89020; --frame4:#f0d060;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Crimson Text',serif;font-size:16px;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{height:50px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 12px;background:#080818;border-bottom:1px solid var(--border);position:relative;z-index:30;}
+.topbar::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),var(--gold2),var(--accent),transparent);}
+.tb-logo{font-family:'Cinzel Decorative',cursive;font-weight:900;font-size:0.9rem;background:linear-gradient(135deg,var(--gold2),var(--accent2),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;}
+.tb-sep{width:1px;height:28px;background:var(--border);}
+.tb-char{display:flex;align-items:center;gap:8px;}
+.tb-avatar{width:32px;height:32px;border-radius:3px;background:var(--panel2);border:1px solid var(--frame2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.tb-name{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--gold2);font-weight:700;}
+.tb-meta{display:flex;align-items:center;gap:5px;}
+.tb-lvl{background:var(--accent);color:#fff;font-family:'Cinzel',serif;font-size:0.6rem;padding:1px 5px;border-radius:2px;}
+.tb-cls{color:var(--text2);font-size:0.72rem;}
+.tb-bars{display:flex;flex-direction:column;gap:2px;}
+.tb-bar{display:flex;align-items:center;gap:4px;}
+.tb-bar-lbl{font-family:'Cinzel',serif;font-size:0.58rem;color:var(--text2);width:16px;text-align:right;}
+.tb-bar-track{width:130px;height:5px;background:rgba(0,0,0,.5);border-radius:3px;overflow:hidden;}
+.tb-bar-fill{height:100%;border-radius:3px;transition:width .4s;}
+.hp-f{background:linear-gradient(90deg,#600,var(--hp));}
+.mp-f{background:linear-gradient(90deg,#006,var(--mp));}
+.xp-f{background:linear-gradient(90deg,#040,var(--xp));}
+.tb-bar-num{font-size:0.58rem;color:var(--text2);font-family:'Cinzel',serif;min-width:55px;}
+.tb-gold{display:flex;align-items:center;gap:4px;font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold2);}
+.tb-actions{margin-left:auto;display:flex;gap:5px;}
+.tb-btn{background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--text2);padding:4px 9px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.tb-btn:hover{border-color:var(--border2);color:var(--text);}
+.tb-btn.dng:hover{border-color:var(--accent);color:var(--accent2);}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:192px 1fr 208px;flex:1;overflow:hidden;}
+
+/* LEVÝ PANEL */
+.lpanel{background:linear-gradient(180deg,#0c0c22,#08081a);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.lpanel::-webkit-scrollbar{width:3px;}
+.lpanel::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.portrait-wrap{padding:10px;background:#0a0a1e;border-bottom:1px solid var(--border);}
+.portrait-outer{border:2px solid var(--frame2);border-radius:4px;padding:3px;background:linear-gradient(135deg,var(--frame1),#100800,var(--frame1));box-shadow:0 0 0 1px var(--frame3),inset 0 0 0 1px rgba(200,144,32,.1);}
+.portrait-inner{background:radial-gradient(ellipse at 40% 30%,#1a1060,#0c0830 60%,#060418);border-radius:2px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.portrait-inner::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,144,32,.1),transparent 45%);}
+.portrait-emoji{font-size:3.8rem;position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.9));}
+.portrait-name{text-align:center;margin-top:6px;font-family:'Cinzel',serif;font-size:0.8rem;font-weight:700;color:var(--gold2);text-shadow:0 0 10px rgba(200,144,32,.3);}
+.portrait-guild{text-align:center;font-size:0.7rem;color:var(--text2);font-style:italic;margin-top:1px;}
+.portrait-level{margin-top:5px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;padding:3px;background:rgba(200,144,32,.06);border-top:1px solid rgba(200,144,32,.15);}
+.portrait-level-num{font-family:'Cinzel',serif;font-size:0.85rem;font-weight:700;color:var(--gold2);}
+
+.bars-sec{padding:7px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
+.bar-row-hdr{display:flex;justify-content:space-between;margin-bottom:2px;}
+.bar-row-lbl{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:1px;color:var(--text2);}
+.bar-row-val{font-family:'Cinzel',serif;font-size:0.58rem;color:var(--text);}
+.bar-track{height:7px;background:rgba(0,0,0,.6);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.04);}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s;}
+.hp-bar .bar-fill{background:linear-gradient(90deg,#500,#a02020,#e03030);}
+.mp-bar .bar-fill{background:linear-gradient(90deg,#005,#1040a0,#2060e0);}
+.xp-bar .bar-fill{background:linear-gradient(90deg,#030,#10802a,#20c040);}
+
+.stats-sec{padding:5px 10px;border-bottom:1px solid var(--border);}
+.stats-title{font-family:'Cinzel',serif;font-size:0.57rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:3px 0 4px;border-bottom:1px solid rgba(255,255,255,.03);margin-bottom:3px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:1.5px 0;}
+.stat-lbl{color:var(--text2);font-size:0.78rem;display:flex;align-items:center;gap:4px;}
+.stat-ico{width:13px;text-align:center;font-size:0.72rem;}
+.stat-val{font-family:'Cinzel',serif;font-size:0.76rem;font-weight:600;}
+.c-red{color:#e06060;} .c-green{color:#60d080;} .c-blue{color:#6090f0;} .c-gold{color:var(--gold2);} .c-purple{color:var(--purple2);} .c-cyan{color:#60d8e0;} .c-silver{color:#c0c0d0;}
+
+.stat-alloc-btn{background:rgba(80,208,112,.15);border:1px solid var(--green);color:var(--green2);width:18px;height:18px;border-radius:3px;font-size:0.85rem;line-height:1;cursor:pointer;display:none;padding:0;flex-shrink:0;transition:all .15s;}
+.stat-alloc-btn:hover{background:rgba(80,208,112,.35);transform:scale(1.1);}
+.stat-points-banner{background:rgba(80,208,112,.1);border:1px solid var(--green);border-radius:4px;padding:5px 10px;margin:5px 10px;display:none;text-align:center;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;color:var(--green2);animation:pulse-green 1.8s ease-in-out infinite;}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(80,208,112,.4);}50%{box-shadow:0 0 0 4px rgba(80,208,112,.0);}}
+
+/* NPC shop */
+.shop-npc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:20px;}
+.shop-npc{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.shop-npc-header{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--panel2);border-bottom:1px solid var(--border);}
+.shop-npc-emoji{font-size:2rem;}
+.shop-npc-name{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold2);font-weight:700;}
+.shop-npc-desc{font-size:0.72rem;color:var(--text2);margin-top:2px;font-style:italic;}
+.shop-items{display:flex;flex-direction:column;gap:1px;padding:8px;}
+.shop-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:4px;border:1px solid transparent;transition:all .15s;cursor:default;}
+.shop-item:hover{background:var(--panel2);border-color:var(--border);}
+.shop-item-icon{font-size:1.4rem;width:28px;text-align:center;flex-shrink:0;}
+.shop-item-body{flex:1;min-width:0;}
+.shop-item-name{font-size:0.82rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.shop-item-sub{font-size:0.68rem;color:var(--text2);margin-top:1px;}
+.shop-item-price{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--gold2);white-space:nowrap;margin-right:6px;}
+.shop-buy-btn{background:rgba(200,144,16,.18);border:1px solid var(--gold);color:var(--gold2);padding:3px 10px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.shop-buy-btn:hover:not(:disabled){background:rgba(200,144,16,.35);}
+.shop-buy-btn:disabled{opacity:.35;cursor:not-allowed;}
+.shop-rotation{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 14px;margin-bottom:16px;}
+.shop-rot-label{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;text-transform:uppercase;color:var(--text2);}
+.shop-rot-time{font-family:'Cinzel',serif;font-size:0.9rem;color:var(--gold2);font-weight:700;margin-left:auto;}
+
+.lnav{margin-top:auto;border-top:1px solid var(--border);}
+.nav-btn{display:flex;align-items:center;gap:7px;width:100%;padding:8px 11px;cursor:pointer;transition:all .15s;background:none;border:none;border-left:2px solid transparent;color:var(--text2);font-family:'Crimson Text',serif;font-size:0.92rem;text-align:left;}
+.nav-btn:hover{background:rgba(255,255,255,.03);color:var(--text);}
+.nav-btn.active{background:linear-gradient(90deg,rgba(184,32,48,.18),transparent);color:var(--gold2);border-left-color:var(--accent);}
+.nav-btn .ni{font-size:0.9rem;width:17px;text-align:center;}
+.nav-btn .nb{margin-left:auto;font-size:0.58rem;color:var(--text3);font-family:'Cinzel',serif;letter-spacing:1px;}
+.nav-btn.off{opacity:.3;cursor:not-allowed;}
+.nav-btn.off:hover{background:none;color:var(--text2);}
+
+/* HLAVNÍ */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.main-scroll{flex:1;overflow-y:auto;padding:14px;background:var(--bg2);}
+.main-scroll::-webkit-scrollbar{width:4px;}
+.main-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.page{display:none;}
+.page.active{display:block;animation:pg-in .22s ease;}
+@keyframes pg-in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.page-hdr{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:var(--gold2);display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+
+/* ─── VYBAVENÍ (S&F styl) ─── */
+.equip-layout{display:grid;grid-template-columns:1fr 156px 1fr;gap:10px;align-items:start;}
+.equip-col{display:flex;flex-direction:column;gap:7px;}
+.equip-center{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.equip-portrait-outer{width:144px;border:3px solid var(--frame2);border-radius:5px;padding:3px;background:linear-gradient(135deg,var(--frame1),#100800,var(--frame1));box-shadow:0 0 0 1px var(--frame3),0 4px 20px rgba(0,0,0,.6);position:relative;}
+.equip-portrait-outer::before,.equip-portrait-outer::after{content:'◆';position:absolute;color:var(--frame3);font-size:0.6rem;z-index:2;}
+.equip-portrait-outer::before{top:-1px;left:2px;}
+.equip-portrait-outer::after{bottom:-1px;right:2px;}
+.equip-portrait-inner{height:156px;background:radial-gradient(ellipse at 40% 30%,#1a1060,#0c0830 60%,#060418);border-radius:3px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.equip-portrait-inner::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,144,32,.1),transparent 45%);}
+.equip-portrait-emoji{font-size:5rem;position:relative;z-index:1;filter:drop-shadow(0 6px 16px rgba(0,0,0,.9));}
+.equip-char-name{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--gold2);text-align:center;}
+.equip-char-lvl{font-size:0.65rem;color:var(--text2);text-align:center;}
+.equip-stats-mini{width:144px;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:7px 10px;}
+.esm-row{display:flex;justify-content:space-between;padding:2px 0;font-size:0.76rem;}
+.esm-lbl{color:var(--text2);} .esm-val{font-family:'Cinzel',serif;font-weight:600;}
+
+.eq-slot{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:7px 9px;display:flex;align-items:center;gap:7px;cursor:pointer;transition:all .15s;min-height:52px;position:relative;overflow:hidden;}
+.eq-slot::before{content:'';position:absolute;top:0;left:0;bottom:0;width:2px;background:var(--slot-rc,var(--border));}
+.eq-slot:hover{border-color:var(--border2);background:var(--panel2);}
+.eq-slot.filled{border-color:var(--border2);}
+.eq-slot.filled:hover{border-color:var(--border3);}
+.eq-slot-icon{font-size:1.5rem;min-width:26px;text-align:center;opacity:.3;filter:grayscale(.6);transition:all .15s;}
+.eq-slot.filled .eq-slot-icon{opacity:1;filter:none;}
+.eq-slot-body{flex:1;min-width:0;}
+.eq-slot-type{font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;}
+.eq-slot-name{font-size:0.78rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.eq-slot.filled .eq-slot-name{color:var(--text);}
+.eq-slot-stat{font-size:0.68rem;color:var(--text3);margin-top:1px;}
+.eq-slot.filled .eq-slot-stat{color:var(--green);}
+.rarity-pip{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;}
+.rc-common{background:var(--common);} .rc-uncommon{background:var(--uncommon);} .rc-rare{background:var(--rare);} .rc-epic{background:var(--epic);} .rc-legendary{background:var(--legend);}
+
+/* ─── INVENTÁŘ ─── */
+.inv-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.inv-filter-btn{background:var(--panel);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.inv-filter-btn:hover,.inv-filter-btn.active{border-color:var(--gold);color:var(--gold2);background:rgba(200,144,32,.08);}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.inv-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden;}
+.inv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--rc,var(--border));}
+.inv-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.inv-card.equipped{border-color:var(--gold);background:rgba(200,144,32,.06);}
+.inv-card-icon{font-size:2rem;margin-bottom:6px;}
+.inv-card-name{font-family:'Cinzel',serif;font-size:0.72rem;color:var(--text);line-height:1.3;margin-bottom:3px;}
+.inv-card-type{font-size:0.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.inv-card-qty{position:absolute;top:6px;right:8px;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--text2);}
+.inv-card-equipped-badge{position:absolute;bottom:6px;right:6px;background:var(--gold);color:#000;font-size:0.55rem;font-family:'Cinzel',serif;padding:1px 4px;border-radius:2px;letter-spacing:1px;}
+.inv-empty{color:var(--text2);font-style:italic;text-align:center;padding:40px 20px;grid-column:1/-1;}
+
+/* ─── QUESTY ─── */
+.aq-banner{background:linear-gradient(135deg,#0d0d2a,#160830 60%,#0a0620);border:1px solid var(--border2);border-radius:6px;padding:16px;margin-bottom:16px;position:relative;overflow:hidden;}
+.aq-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--purple2),var(--gold2),var(--purple2),transparent);animation:aq-shine 3s linear infinite;background-size:200%;}
+@keyframes aq-shine{0%{background-position:-200%}100%{background-position:200%}}
+.aq-row1{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;}
+.aq-icon{width:54px;height:54px;flex-shrink:0;background:rgba(0,0,0,.4);border:1px solid var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;}
+.aq-info{flex:1;}
+.aq-name{font-family:'Cinzel',serif;font-size:0.98rem;color:var(--gold2);margin-bottom:4px;}
+.aq-sub{display:flex;align-items:center;gap:8px;}
+.aq-lbl{font-size:0.8rem;color:var(--text2);font-style:italic;}
+.aq-timer-box{text-align:center;}
+.aq-timer{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--gold2);text-shadow:0 0 20px rgba(200,144,32,.5);letter-spacing:2px;line-height:1;}
+.aq-timer-sub{font-family:'Cinzel',serif;font-size:0.58rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.aq-prog{margin-bottom:11px;}
+.aq-prog-hdr{display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text2);font-family:'Cinzel',serif;margin-bottom:3px;}
+.aq-prog-track{height:13px;background:rgba(0,0,0,.6);border-radius:7px;overflow:hidden;border:1px solid rgba(255,255,255,.04);position:relative;}
+.aq-prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#1a0840,#5020a0 40%,#a040e0 70%,#c89020);transition:width 1s linear;position:relative;}
+.aq-prog-fill::after{content:'';position:absolute;top:0;right:-8px;bottom:0;width:16px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:bar-gl 1.5s ease-in-out infinite;}
+@keyframes bar-gl{0%,100%{opacity:.2}50%{opacity:.8}}
+.aq-rewards{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px;}
+.aq-chip{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:3px;padding:4px 9px;font-size:0.8rem;}
+.aq-chip-val{font-family:'Cinzel',serif;color:var(--gold2);}
+.btn-collect{width:100%;padding:10px;background:linear-gradient(135deg,#0a3a18,#158030,#20b040);border:1px solid #28a848;border-radius:4px;color:#fff;font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-collect:hover:not(:disabled){box-shadow:0 0 20px rgba(32,176,64,.4);transform:translateY(-1px);}
+.btn-collect:disabled{opacity:.4;cursor:not-allowed;background:linear-gradient(135deg,#08180c,#0c180f);border-color:var(--border);transform:none;}
+
+.quest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:9px;}
+.qcard{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.qcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--dc,var(--border));}
+.qcard:hover:not(.qlocked){border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.5);}
+.qcard.qlocked{opacity:.38;cursor:not-allowed;}
+.q-icon{font-size:1.6rem;margin-bottom:6px;} .q-name{font-family:'Cinzel',serif;font-size:0.86rem;color:var(--text);margin-bottom:3px;} .q-desc{font-size:0.78rem;color:var(--text2);font-style:italic;margin-bottom:7px;line-height:1.3;}
+.q-meta{display:flex;gap:7px;font-size:0.74rem;color:var(--text2);flex-wrap:wrap;}
+.q-meta span{display:flex;align-items:center;gap:2px;} .qhl{color:var(--gold2);}
+.dbadge{position:absolute;top:7px;right:7px;font-family:'Cinzel',serif;font-size:0.57rem;letter-spacing:1px;text-transform:uppercase;padding:2px 5px;border-radius:2px;}
+.de{background:rgba(48,168,72,.16);color:#58c870;border:1px solid #28904a;} .dn{background:rgba(48,112,200,.16);color:#5898f0;border:1px solid #2858b0;} .dh{background:rgba(184,32,48,.18);color:#f06878;border:1px solid #901828;} .db{background:rgba(128,48,192,.18);color:#c080f8;border:1px solid #6020a0;}
+.wcbar{margin-top:8px;} .wcbar-hdr{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text2);margin-bottom:2px;} .wcbar-track{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;} .wcbar-fill{height:100%;border-radius:2px;}
+
+/* ─── TRŽIŠTĚ ─── */
+.market-layout{display:grid;grid-template-columns:1fr 280px;gap:14px;align-items:start;}
+.market-main{} .market-side{}
+.market-toolbar{display:flex;gap:7px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.mkt-input{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:3px;padding:6px 10px;color:var(--text);font-family:'Crimson Text',serif;font-size:0.9rem;outline:none;transition:border-color .15s;}
+.mkt-input:focus{border-color:var(--gold);}
+.mkt-input::placeholder{color:var(--text3);}
+.mkt-select{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:6px 8px;color:var(--text2);font-family:'Cinzel',serif;font-size:0.65rem;outline:none;cursor:pointer;}
+.mkt-select option{background:var(--panel2);}
+.mkt-btn{background:rgba(200,144,32,.12);border:1px solid var(--gold);color:var(--gold2);padding:6px 12px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.mkt-btn:hover{background:rgba(200,144,32,.22);box-shadow:0 0 10px rgba(200,144,32,.2);}
+
+.mkt-table{width:100%;border-collapse:collapse;}
+.mkt-table th{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.mkt-table td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);font-size:0.84rem;vertical-align:middle;}
+.mkt-table tr:hover td{background:rgba(255,255,255,.02);}
+.mkt-item-cell{display:flex;align-items:center;gap:8px;}
+.mkt-item-icon{font-size:1.3rem;}
+.mkt-item-name{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--text);}
+.mkt-item-type{font-size:0.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;}
+.mkt-price{font-family:'Cinzel',serif;color:var(--gold2);font-size:0.85rem;}
+.mkt-seller{color:var(--text2);font-size:0.78rem;}
+.mkt-buy-btn{background:linear-gradient(135deg,#1a3a10,#2a6020);border:1px solid #3a8030;color:#90e070;padding:4px 10px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:1px;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap;}
+.mkt-buy-btn:hover{box-shadow:0 0 10px rgba(48,160,64,.3);transform:translateY(-1px);}
+.mkt-empty{text-align:center;padding:30px;color:var(--text2);font-style:italic;}
+.mkt-pager{display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:center;}
+.mkt-pager-btn{background:var(--panel);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;transition:all .15s;}
+.mkt-pager-btn:hover:not(:disabled){border-color:var(--border2);color:var(--text);}
+.mkt-pager-btn:disabled{opacity:.3;cursor:not-allowed;}
+.mkt-pager-info{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text2);}
+
+/* Prodej panel */
+.sell-panel{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px;position:sticky;top:0;}
+.sell-panel-title{font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.sell-item-preview{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:10px;margin-bottom:10px;display:none;}
+.sell-item-preview.show{display:block;}
+.sip-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sip-icon{font-size:1.8rem;}
+.sip-name{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--text);}
+.sip-rarity{font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;}
+.sip-bonuses{font-size:0.75rem;color:var(--green);line-height:1.8;}
+.sell-form{display:flex;flex-direction:column;gap:8px;}
+.sell-form label{font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:1px;text-transform:uppercase;color:var(--text2);}
+.sell-form input{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:3px;padding:7px 10px;color:var(--text);font-family:'Crimson Text',serif;font-size:0.95rem;outline:none;transition:border-color .15s;width:100%;}
+.sell-form input:focus{border-color:var(--gold);}
+.my-listings-sec{margin-top:14px;}
+.my-listing-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:0.78rem;}
+.my-listing-name{flex:1;color:var(--text);font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.my-listing-price{color:var(--gold2);font-family:'Cinzel',serif;font-size:0.78rem;}
+.my-cancel-btn{background:none;border:1px solid var(--accent);color:var(--accent2);padding:2px 7px;border-radius:2px;font-size:0.62rem;cursor:pointer;font-family:'Cinzel',serif;transition:all .15s;}
+.my-cancel-btn:hover{background:rgba(184,32,48,.15);}
+
+/* PRAVÝ PANEL */
+.rpanel{background:linear-gradient(180deg,#0c0c22,#08081a);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.rpanel::-webkit-scrollbar{width:3px;}
+.rpanel::-webkit-scrollbar-thumb{background:var(--border2);}
+.rp-sec{border-bottom:1px solid var(--border);}
+.rp-title{font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:9px 11px 5px;display:flex;justify-content:space-between;align-items:center;}
+.rp-title em{color:var(--border3);font-style:normal;}
+.rp-body{padding:3px 11px 9px;}
+.act-row{display:flex;gap:5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.025);font-size:0.75rem;}
+.act-time{color:var(--text3);font-family:'Cinzel',serif;font-size:0.62rem;min-width:28px;text-align:right;}
+.act-txt{color:var(--text2);flex:1;line-height:1.3;}
+.lb-row{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.025);font-size:0.75rem;}
+.lb-rank{color:var(--text3);width:14px;text-align:right;font-family:'Cinzel',serif;font-size:0.66rem;}
+.lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.lb-lv{color:var(--gold2);font-family:'Cinzel',serif;font-size:0.68rem;}
+
+/* MODÁLY */
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{background:linear-gradient(160deg,var(--panel2),#0b0b1e);border:1px solid var(--border2);border-radius:6px;padding:20px;width:min(500px,94vw);max-height:88vh;overflow-y:auto;transform:translateY(10px);transition:transform .2s;position:relative;}
+.overlay.open .modal{transform:translateY(0);}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold2),transparent);}
+.modal-title{font-family:'Cinzel',serif;font-size:0.98rem;color:var(--gold2);margin-bottom:13px;display:flex;align-items:center;gap:7px;}
+.modal-x{position:absolute;top:9px;right:11px;background:none;border:none;color:var(--text2);font-size:1rem;cursor:pointer;}
+.modal-x:hover{color:var(--accent2);}
+
+/* Item detail modal */
+.item-detail-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.item-detail-icon{font-size:3rem;}
+.item-detail-info{}
+.item-detail-name{font-family:'Cinzel',serif;font-size:1.05rem;margin-bottom:3px;}
+.item-detail-meta{font-size:0.78rem;color:var(--text2);display:flex;gap:8px;}
+.item-bonuses{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:14px;}
+.item-bonus-row{display:flex;justify-content:space-between;font-size:0.82rem;padding:2px 0;}
+.item-bonus-lbl{color:var(--text2);}
+.item-bonus-val{font-family:'Cinzel',serif;color:var(--green);}
+.item-desc{font-size:0.85rem;color:var(--text2);font-style:italic;margin-bottom:14px;padding:8px;background:rgba(255,255,255,.02);border-radius:3px;border-left:2px solid var(--border2);}
+.item-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* Class výběr */
+.cls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.cls-card{border:2px solid var(--border);border-radius:4px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s;background:var(--panel);}
+.cls-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.cls-card.sel{border-color:var(--gold2);background:rgba(200,144,32,.07);}
+.cls-emoji{font-size:1.8rem;margin-bottom:5px;} .cls-name{font-family:'Cinzel',serif;font-size:0.76rem;color:var(--gold2);margin-bottom:3px;} .cls-desc{font-size:0.68rem;color:var(--text2);font-style:italic;line-height:1.3;} .cls-nums{margin-top:5px;font-size:0.66rem;color:var(--text3);}
+.fld{margin-bottom:11px;}
+.fld label{display:block;font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
+.fld input{width:100%;padding:8px 11px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Crimson Text',serif;font-size:0.96rem;outline:none;transition:border-color .15s;}
+.fld input:focus{border-color:var(--gold2);}
+.fmsg{padding:7px 11px;border-radius:3px;font-size:0.82rem;margin-bottom:9px;display:none;}
+.fmsg.err{display:block;background:rgba(184,32,48,.15);border:1px solid var(--accent);color:#ff9090;}
+.fmsg.ok{display:block;background:rgba(32,168,64,.12);border:1px solid var(--green);color:#90ffa0;}
+
+/* BTN */
+.btn{padding:9px 18px;border-radius:3px;background:linear-gradient(135deg,var(--accent),#701020);border:1px solid var(--accent);color:#fff;font-family:'Cinzel',serif;font-size:0.76rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover:not(:disabled){box-shadow:0 4px 14px rgba(184,32,48,.45);transform:translateY(-1px);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.btn-gold{background:linear-gradient(135deg,#5a3800,#a06808,#5a3800);border-color:var(--gold2);}
+.btn-gold:hover:not(:disabled){box-shadow:0 4px 14px rgba(200,144,32,.45);}
+.btn-green{background:linear-gradient(135deg,#0a3818,#158030);border-color:#28a848;color:#90f090;}
+.btn-green:hover:not(:disabled){box-shadow:0 4px 14px rgba(32,168,64,.4);}
+.btn-full{width:100%;justify-content:center;}
+.btn-sm{padding:5px 11px;font-size:0.65rem;}
+
+/* TOAST */
+.toasts{position:fixed;bottom:15px;right:15px;z-index:200;display:flex;flex-direction:column;gap:5px;align-items:flex-end;}
+.toast{background:var(--panel2);border:1px solid var(--border2);border-radius:4px;padding:9px 13px;font-size:0.84rem;max-width:310px;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:toast-in .24s ease;display:flex;align-items:flex-start;gap:6px;}
+.toast.ts{border-left:3px solid var(--green);}
+.toast.te{border-left:3px solid var(--accent2);}
+.toast.ti{border-left:3px solid var(--blue);}
+@keyframes toast-in{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:none}}
+
+.blog{background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:monospace;font-size:0.72rem;line-height:1.85;color:var(--text2);max-height:240px;overflow-y:auto;}
+.bwin{color:var(--green2);font-weight:bold;} .blose{color:var(--accent2);font-weight:bold;} .bcrit{color:var(--gold2);} .bsep{color:var(--border3);}
+
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ─── ARÉNA ─── */
+.arena-stat-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;text-align:center;}
+.arena-stat-val{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:700;line-height:1;}
+.arena-stat-lbl{font-size:0.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;margin-top:3px;}
+
+.opponent-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;cursor:pointer;transition:all .18s;margin-bottom:8px;}
+.opponent-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.opp-avatar{width:48px;height:48px;background:var(--panel2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;}
+.opp-name{font-family:'Cinzel',serif;font-size:0.88rem;color:var(--text);margin-bottom:3px;}
+.opp-meta{font-size:0.75rem;color:var(--text2);}
+.opp-elo{font-family:'Cinzel',serif;font-size:0.7rem;color:var(--purple2);}
+.opp-wc-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:4px;}
+.opp-wc-fill{height:100%;border-radius:2px;}
+.attack-btn{background:linear-gradient(135deg,var(--accent),#701020);border:1px solid var(--accent);color:#fff;padding:7px 14px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.attack-btn:hover{box-shadow:0 0 14px rgba(184,32,48,.45);}
+.attack-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.arena-result-card{border-radius:5px;padding:14px;text-align:center;border:1px solid;}
+.arena-result-card.win{background:rgba(32,168,64,.1);border-color:#28a848;}
+.arena-result-card.loss{background:rgba(184,32,48,.1);border-color:var(--accent);}
+.result-icon{font-size:2.8rem;margin-bottom:6px;}
+.result-title{font-family:'Cinzel',serif;font-size:1.1rem;margin-bottom:4px;}
+.result-elo{font-family:'Cinzel',serif;font-size:0.9rem;margin-top:6px;}
+.result-log-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;margin-top:8px;letter-spacing:1px;}
+.result-log-btn:hover{border-color:var(--border2);color:var(--text);}
+
+.arena-cooldown{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px 14px;}
+.arena-cd-label{font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.arena-cd-time{color:var(--gold2);font-size:0.82rem;letter-spacing:0;font-weight:700;}
+.arena-cd-track{height:8px;background:rgba(0,0,0,.5);border-radius:4px;overflow:hidden;border:1px solid rgba(255,255,255,.04);}
+.arena-cd-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#e85060);transition:width 1s linear;}
+
+.hist-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:0.8rem;}
+.hist-result{width:20px;text-align:center;font-size:1rem;}
+.hist-name{flex:1;color:var(--text);}
+.hist-elo{font-family:'Cinzel',serif;font-size:0.75rem;}
+
+.lb-row-arena{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:0.78rem;}
+.lb-rank-arena{color:var(--text3);width:18px;text-align:right;font-family:'Cinzel',serif;font-size:0.66rem;}
+.lb-elo{font-family:'Cinzel',serif;font-size:0.72rem;color:var(--purple2);margin-left:auto;}
+
+/* ─── SEZÓNY ─── */
+.season-banner{background:linear-gradient(135deg,#1a0a2e,#2a1050);border:1px solid rgba(163,53,238,.4);border-radius:5px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.season-num{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:700;color:#c060ff;line-height:1;}
+.season-lbl{font-size:0.6rem;color:rgba(163,53,238,.7);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;}
+.season-timer{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--text2);}
+.season-claim-btn{background:linear-gradient(135deg,#5a3800,#a06808,#5a3800);border:1px solid var(--gold2);color:var(--gold2);padding:6px 14px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.season-claim-btn:hover{box-shadow:0 0 12px rgba(200,144,32,.4);}
+.season-lb-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:0.78rem;}
+.season-lb-rank{color:var(--text3);width:20px;text-align:right;font-family:'Cinzel',serif;font-size:0.66rem;}
+.season-lb-rank.gold{color:#ffd700;} .season-lb-rank.silver{color:#c0c0c0;} .season-lb-rank.bronze{color:#cd7f32;}
+
+/* ─── NOTIFIKACE ─── */
+.notif-card{display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:5px;margin-bottom:8px;cursor:pointer;transition:all .15s;position:relative;}
+.notif-card:hover{border-color:var(--border2);}
+.notif-card.unread{border-left:3px solid var(--gold2);background:rgba(200,144,32,.05);}
+.notif-card.unread::before{content:'';position:absolute;top:8px;right:8px;width:7px;height:7px;background:var(--gold2);border-radius:50%;}
+.notif-icon{font-size:1.6rem;min-width:32px;text-align:center;line-height:1;}
+.notif-body{flex:1;}
+.notif-title{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--text);margin-bottom:3px;}
+.notif-text{font-size:0.78rem;color:var(--text2);line-height:1.4;}
+.notif-time{font-size:0.65rem;color:var(--text3);margin-top:4px;font-family:'Cinzel',serif;}
+.notif-empty{text-align:center;padding:40px 20px;color:var(--text2);font-style:italic;}
+
+/* ─── ACHIEVEMENTY ─── */
+.ach-points-bar{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:14px;}
+.ach-points-num{font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:var(--gold2);line-height:1;}
+.ach-points-lbl{font-size:0.65rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;margin-top:2px;}
+.ach-progress-track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;}
+.ach-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px;transition:width .4s ease;}
+.ach-category{margin-bottom:18px;}
+.ach-cat-title{font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ach-cat-count{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:1px 7px;font-size:0.62rem;color:var(--text3);}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.ach-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:11px;display:flex;align-items:flex-start;gap:10px;transition:all .15s;position:relative;overflow:hidden;}
+.ach-card.unlocked{border-color:rgba(200,144,32,.5);background:rgba(200,144,32,.06);}
+.ach-card.locked{opacity:.5;}
+.ach-card.unlocked::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.ach-icon{font-size:1.8rem;line-height:1;min-width:32px;text-align:center;filter:grayscale(1);}
+.ach-card.unlocked .ach-icon{filter:none;}
+.ach-name{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--text);margin-bottom:3px;}
+.ach-card.locked .ach-name{color:var(--text2);}
+.ach-desc{font-size:0.7rem;color:var(--text2);line-height:1.4;}
+.ach-pts{position:absolute;top:8px;right:8px;font-family:'Cinzel',serif;font-size:0.6rem;color:var(--gold);background:rgba(200,144,32,.12);border:1px solid rgba(200,144,32,.25);border-radius:3px;padding:1px 6px;}
+.ach-date{font-size:0.62rem;color:var(--text3);margin-top:4px;font-family:'Cinzel',serif;}
+.ach-toast{background:linear-gradient(135deg,#2a1f00,#4a3500);border:1px solid var(--gold2);border-radius:5px;padding:12px 16px;display:flex;align-items:center;gap:10px;min-width:260px;box-shadow:0 4px 20px rgba(200,144,32,.3);animation:toast-in .3s ease;}
+.ach-toast-icon{font-size:2rem;line-height:1;}
+.ach-toast-title{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--gold2);text-transform:uppercase;letter-spacing:1px;}
+.ach-toast-name{font-family:'Cinzel',serif;font-size:0.88rem;color:var(--text);margin-top:1px;}
+.ach-toast-pts{font-size:0.65rem;color:var(--gold);margin-top:2px;}
+
+/* ─── GUILD ─── */
+.guild-header{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.guild-emblem{width:56px;height:56px;background:var(--panel2);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.guild-title{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold2);font-weight:700;}
+.guild-desc{font-size:0.78rem;color:var(--text2);margin-top:2px;font-style:italic;}
+.guild-meta-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.guild-chip{background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:3px 9px;font-size:0.68rem;font-family:'Cinzel',serif;color:var(--text2);}
+
+.guild-tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid var(--border);}
+.guild-tab{background:none;border:none;color:var(--text2);font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:1px;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.guild-tab.active{color:var(--gold2);border-bottom-color:var(--gold2);}
+.guild-tab:hover:not(.active){color:var(--text);}
+
+.member-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--panel);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;font-size:0.82rem;}
+.member-avatar{width:34px;height:34px;background:var(--panel2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.member-name{flex:1;font-family:'Cinzel',serif;font-size:0.84rem;color:var(--text);}
+.member-lvl{font-size:0.72rem;color:var(--text2);}
+.member-leader-badge{background:linear-gradient(135deg,#5a3800,#a06808);border:1px solid var(--gold2);color:var(--gold2);font-size:0.6rem;padding:2px 7px;border-radius:2px;font-family:'Cinzel',serif;letter-spacing:1px;}
+.member-kick-btn{background:rgba(180,30,30,.2);border:1px solid var(--accent);color:var(--accent2);padding:3px 9px;border-radius:3px;font-size:0.65rem;font-family:'Cinzel',serif;cursor:pointer;transition:all .15s;}
+.member-kick-btn:hover{background:rgba(180,30,30,.4);}
+
+/* Guild Dungeon */
+.dungeon-boss-card{background:linear-gradient(135deg,#1a0a2e,#0d0d1a);border:1px solid #6a0dad44;border-radius:6px;padding:16px;margin-bottom:14px;text-align:center;}
+.dungeon-boss-emoji{font-size:3rem;display:block;margin-bottom:6px;}
+.dungeon-boss-name{font-family:'Cinzel',serif;font-size:0.95rem;color:#d4a0ff;letter-spacing:2px;margin-bottom:10px;}
+.dungeon-hp-bar{background:rgba(255,255,255,.08);border-radius:3px;height:14px;overflow:hidden;margin-bottom:4px;position:relative;}
+.dungeon-hp-fill{height:100%;background:linear-gradient(90deg,#8b0000,#e94560);border-radius:3px;transition:width .4s;}
+.dungeon-hp-text{font-size:0.68rem;color:var(--text2);text-align:right;}
+.dungeon-attack-btn{margin-top:10px;padding:10px 28px;font-size:0.82rem;}
+.dungeon-cooldown{color:var(--text3);font-size:0.7rem;margin-top:6px;}
+.dungeon-defeated{color:#4caf7d;font-family:'Cinzel',serif;font-size:0.9rem;letter-spacing:2px;padding:12px;text-align:center;}
+.dungeon-contrib-row{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);font-size:0.78rem;}
+.dungeon-contrib-rank{color:var(--text3);width:20px;text-align:center;}
+.dungeon-contrib-dmg{margin-left:auto;color:var(--accent);font-family:'Cinzel',serif;}
+.dungeon-contrib-bar{height:4px;background:var(--panel2);border-radius:2px;margin-top:2px;overflow:hidden;}
+.dungeon-contrib-fill{height:100%;background:linear-gradient(90deg,#701020,#e94560);border-radius:2px;}
+
+.gchat-wrap{display:flex;flex-direction:column;height:380px;}
+.gchat-log{flex:1;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:4px 4px 0 0;padding:10px;overflow-y:auto;font-size:0.8rem;line-height:1.7;}
+.gchat-msg{display:flex;gap:6px;margin-bottom:4px;}
+.gchat-author{font-family:'Cinzel',serif;font-size:0.72rem;color:var(--gold2);white-space:nowrap;}
+.gchat-text{color:var(--text);flex:1;word-break:break-word;}
+.gchat-time{font-size:0.62rem;color:var(--text3);white-space:nowrap;margin-left:auto;}
+.gchat-input-row{display:flex;gap:0;border:1px solid var(--border);border-top:none;border-radius:0 0 4px 4px;overflow:hidden;}
+.gchat-input{flex:1;background:var(--panel);border:none;color:var(--text);padding:9px 12px;font-family:'Cinzel',serif;font-size:0.8rem;outline:none;}
+.gchat-input::placeholder{color:var(--text3);}
+.gchat-send{background:linear-gradient(135deg,var(--accent),#701020);border:none;color:#fff;padding:9px 16px;font-family:'Cinzel',serif;font-size:0.72rem;cursor:pointer;letter-spacing:1px;}
+.gchat-send:hover{background:var(--accent);}
+
+.guild-list-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;margin-bottom:8px;transition:all .15s;cursor:pointer;}
+.guild-list-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.guild-list-emblem{width:44px;height:44px;background:var(--panel2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.guild-list-name{font-family:'Cinzel',serif;font-size:0.9rem;color:var(--gold2);}
+.guild-list-desc{font-size:0.73rem;color:var(--text2);font-style:italic;margin-top:2px;}
+.guild-list-meta{font-size:0.68rem;color:var(--text3);margin-top:3px;}
+.join-btn{background:linear-gradient(135deg,#0a3818,#158030);border:1px solid #28a848;color:#90f090;padding:6px 14px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.join-btn:hover{box-shadow:0 0 12px rgba(32,168,64,.4);}
+
+.guild-create-form{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:16px;margin-bottom:14px;}
+.guild-emblem-picker{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.guild-emblem-opt{width:38px;height:38px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;cursor:pointer;transition:all .15s;}
+.guild-emblem-opt.sel{border-color:var(--gold2);background:rgba(200,144,32,.15);}
+.guild-emblem-opt:hover{border-color:var(--border2);}
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">⚔ DC</div>
+  <div class="tb-sep"></div>
+  <div class="tb-char" id="tb-char" style="display:none">
+    <div class="tb-avatar" id="tb-avatar">⚔</div>
+    <div style="display:flex;flex-direction:column;gap:1px">
+      <div class="tb-name" id="tb-name">—</div>
+      <div class="tb-meta">
+        <div class="tb-lvl" id="tb-lvl">Lv.1</div>
+        <div class="tb-cls" id="tb-cls">—</div>
+      </div>
+    </div>
+    <div class="tb-bars">
+      <div class="tb-bar"><div class="tb-bar-lbl">HP</div><div class="tb-bar-track"><div class="tb-bar-fill hp-f" id="tb-hp" style="width:100%"></div></div><div class="tb-bar-num" id="tb-hpn">—</div></div>
+      <div class="tb-bar"><div class="tb-bar-lbl">MP</div><div class="tb-bar-track"><div class="tb-bar-fill mp-f" id="tb-mp" style="width:100%"></div></div><div class="tb-bar-num" id="tb-mpn">—</div></div>
+      <div class="tb-bar"><div class="tb-bar-lbl">XP</div><div class="tb-bar-track"><div class="tb-bar-fill xp-f" id="tb-xp" style="width:0%"></div></div><div class="tb-bar-num" id="tb-xpn">—</div></div>
+    </div>
+    <div class="tb-gold">💰 <span id="tb-gold">0</span> G</div>
+  </div>
+  <div class="tb-actions">
+    <button class="tb-btn" id="notif-bell" onclick="showPage('notifications')" style="position:relative">
+      🔔 <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;font-size:0.6rem;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif">0</span>
+    </button>
+    <button class="tb-btn" onclick="refreshChar()">↺</button>
+    <button class="tb-btn dng" onclick="logout()">Odhlásit</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- LEVÝ PANEL -->
+  <div class="lpanel">
+    <div class="portrait-wrap">
+      <div class="portrait-outer">
+        <div class="portrait-inner">
+          <div class="portrait-emoji" id="p-emoji">⚔</div>
+        </div>
+      </div>
+      <div class="portrait-name" id="p-name">—</div>
+      <div class="portrait-guild" id="portrait-guild-name">[bez cechu]</div>
+      <div class="portrait-level">
+        <span style="font-size:.75rem;color:var(--gold)">⚡</span>
+        <span class="portrait-level-num" id="p-level">Level 1</span>
+      </div>
+    </div>
+    <div class="bars-sec">
+      <div>
+        <div class="bar-row-hdr"><span class="bar-row-lbl">❤ HP</span><span class="bar-row-val" id="b-hp">—</span></div>
+        <div class="bar-track hp-bar"><div class="bar-fill" id="bar-hp" style="width:100%"></div></div>
+      </div>
+      <div>
+        <div class="bar-row-hdr"><span class="bar-row-lbl">💙 MP</span><span class="bar-row-val" id="b-mp">—</span></div>
+        <div class="bar-track mp-bar"><div class="bar-fill" id="bar-mp" style="width:100%"></div></div>
+      </div>
+      <div>
+        <div class="bar-row-hdr"><span class="bar-row-lbl">✨ XP</span><span class="bar-row-val" id="b-xp">—</span></div>
+        <div class="bar-track xp-bar"><div class="bar-fill" id="bar-xp" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="stat-points-banner" id="stat-points-banner">⬆ <span id="sp-count">0</span> bod k přidělení</div>
+    <div class="stats-sec">
+      <div class="stats-title">Atributy</div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">💪</span>Síla</div>        <div class="stat-val c-red"    id="s-str">—</div><button class="stat-alloc-btn" id="alloc-strength"     onclick="allocStat('strength')">+</button></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🤸</span>Obratnost</div>  <div class="stat-val c-green"  id="s-dex">—</div><button class="stat-alloc-btn" id="alloc-dexterity"    onclick="allocStat('dexterity')">+</button></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🧠</span>Inteligence</div><div class="stat-val c-blue"   id="s-int">—</div><button class="stat-alloc-btn" id="alloc-intelligence" onclick="allocStat('intelligence')">+</button></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🛡</span>Výdrž</div>      <div class="stat-val c-gold"   id="s-end">—</div><button class="stat-alloc-btn" id="alloc-endurance"    onclick="allocStat('endurance')">+</button></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🍀</span>Štěstí</div>     <div class="stat-val c-purple" id="s-luck">—</div><button class="stat-alloc-btn" id="alloc-luck"         onclick="allocStat('luck')">+</button></div>
+    </div>
+    <div class="stats-sec">
+      <div class="stats-title">Boj</div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">⚔</span>Útok</div>    <div class="stat-val c-red"    id="s-atk">—</div></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🛡</span>Obrana</div>  <div class="stat-val c-blue"   id="s-def">—</div></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">💨</span>Rychlost</div><div class="stat-val c-cyan"   id="s-spd">—</div></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">💰</span>Gold</div>    <div class="stat-val c-gold"   id="s-gold">—</div></div>
+      <div class="stat-row"><div class="stat-lbl"><span class="stat-ico">🏆</span>Aréna</div>   <div class="stat-val c-purple" id="s-arena">—</div></div>
+    </div>
+    <div class="lnav">
+      <button class="nav-btn active" id="nav-overview"   onclick="showPage('overview')">  <span class="ni">🏰</span> Přehled</button>
+      <button class="nav-btn"        id="nav-quests"     onclick="showPage('quests')">    <span class="ni">⚔</span>  Questy</button>
+      <button class="nav-btn"        id="nav-equipment"  onclick="showPage('equipment')"> <span class="ni">🛡</span>  Vybavení</button>
+      <button class="nav-btn"        id="nav-inventory"  onclick="showPage('inventory')"> <span class="ni">🎒</span>  Inventář</button>
+      <button class="nav-btn"        id="nav-market"     onclick="showPage('market')">    <span class="ni">🛒</span>  Tržiště</button>
+      <button class="nav-btn"        id="nav-shop"       onclick="showPage('shop')">      <span class="ni">🏪</span>  Obchod</button>
+      <button class="nav-btn"        id="nav-arena"         onclick="showPage('arena')">     <span class="ni">🏟</span>  Aréna</button>
+      <button class="nav-btn" id="nav-guild"         onclick="showPage('guild')">        <span class="ni">⚜</span>  Cech</button>
+      <button class="nav-btn" id="nav-achievements" onclick="showPage('achievements')"> <span class="ni">🏆</span>  Odznaky</button>
+    </div>
+  </div>
+
+  <!-- HLAVNÍ OBSAH -->
+  <div class="main">
+    <div class="main-scroll">
+
+      <!-- PŘEHLED -->
+      <div class="page active" id="page-overview">
+        <div class="page-hdr">🏰 Přehled</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px">
+            <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Úroveň</div>
+            <div style="font-family:'Cinzel',serif;font-size:2.2rem;color:var(--gold2);font-weight:700;line-height:1" id="ov-level">—</div>
+            <div style="font-size:0.78rem;color:var(--text2);margin-top:3px" id="ov-xp">—</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px">
+            <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Zlato</div>
+            <div style="font-family:'Cinzel',serif;font-size:2.2rem;color:var(--gold2);font-weight:700;line-height:1" id="ov-gold">—</div>
+            <div style="font-size:0.78rem;color:var(--text2);margin-top:3px">v pokladnici</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px">
+            <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Aréna</div>
+            <div style="font-family:'Cinzel',serif;font-size:2.2rem;color:var(--purple2);font-weight:700;line-height:1" id="ov-arena">—</div>
+            <div style="font-size:0.78rem;color:var(--text2);margin-top:3px" id="ov-wl">—</div>
+          </div>
+          <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:13px">
+            <div style="font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:5px">Třída</div>
+            <div style="font-family:'Cinzel',serif;font-size:1.25rem;color:var(--text);font-weight:700;line-height:1.2" id="ov-cls">—</div>
+            <div style="font-size:0.76rem;color:var(--text2);margin-top:3px;font-style:italic" id="ov-desc">—</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="showPage('quests')">⚔ Jít na quest</button>
+          <button class="btn" onclick="showPage('equipment')">🛡 Vybavení</button>
+          <button class="btn btn-green" onclick="showPage('market')">🛒 Tržiště</button>
+        </div>
+        <div id="ov-log-wrap" style="display:none;margin-top:18px">
+          <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:7px">Poslední bojový log</div>
+          <div class="blog" id="ov-log"></div>
+        </div>
+      </div>
+
+      <!-- QUESTY -->
+      <div class="page" id="page-quests">
+        <div class="page-hdr">⚔ Questy</div>
+        <div id="aq-wrap"></div>
+        <div id="qlist-wrap"></div>
+      </div>
+
+      <!-- VYBAVENÍ -->
+      <div class="page" id="page-equipment">
+        <div class="page-hdr">🛡 Vybavení</div>
+        <div class="equip-layout" id="equip-layout"></div>
+      </div>
+
+      <!-- INVENTÁŘ -->
+      <div class="page" id="page-inventory">
+        <div class="page-hdr">🎒 Inventář</div>
+        <div class="inv-toolbar">
+          <button class="inv-filter-btn active" onclick="filterInv('all',this)">Vše</button>
+          <button class="inv-filter-btn" onclick="filterInv('weapon',this)">⚔ Zbraně</button>
+          <button class="inv-filter-btn" onclick="filterInv('armor',this)">🥋 Brnění</button>
+          <button class="inv-filter-btn" onclick="filterInv('helmet',this)">⛑ Přilby</button>
+          <button class="inv-filter-btn" onclick="filterInv('other',this)">💍 Ostatní</button>
+          <span style="margin-left:auto;font-family:'Cinzel',serif;font-size:0.65rem;color:var(--text2)" id="inv-count">0 itemů</span>
+        </div>
+        <div class="inv-grid" id="inv-grid">
+          <div class="inv-empty">Načítám inventář...</div>
+        </div>
+      </div>
+
+      <!-- TRŽIŠTĚ -->
+      <div class="page" id="page-market">
+        <div class="page-hdr">🛒 Tržiště</div>
+        <div class="market-layout">
+          <div class="market-main">
+            <div class="market-toolbar">
+              <input class="mkt-input" id="mkt-search" placeholder="🔍 Hledat item..." oninput="debouncedSearch()" style="flex:1;min-width:120px">
+              <select class="mkt-select" id="mkt-type" onchange="loadMarket()">
+                <option value="">Vše typy</option>
+                <option value="weapon">Zbraně</option>
+                <option value="helmet">Přilby</option>
+                <option value="armor">Brnění</option>
+                <option value="gloves">Rukavice</option>
+                <option value="boots">Boty</option>
+                <option value="ring">Prsteny</option>
+                <option value="amulet">Amulety</option>
+              </select>
+              <select class="mkt-select" id="mkt-rarity" onchange="loadMarket()">
+                <option value="">Vše rarity</option>
+                <option value="common">Common</option>
+                <option value="uncommon">Uncommon</option>
+                <option value="rare">Rare</option>
+                <option value="epic">Epic</option>
+                <option value="legendary">Legendary</option>
+              </select>
+              <select class="mkt-select" id="mkt-sort" onchange="loadMarket()">
+                <option value="price_asc">Cena ↑</option>
+                <option value="price_desc">Cena ↓</option>
+                <option value="newest">Nejnovější</option>
+              </select>
+              <button class="mkt-btn" onclick="loadMarket()">↺ Obnovit</button>
+            </div>
+            <div id="mkt-table-wrap">
+              <div class="mkt-empty">Načítám tržiště...</div>
+            </div>
+            <div class="mkt-pager" id="mkt-pager" style="display:none">
+              <button class="mkt-pager-btn" id="mkt-prev" onclick="changeMktPage(-1)">← Předchozí</button>
+              <span class="mkt-pager-info" id="mkt-page-info">1 / 1</span>
+              <button class="mkt-pager-btn" id="mkt-next" onclick="changeMktPage(1)">Další →</button>
+            </div>
+          </div>
+          <div class="market-side">
+            <div class="sell-panel">
+              <div class="sell-panel-title">📤 Prodat item</div>
+              <div style="font-size:0.8rem;color:var(--text2);margin-bottom:10px;font-style:italic">Klikni na item v inventáři pro prodej</div>
+              <div class="sell-item-preview" id="sell-preview">
+                <div class="sip-header">
+                  <div class="sip-icon" id="sip-icon">⚔</div>
+                  <div>
+                    <div class="sip-name" id="sip-name">—</div>
+                    <div class="sip-rarity" id="sip-rarity">—</div>
+                  </div>
+                </div>
+                <div class="sip-bonuses" id="sip-bonuses"></div>
+              </div>
+              <div class="sell-form" id="sell-form" style="display:none">
+                <label>Cena za kus (G)</label>
+                <input type="number" id="sell-price" min="1" placeholder="Zadej cenu...">
+                <label>Množství</label>
+                <input type="number" id="sell-qty" min="1" value="1" placeholder="1">
+                <button class="btn btn-gold btn-full" onclick="listOnMarket()" id="sell-btn">📤 Vystavit na trh</button>
+                <div style="font-size:0.68rem;color:var(--text3);text-align:center">Poplatek 5% z prodejní ceny</div>
+              </div>
+
+              <div class="my-listings-sec">
+                <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border)">Moje nabídky</div>
+                <div id="my-listings">
+                  <div style="color:var(--text3);font-size:0.76rem;font-style:italic">Žádné aktivní nabídky...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ARÉNA -->
+      <div class="page" id="page-arena">
+        <div class="page-hdr">🏟 Aréna PvP</div>
+
+        <!-- Season banner -->
+        <div id="season-banner"></div>
+
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start">
+
+          <!-- Hlavní panel - soupeři -->
+          <div>
+            <!-- Moje stats -->
+            <div id="arena-my-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+
+            <!-- Cooldown bar -->
+            <div id="arena-cooldown-wrap" style="display:none;margin-bottom:14px"></div>
+
+            <!-- Soupeři -->
+            <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">Dostupní soupeři</div>
+            <div id="arena-opponents">
+              <div style="color:var(--text2);font-style:italic;text-align:center;padding:20px">Načítám soupeře...</div>
+            </div>
+          </div>
+
+          <!-- Pravý panel - výsledek + historie -->
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <!-- Výsledek posledního souboje -->
+            <div id="arena-result" style="display:none"></div>
+
+            <!-- Historie zápasů -->
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
+              <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">Historie zápasů</div>
+              <div id="arena-history">
+                <div style="color:var(--text3);font-size:0.76rem;font-style:italic">Zatím žádné zápasy...</div>
+              </div>
+            </div>
+
+            <!-- ELO žebříček / Sezónní žebříček -->
+            <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2)">🏆 Sezónní žebříček</div>
+              </div>
+              <div id="arena-lb">
+                <div style="color:var(--text3);font-size:0.76rem">Načítám...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Battle log modal -->
+        <div id="arena-log-wrap" style="display:none;margin-top:16px">
+          <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px">Bojový log</div>
+          <div class="blog" id="arena-log"></div>
+        </div>
+      </div>
+
+      <!-- NOTIFIKACE -->
+      <div class="page" id="page-notifications">
+        <div class="page-hdr" style="justify-content:space-between">
+          <span>🔔 Notifikace</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm" onclick="markAllRead()" style="font-size:0.65rem;padding:5px 12px">✓ Vše přečteno</button>
+            <button class="btn btn-sm" onclick="clearNotifs()" style="font-size:0.65rem;padding:5px 12px;background:rgba(180,30,30,.2);border-color:var(--accent);color:var(--accent2)">🗑 Vyčistit</button>
+          </div>
+        </div>
+        <div id="notif-list">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám notifikace...</div>
+        </div>
+      </div>
+
+      <!-- ACHIEVEMENTY -->
+      <div class="page" id="page-achievements">
+        <div class="page-hdr">🏆 Odznaky</div>
+        <div id="ach-content">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
+        </div>
+      </div>
+
+      <!-- NPC OBCHOD -->
+      <div class="page" id="page-shop">
+        <div class="page-hdr">🏪 NPC Obchod</div>
+        <div class="shop-rotation" id="shop-rotation-bar">
+          <span class="shop-rot-label">⏱ Rotace zásob za</span>
+          <span class="shop-rot-time" id="shop-rot-time">—</span>
+        </div>
+        <div class="shop-npc-grid" id="shop-npc-grid">
+          <div style="color:var(--text2);font-style:italic;padding:20px">Načítám obchod...</div>
+        </div>
+      </div>
+
+      <!-- CECH -->
+      <div class="page" id="page-guild">
+        <div class="page-hdr">⚜ Cech</div>
+        <div id="guild-content">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PRAVÝ PANEL -->
+  <div class="rpanel">
+    <div class="rp-sec">
+      <div class="rp-title">Aktivita <em id="rp-clock">—</em></div>
+      <div class="rp-body" id="act-log">
+        <div style="color:var(--text3);font-size:0.75rem;font-style:italic">Zatím žádná aktivita...</div>
+      </div>
+    </div>
+    <div class="rp-sec">
+      <div class="rp-title">Žebříček <em>TOP 10</em></div>
+      <div class="rp-body" id="lb-list"><div style="color:var(--text3);font-size:0.75rem">Načítám...</div></div>
+    </div>
+    <div class="rp-sec">
+      <div class="rp-title">Guild top cechy</div>
+      <div class="rp-body" id="rp-guild-list"><div style="color:var(--text3);font-size:0.75rem">Načítám...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL tvorba postavy -->
+<div class="overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-title">⚔ Vytvoř svého hrdinu</div>
+    <div class="fld"><label>Jméno postavy</label><input type="text" id="c-name" placeholder="Legendární jméno..." maxlength="32"></div>
+    <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:7px">Zvolte povolání</div>
+    <div class="cls-grid" id="cls-grid">
+      <!-- Třídy se načítají... pokud vidíš toto, loadCls() selhalo -->
+    </div>
+    <div class="fmsg" id="c-msg"></div>
+    <button class="btn btn-gold btn-full" id="c-btn" onclick="createChar()">⚔ Vstoupit do dungeonu</button>
+  </div>
+</div>
+
+<!-- MODAL item detail -->
+<div class="overlay" id="modal-item">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('modal-item')">✕</button>
+    <div id="modal-item-body"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const API = 'http://localhost:8000';
+let token = localStorage.getItem('dc_token');
+let char = null, questTimer = null, selCls = null, clsData = {};
+let invData = [], invFilter = 'all', sellInvId = null;
+let mktCurrentPage = 1, mktTotalPages = 1;
+let searchTimeout = null;
+
+const CLS_N = { warrior:'Válečník', mage:'Mág', ranger:'Lovec' };
+const CLS_E = { warrior:'⚔️', mage:'🔮', ranger:'🏹' };
+const CLS_D = { warrior:'Silný bojovník. Vysoký HP a obrana.', mage:'Mistr magie. Devastující kouzla.', ranger:'Rychlý lovec. Kritické zásahy.' };
+const RARITY_COL = { common:'#9d9d9d', uncommon:'#1eff00', rare:'#0070dd', epic:'#a335ee', legendary:'#ff8000' };
+const RARITY_CZ  = { common:'Běžný', uncommon:'Neobvyklý', rare:'Vzácný', epic:'Epický', legendary:'Legendární' };
+const SLOT_ICONS = { weapon:'⚔️', helmet:'⛑️', armor:'🥋', gloves:'🧤', boots:'👢', ring:'💍', amulet:'🧿' };
+const SLOT_CZ    = { weapon:'Zbraň', helmet:'Přilba', armor:'Brnění', gloves:'Rukavice', boots:'Boty', ring:'Prsten', amulet:'Amulet' };
+
+// ── API ───────────────────────────────────────────
+async function api(method, path, body) {
+  const r = await fetch(API + path, {
+    method,
+    headers: { 'Content-Type':'application/json', ...(token?{Authorization:`Bearer ${token}`}:{}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let d;
+  try { d = await r.json(); } catch { throw new Error('Chyba serveru (500)'); }
+  if (!r.ok) throw new Error(d.detail || 'Chyba serveru');
+  return d;
+}
+
+// ── TOAST ─────────────────────────────────────────
+function toast(msg, type='i', dur=3500) {
+  const ic = {s:'✅',e:'❌',i:'ℹ️'};
+  const el = document.createElement('div');
+  el.className = `toast t${type}`;
+  el.innerHTML = `<span>${ic[type]}</span><span>${msg}</span>`;
+  document.getElementById('toasts').append(el);
+  setTimeout(() => el.remove(), dur);
+}
+
+// ── MODAL ─────────────────────────────────────────
+const openModal = (id) => {
+  document.getElementById(id).classList.add('open');
+  // Vždy znovu vyrenderuj třídy když se otevírá create modal
+  if (id === 'modal-create') {
+    renderClsGrid();
+  }
+};
+const closeModal = id => document.getElementById(id).classList.remove('open');
+document.querySelectorAll('.overlay').forEach(m => m.addEventListener('click', e => {
+  if (e.target === m && m.id !== 'modal-create') closeModal(m.id);
+}));
+
+// ── NAVIGACE ──────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn[id]').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${name}`)?.classList.add('active');
+  document.getElementById(`nav-${name}`)?.classList.add('active');
+  if (name === 'quests')        loadQuests();
+  if (name === 'equipment')     { renderEquip(); loadInventory(); }
+  if (name === 'inventory')     loadInventory();
+  if (name === 'market')        { loadMarket(); loadMyListings(); }
+  if (name === 'shop')          loadShop();
+  if (name === 'arena')         loadArena();
+  if (name === 'guild')         loadGuild();
+  if (name === 'achievements')  loadAchievements();
+  if (name === 'notifications') loadNotifications();
+}
+
+const logout = () => { localStorage.clear(); location.href = '/'; };
+
+// ── UPDATE UI ─────────────────────────────────────
+function updateUI(c) {
+  char = c;
+  const cl = c.cls;
+  document.getElementById('tb-char').style.display = 'flex';
+  set('tb-avatar', CLS_E[cl]); set('tb-name', c.name);
+  set('tb-lvl', `Lv.${c.level}`); set('tb-cls', CLS_N[cl]);
+  set('tb-gold', c.gold.toLocaleString('cs'));
+  set('tb-hpn', c.combat.hp_max); set('tb-mpn', c.combat.mp_max);
+  set('tb-xpn', `${c.xp}/${c.xp_to_next}`);
+  pct('tb-hp', 100); pct('tb-mp', 100); pct('tb-xp', (c.xp/c.xp_to_next)*100);
+
+  set('p-emoji', CLS_E[cl]); set('p-name', c.name); set('p-level', `Level ${c.level}`);
+  set('b-hp', `${c.combat.hp_max}/${c.combat.hp_max}`);
+  set('b-mp', `${c.combat.mp_max}/${c.combat.mp_max}`);
+  set('b-xp', `${c.xp}/${c.xp_to_next}`);
+  pct('bar-hp', 100); pct('bar-mp', 100); pct('bar-xp', (c.xp/c.xp_to_next)*100);
+
+  set('s-str', c.stats.strength); set('s-dex', c.stats.dexterity);
+  set('s-int', c.stats.intelligence); set('s-end', c.stats.endurance);
+  set('s-luck', c.stats.luck); set('s-atk', c.combat.atk);
+  set('s-def', c.combat.def); set('s-spd', c.combat.spd);
+  set('s-gold', c.gold.toLocaleString('cs') + ' G'); set('s-arena', `#${c.arena.rank}`);
+
+  set('ov-level', c.level); set('ov-xp', `${c.xp_to_next - c.xp} XP do dalšího`);
+  set('ov-gold', c.gold.toLocaleString('cs') + ' G');
+  set('ov-arena', `#${c.arena.rank}`); set('ov-wl', `${c.arena.wins}W / ${c.arena.losses}L`);
+  set('ov-cls', `${CLS_E[cl]} ${CLS_N[cl]}`); set('ov-desc', CLS_D[cl]);
+
+  // Stat body
+  const sp = c.stat_points || 0;
+  const banner = document.getElementById('stat-points-banner');
+  if (banner) banner.style.display = sp > 0 ? 'block' : 'none';
+  set('sp-count', sp);
+  ['strength','dexterity','intelligence','endurance','luck'].forEach(s => {
+    const btn = document.getElementById(`alloc-${s}`);
+    if (btn) btn.style.display = sp > 0 ? 'inline-flex' : 'none';
+  });
+}
+
+function set(id, v) { const e = document.getElementById(id); if(e) e.textContent = v; }
+function pct(id, p) { const e = document.getElementById(id); if(e) e.style.width = `${Math.max(0,Math.min(100,p))}%`; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── VYBAVENÍ ──────────────────────────────────────
+const SLOTS = [
+  {k:'weapon',side:0},{k:'helmet',side:0},{k:'armor',side:0},
+  {k:'gloves',side:1},{k:'boots',side:1},{k:'ring',side:1},{k:'amulet',side:1},
+];
+
+function openEquippedItemDetail(slot) {
+  const item = char.equipment?.[slot];
+  if (!item) return;
+  const inv = invData.find(i => i.item?.id === item.id);
+  if (inv) {
+    openItemDetail(inv);
+  } else {
+    openItemDetail({ id: -1, item, quantity: 1, equipped: true, equipped_in: slot });
+  }
+}
+
+function renderEquip() {
+  if (!char) return;
+  const eq = char.equipment || {};
+  const left = SLOTS.filter(s=>s.side===0), right = SLOTS.filter(s=>s.side===1);
+
+  const slot = s => {
+    const item = eq[s.k];  // nyní objekt nebo null
+    const has = !!item;
+    const rc = has ? (RARITY_COL[item.rarity] || '#9d9d9d') : 'var(--border)';
+    const mainBonus = has ? Object.entries(item.bonuses || {}).find(([,v]) => v > 0) : null;
+    const bonusTxt = mainBonus ? `+${mainBonus[1]} ${mainBonus[0].toUpperCase()}` : '';
+    return `<div class="eq-slot ${has?'filled':''}" style="--slot-rc:${rc}"
+              onclick="${has ? `openEquippedItemDetail('${s.k}')` : ''}"
+              title="${has ? 'Klikni pro detail / sundání' : 'Prázdný slot'}">
+      <div class="eq-slot-icon" style="${has ? 'opacity:1;filter:none' : ''}">${has ? item.icon : SLOT_ICONS[s.k]}</div>
+      <div class="eq-slot-body">
+        <div class="eq-slot-type">${SLOT_CZ[s.k]}</div>
+        <div class="eq-slot-name" style="color:${rc};font-size:.76rem">${has ? esc(item.name) : 'Prázdné'}</div>
+        <div class="eq-slot-stat">${has && bonusTxt ? `<span style="color:var(--green2)">${bonusTxt}</span>` : '—'}</div>
+      </div>
+      ${has ? `<div class="rarity-pip" style="background:${rc}" title="${RARITY_CZ[item.rarity]||''}"></div>` : ''}
+    </div>`;
+  };
+
+  document.getElementById('equip-layout').innerHTML = `
+    <div class="equip-col">${left.map(slot).join('')}</div>
+    <div class="equip-center">
+      <div class="equip-portrait-outer">
+        <div class="equip-portrait-inner">
+          <div class="equip-portrait-emoji">${CLS_E[char.cls]}</div>
+        </div>
+      </div>
+      <div class="equip-char-name">${esc(char.name)}</div>
+      <div class="equip-char-lvl">Level ${char.level} · ${CLS_N[char.cls]}</div>
+      <div class="equip-stats-mini">
+        <div class="esm-row"><span class="esm-lbl">⚔ Útok</span>  <span class="esm-val c-red">${char.combat.atk}</span></div>
+        <div class="esm-row"><span class="esm-lbl">🛡 Obrana</span><span class="esm-val c-blue">${char.combat.def}</span></div>
+        <div class="esm-row"><span class="esm-lbl">💨 Rychlost</span><span class="esm-val c-cyan">${char.combat.spd}</span></div>
+        <div class="esm-row"><span class="esm-lbl">❤ Max HP</span><span class="esm-val c-red">${char.combat.hp_max}</span></div>
+        <div class="esm-row"><span class="esm-lbl">💙 Max MP</span><span class="esm-val c-blue">${char.combat.mp_max}</span></div>
+      </div>
+    </div>
+    <div class="equip-col">${right.map(slot).join('')}</div>`;
+}
+
+async function unequipSlot(slot) {
+  try {
+    const d = await api('POST', '/inventory/unequip', { slot });
+    const itemName = char.equipment?.[slot]?.name || SLOT_CZ[slot];
+    toast(`Sundáno: ${itemName}`, 'i', 2000);
+    updateUI(d.character);
+    renderEquip();
+    await loadInventory();
+    addAct(`🔓 Sundáno: ${itemName}`);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── INVENTÁŘ ──────────────────────────────────────
+async function loadInventory() {
+  try {
+    const d = await api('GET', '/inventory/');
+    invData = d.items;
+    renderInv();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function filterInv(filter, btn) {
+  invFilter = filter;
+  document.querySelectorAll('.inv-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderInv();
+}
+
+function renderInv() {
+  const other = ['gloves','boots','ring','amulet'];
+  const filtered = invFilter === 'all' ? invData
+    : invFilter === 'other' ? invData.filter(i => other.includes(i.item?.type))
+    : invData.filter(i => i.item?.type === invFilter);
+
+  set('inv-count', `${filtered.length} itemů`);
+
+  const grid = document.getElementById('inv-grid');
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="inv-empty">Žádné itemy v inventáři.<br><span style="font-size:.8rem;margin-top:6px;display:block">Itemy získáváš z questů.</span></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(inv => {
+    const item = inv.item;
+    const rc = RARITY_COL[item?.rarity] || '#9d9d9d';
+    const bonuses = Object.entries(item?.bonuses || {}).filter(([,v]) => v > 0);
+    const bonusTxt = bonuses.slice(0,2).map(([k,v]) => `+${v} ${k.toUpperCase()}`).join(' · ');
+    return `<div class="inv-card ${inv.equipped?'equipped':''}" style="--rc:${rc}"
+              onclick="openItemDetail(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
+      <div class="inv-card-icon">${item?.icon || '📦'}</div>
+      <div class="inv-card-name" style="color:${rc}">${esc(item?.name||'?')}</div>
+      <div class="inv-card-type">${esc(item?.type||'')}</div>
+      <div style="font-size:.65rem;color:var(--green);margin-top:2px">${bonusTxt}</div>
+      ${inv.quantity > 1 ? `<div class="inv-card-qty">×${inv.quantity}</div>` : ''}
+      ${inv.equipped ? '<div class="inv-card-equipped-badge">NASAZENO</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── ITEM DETAIL MODAL ─────────────────────────────
+function openItemDetail(inv) {
+  const item = inv.item;
+  if (!item) return;
+  const rc = RARITY_COL[item.rarity] || '#9d9d9d';
+  const bonuses = Object.entries(item.bonuses || {}).filter(([,v]) => v > 0);
+  const equippable = ['weapon','helmet','armor','gloves','boots','ring','amulet'].includes(item.type);
+  const bonusLabels = {atk:'Útok',def:'Obrana',spd:'Rychlost',hp:'Max HP',mp:'XP (při použití)',str:'Síla',dex:'Obratnost',int:'Inteligence',end:'Výdrž',luck:'Štěstí'};
+  const isPotion = item.type === 'potion';
+
+  const bonusRows = bonuses.map(([k,v]) =>
+    `<div class="item-bonus-row"><span class="item-bonus-lbl">${bonusLabels[k]||k}</span><span class="item-bonus-val">+${v}</span></div>`
+  ).join('');
+
+  // Porovnání s aktuálně nasazeným itemem
+  const currentItem = (equippable && !inv.equipped && char?.equipment) ? char.equipment[item.type] : null;
+  let compHtml = '';
+  if (currentItem && currentItem.id !== item.id) {
+    const curRc = RARITY_COL[currentItem.rarity] || '#9d9d9d';
+    const allKeys = Object.keys(item.bonuses || {});
+    const compRows = allKeys.map(k => {
+      const nv = (item.bonuses[k] || 0);
+      const cv = (currentItem.bonuses?.[k] || 0);
+      if (nv === 0 && cv === 0) return '';
+      const diff = nv - cv;
+      const dc = diff > 0 ? 'var(--green2)' : diff < 0 ? 'var(--accent2)' : 'var(--text3)';
+      const dt = diff > 0 ? `▲+${diff}` : diff < 0 ? `▼${diff}` : '=';
+      return `<div style="display:grid;grid-template-columns:1fr 2.5rem 3rem 2.5rem;gap:2px 6px;align-items:center;padding:2px 0;font-size:.74rem">
+        <span style="color:var(--text2)">${bonusLabels[k]||k}</span>
+        <span style="text-align:right;color:var(--text3)">${cv}</span>
+        <span style="text-align:center;font-weight:700;color:${dc}">${dt}</span>
+        <span style="text-align:right;color:var(--text)">${nv}</span>
+      </div>`;
+    }).filter(Boolean).join('');
+    compHtml = `
+      <div style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:10px;margin-bottom:10px">
+        <div style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;color:var(--text2);margin-bottom:6px">⚖ Porovnání s nasazeným</div>
+        <div style="font-size:.78rem;color:${curRc};margin-bottom:6px">${currentItem.icon} ${esc(currentItem.name)}</div>
+        <div style="font-family:'Cinzel',serif;font-size:.58rem;display:grid;grid-template-columns:1fr 2.5rem 3rem 2.5rem;gap:0 6px;color:var(--text3);margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.05)">
+          <span></span><span style="text-align:right">Stav</span><span style="text-align:center">Rozdíl</span><span style="text-align:right">Nový</span>
+        </div>
+        ${compRows || '<span style="color:var(--text3);font-size:.74rem">Žádné bonusy k porovnání</span>'}
+      </div>`;
+  }
+
+  document.getElementById('modal-item-body').innerHTML = `
+    <div class="item-detail-header">
+      <div class="item-detail-icon">${item.icon}</div>
+      <div class="item-detail-info">
+        <div class="item-detail-name" style="color:${rc}">${esc(item.name)}</div>
+        <div class="item-detail-meta">
+          <span style="color:${rc}">${RARITY_CZ[item.rarity]||item.rarity}</span>
+          <span style="color:var(--text2)">·</span>
+          <span style="color:var(--text2)">${SLOT_CZ[item.type]||item.type}</span>
+          <span style="color:var(--text2)">·</span>
+          <span style="color:var(--text2)">Min. Lv.${item.min_level}</span>
+        </div>
+      </div>
+    </div>
+    ${item.description ? `<div class="item-desc">${esc(item.description)}</div>` : ''}
+    ${bonusRows ? `<div class="item-bonuses">${bonusRows}</div>` : ''}
+    ${compHtml}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.8rem;color:var(--text2)">
+      <span>Počet: <strong style="color:var(--text)">${inv.quantity} ks</strong></span>
+      <span>Hodnota: <strong style="color:var(--gold2)">${item.sell_price} G / ks</strong></span>
+    </div>
+    <div class="item-actions">
+      ${isPotion && inv.id !== -1 ? `<button class="btn btn-green" onclick="useItem(${inv.id},'${esc(item.name).replace(/'/g,"\\'")}')">🧪 Použít</button>` : ''}
+      ${equippable && !inv.equipped ? `<button class="btn btn-gold" onclick="equipItem(${inv.id});closeModal('modal-item')">⚔ Nasadit</button>` : ''}
+      ${inv.equipped ? `<button class="btn" onclick="unequipSlot('${item.type}');closeModal('modal-item')">🔓 Sundat</button>` : ''}
+      ${inv.id !== -1 && !isPotion ? `<button class="btn" onclick="prepareSell(${JSON.stringify(inv).replace(/"/g,'&quot;')});closeModal('modal-item');showPage('market')" style="background:linear-gradient(135deg,#5a3800,#a06808,#5a3800);border-color:var(--gold2)">📤 Prodat na trhu</button>` : ''}
+      ${inv.id !== -1 ? `<button class="btn btn-sm" style="background:rgba(180,30,30,.2);border-color:var(--accent);color:var(--accent2)" onclick="sellToShop(${inv.id},${item.sell_price});closeModal('modal-item')">🪙 Prodat (${item.sell_price}G)</button>` : ''}
+    </div>`;
+
+  openModal('modal-item');
+}
+
+async function equipItem(invId) {
+  const invItem = invData.find(i => i.id === invId);
+  const itemName = invItem?.item?.name || 'item';
+  try {
+    const d = await api('POST', '/inventory/equip', { inv_item_id: invId });
+    toast(d.message, 's', 2500);
+    updateUI(d.character);
+    renderEquip();
+    await loadInventory();
+    addAct(`⚔ Nasazeno: ${itemName}`);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function sellToShop(invId, price) {
+  try {
+    const d = await api('POST', '/inventory/sell', { inv_item_id: invId, quantity: 1 });
+    toast(d.message, 's');
+    addAct(`🪙 Prodáno do shopu za ${d.gold_earned} G`);
+    await refreshChar();
+    await loadInventory();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── TRŽIŠTĚ ───────────────────────────────────────
+let _mktCurrentPage = 1;
+
+async function loadMarket() {
+  const search = document.getElementById('mkt-search')?.value || '';
+  const type   = document.getElementById('mkt-type')?.value || '';
+  const rarity = document.getElementById('mkt-rarity')?.value || '';
+  const sort   = document.getElementById('mkt-sort')?.value || 'price_asc';
+
+  let url = `/market/?page=${_mktCurrentPage}&sort=${sort}`;
+  if (search) url += `&search=${encodeURIComponent(search)}`;
+  if (type)   url += `&item_type=${type}`;
+  if (rarity) url += `&rarity=${rarity}`;
+
+  try {
+    const d = await api('GET', url);
+    mktTotalPages = d.pages;
+    renderMarketTable(d.listings, d.total);
+    const pager = document.getElementById('mkt-pager');
+    pager.style.display = d.total > 20 ? 'flex' : 'none';
+    set('mkt-page-info', `${_mktCurrentPage} / ${d.pages}`);
+    document.getElementById('mkt-prev').disabled = _mktCurrentPage <= 1;
+    document.getElementById('mkt-next').disabled = _mktCurrentPage >= d.pages;
+  } catch(e) { toast(e.message,'e'); }
+}
+
+function changeMktPage(dir) {
+  _mktCurrentPage = Math.max(1, Math.min(mktTotalPages, _mktCurrentPage + dir));
+  loadMarket();
+}
+
+function debouncedSearch() {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => { _mktCurrentPage = 1; loadMarket(); }, 400);
+}
+
+function renderMarketTable(listings, total) {
+  const wrap = document.getElementById('mkt-table-wrap');
+  if (!listings.length) {
+    wrap.innerHTML = `<div class="mkt-empty">Žádné nabídky na trhu${total===0?'.':' pro tento filtr.'}</div>`;
+    return;
+  }
+  wrap.innerHTML = `
+    <div style="font-size:.7rem;color:var(--text2);margin-bottom:6px;font-family:'Cinzel',serif">${total} nabídek celkem</div>
+    <table class="mkt-table">
+      <thead><tr>
+        <th>Item</th><th>Rarity</th><th>Prodejce</th><th>Cena / ks</th><th>Ks</th><th></th>
+      </tr></thead>
+      <tbody>
+        ${listings.map(l => {
+          const rc = RARITY_COL[l.item?.rarity] || '#9d9d9d';
+          const myChar = char && l.seller === char.name;
+          return `<tr>
+            <td>
+              <div class="mkt-item-cell">
+                <div class="mkt-item-icon">${l.item?.icon||'📦'}</div>
+                <div>
+                  <div class="mkt-item-name" style="color:${rc}">${esc(l.item?.name||'?')}</div>
+                  <div class="mkt-item-type">${l.item?.type||''}</div>
+                </div>
+              </div>
+            </td>
+            <td><span style="color:${rc};font-size:.72rem;font-family:'Cinzel',serif">${RARITY_CZ[l.item?.rarity]||l.item?.rarity||'?'}</span></td>
+            <td class="mkt-seller">${esc(l.seller)}</td>
+            <td class="mkt-price">${l.price.toLocaleString('cs')} G</td>
+            <td style="color:var(--text2);font-size:.8rem">${l.quantity}</td>
+            <td>${myChar
+              ? `<button class="my-cancel-btn" onclick="cancelListing(${l.id})">✕ Zrušit</button>`
+              : `<button class="mkt-buy-btn" onclick="buyListing(${l.id},'${esc(l.item?.name||'?')}',${l.price*l.quantity})">Koupit ${(l.price*l.quantity).toLocaleString('cs')} G</button>`
+            }</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function buyListing(id, name, total) {
+  if (!confirm(`Koupit "${name}" za ${total.toLocaleString('cs')} G?`)) return;
+  try {
+    const d = await api('POST', `/market/buy/${id}`);
+    toast(d.message, 's', 4000);
+    addAct(`🛒 Koupeno: ${name} za ${total} G`);
+    await refreshChar();
+    loadMarket();
+    loadMyListings();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function cancelListing(id) {
+  try {
+    const d = await api('DELETE', `/market/cancel/${id}`);
+    toast(d.message, 'i');
+    loadMarket();
+    loadMyListings();
+    await loadInventory();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function loadMyListings() {
+  try {
+    const d = await api('GET', '/market/my-listings');
+    const el = document.getElementById('my-listings');
+    if (!d.listings.length) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:.76rem;font-style:italic">Žádné aktivní nabídky...</div>';
+      return;
+    }
+    el.innerHTML = d.listings.map(l => `
+      <div class="my-listing-row">
+        <span style="font-size:1rem">${l.item?.icon||'📦'}</span>
+        <span class="my-listing-name">${esc(l.item?.name||'?')}</span>
+        <span class="my-listing-price">${l.price.toLocaleString('cs')} G</span>
+        <button class="my-cancel-btn" onclick="cancelListing(${l.id})">✕</button>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// Připrav prodej z inventáře
+function prepareSell(inv) {
+  sellInvId = inv.id;
+  const item = inv.item;
+  const rc = RARITY_COL[item?.rarity] || '#9d9d9d';
+
+  document.getElementById('sell-preview').classList.add('show');
+  set('sip-icon', item?.icon || '📦');
+  set('sip-name', item?.name || '?');
+  document.getElementById('sip-rarity').textContent = RARITY_CZ[item?.rarity] || item?.rarity || '?';
+  document.getElementById('sip-rarity').style.color = rc;
+
+  const bonuses = Object.entries(item?.bonuses || {}).filter(([,v]) => v > 0);
+  document.getElementById('sip-bonuses').innerHTML = bonuses.map(([k,v]) => `+${v} ${k.toUpperCase()}`).join('  ·  ');
+
+  document.getElementById('sell-price').value = item?.sell_price ? item.sell_price * 3 : '';
+  document.getElementById('sell-qty').value = 1;
+  document.getElementById('sell-qty').max = inv.quantity;
+  document.getElementById('sell-form').style.display = 'flex';
+}
+
+async function listOnMarket() {
+  if (!sellInvId) return toast('Vyber item z inventáře.', 'e');
+  const price = parseInt(document.getElementById('sell-price').value);
+  const qty   = parseInt(document.getElementById('sell-qty').value);
+  if (!price || price < 1) return toast('Zadej platnou cenu.', 'e');
+  if (!qty   || qty < 1)   return toast('Zadej platné množství.', 'e');
+
+  try {
+    const d = await api('POST', '/market/list', { inv_item_id: sellInvId, quantity: qty, price });
+    toast(d.message, 's', 4000);
+    addAct(`📤 Vystaveno na trhu: ${price} G`);
+    sellInvId = null;
+    document.getElementById('sell-preview').classList.remove('show');
+    document.getElementById('sell-form').style.display = 'none';
+    await refreshChar();
+    await loadInventory();
+    loadMyListings();
+    loadMarket();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── QUESTY ────────────────────────────────────────
+async function loadQuests() {
+  try {
+    const [quests, status] = await Promise.all([api('GET','/quest/list'), api('GET','/quest/status')]);
+    renderAQ(status);
+    renderQList(quests, status.status);
+  } catch(e) { toast(e.message,'e'); }
+}
+
+function renderAQ(s) {
+  clearInterval(questTimer);
+  const wrap = document.getElementById('aq-wrap');
+  if (s.status === 'idle') { wrap.innerHTML = ''; return; }
+  const q = s.quest || {};
+
+  wrap.innerHTML = `
+    <div class="aq-banner">
+      <div class="aq-row1">
+        <div class="aq-icon">${q.icon||'⚔️'}</div>
+        <div class="aq-info">
+          <div class="aq-name">${esc(q.name||'—')}</div>
+          <div class="aq-sub">
+            <span class="dbadge ${q.difficulty==='boss'?'db':q.difficulty==='hard'?'dh':q.difficulty==='normal'?'dn':'de'}">${q.difficulty||''}</span>
+            <span class="aq-lbl" id="aq-lbl">${s.status==='collecting'?'✅ Dokončeno!':'Probíhá...'}</span>
+          </div>
+        </div>
+        <div class="aq-timer-box">
+          <div class="aq-timer" id="aq-timer">${s.status==='collecting'?'00:00':'--:--'}</div>
+          <div class="aq-timer-sub">zbývá</div>
+        </div>
+      </div>
+      <div class="aq-prog">
+        <div class="aq-prog-hdr"><span>Postup</span><span id="aq-pct">0%</span></div>
+        <div class="aq-prog-track"><div class="aq-prog-fill" id="aq-fill" style="width:${s.status==='collecting'?'100':'0'}%"></div></div>
+      </div>
+      <div class="aq-rewards">
+        <div class="aq-chip">✨ <span class="aq-chip-val">${s.reward_xp}</span> XP</div>
+        <div class="aq-chip">💰 <span class="aq-chip-val">${s.reward_gold}</span> G</div>
+        ${s.reward_item?`<div class="aq-chip">🎁 <span class="aq-chip-val">${esc(s.reward_item.name)}</span></div>`:''}
+      </div>
+      <button class="btn-collect" id="aq-btn" ${s.status==='collecting'?'':'disabled'} onclick="collectQuest()">
+        ${s.status==='collecting'?'🎁 Sebrat odměnu!':'⏳ Quest probíhá...'}
+      </button>
+    </div>`;
+
+  if (s.status === 'active') runTimer(s);
+  if (s.status === 'collecting') { pct('aq-fill',100); set('aq-pct','100%'); }
+}
+
+function runTimer(s) {
+  const total = (s.quest?.duration||1)*60, start = Date.now(), initRem = s.seconds_remaining;
+  function tick() {
+    const rem = Math.max(0, initRem - Math.floor((Date.now()-start)/1000));
+    const prog = Math.min(100, ((total-rem)/total)*100);
+    const te=document.getElementById('aq-timer'), fe=document.getElementById('aq-fill'), pe=document.getElementById('aq-pct');
+    if(te) te.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
+    if(fe) fe.style.width = `${prog}%`;
+    if(pe) pe.textContent = `${Math.round(prog)}%`;
+    if(rem<=0){
+      clearInterval(questTimer);
+      if(te) te.textContent='00:00';
+      const lbl=document.getElementById('aq-lbl'), btn=document.getElementById('aq-btn');
+      if(lbl) lbl.textContent='✅ Dokončeno — seber odměnu!';
+      if(btn){btn.disabled=false;btn.textContent='🎁 Sebrat odměnu!';}
+    }
+  }
+  tick(); questTimer = setInterval(tick, 1000);
+}
+
+function renderQList(quests, status) {
+  const el = document.getElementById('qlist-wrap');
+  const dc = {easy:'#30a848',normal:'#3070c8',hard:'#b82030',boss:'#8030c0'};
+  if (status !== 'idle') {
+    el.innerHTML = `<div style="color:var(--text2);font-style:italic;font-size:.87rem;text-align:center;padding:10px 0">Dokonči aktuální quest a potom si vyber nový.</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">Dostupné questy</div>
+    <div class="quest-grid">
+      ${quests.map(q=>{
+        const wp=Math.round(q.win_chance*100), wc=wp>=70?'#30a848':wp>=40?'#c89010':'#b82030';
+        const locked=!q.unlocked, badge={easy:'de',normal:'dn',hard:'dh',boss:'db'}[q.difficulty]||'dn';
+        return `<div class="qcard ${locked?'qlocked':''}" style="--dc:${dc[q.difficulty]||'#444'}"
+            ${locked?'':` onclick="startQuest(${q.id},'${esc(q.name)}')"`}>
+          <div class="dbadge ${badge}">${q.difficulty}</div>
+          <div class="q-icon">${q.icon}</div>
+          <div class="q-name">${esc(q.name)}</div>
+          <div class="q-desc">${esc(q.desc)}</div>
+          <div class="q-meta">
+            <span>⏱ <span class="qhl">${q.duration}m</span></span>
+            <span>✨ <span class="qhl">${q.reward_xp}</span> XP</span>
+            <span>💰 <span class="qhl">${q.reward_gold_min}–${q.reward_gold_max}</span> G</span>
+            ${locked?`<span style="color:var(--accent2)">🔒 Lv.${q.min_level}</span>`:''}
+          </div>
+          ${!locked?`<div class="wcbar"><div class="wcbar-hdr"><span>Šance na výhru</span><span style="color:${wc}">${wp}%</span></div><div class="wcbar-track"><div class="wcbar-fill" style="width:${wp}%;background:${wc}"></div></div></div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function startQuest(id, name) {
+  try {
+    const d = await api('POST','/quest/start',{quest_id:id});
+    toast(`Quest "${name}" zahájen! ${d.success?'✅ Výhra předpovězena':'⚠ Bude to těžké'}`, 's', 3500);
+    addAct(`⚔ Zahájen: ${name}`);
+    await loadQuests();
+  } catch(e) { toast(e.message,'e'); }
+}
+
+async function collectQuest() {
+  clearInterval(questTimer);
+  try {
+    const d = await api('POST','/quest/collect');
+    const success = d.success !== false;
+    let msg = `+${d.rewards.xp} XP`;
+    if (d.rewards.gold > 0) msg += `, +${d.rewards.gold} G`;
+    if (d.rewards.item) msg += `, 🎁 ${d.rewards.item.name}`;
+    if (success) {
+      toast(`✅ Quest splněn! ${msg}`, 's', 5000);
+      addAct(`✅ Quest splněn: ${msg}`);
+    } else {
+      toast(`⚠ Quest se nezdařil — ${msg}`, 'i', 5000);
+      addAct(`⚠ Quest se nezdařil: ${msg}`);
+    }
+    if(d.leveled_up?.length) toast(`🎉 Level Up! → Level ${d.leveled_up.at(-1)}`, 's', 5000);
+    showAchievementToasts(d.new_achievements);
+    if(d.battle_log?.length){
+      const logEl=document.getElementById('ov-log');
+      logEl.innerHTML=d.battle_log.map(line=>{
+        const cls=line.includes('zvítězil')?'bwin':line.includes('poražen')?'blose':line.includes('KRITICKÝ')?'bcrit':line.startsWith('─')||line.startsWith('[Kolo')?'bsep':'';
+        return `<div class="${cls}">${esc(line)}</div>`;
+      }).join('');
+      document.getElementById('ov-log-wrap').style.display='block';
+    }
+    updateUI(d.character);
+    if (document.getElementById('page-equipment')?.classList.contains('active')) renderEquip();
+    await loadQuests();
+  } catch(e) { toast(e.message,'e'); }
+}
+
+// ── TVORBA POSTAVY ────────────────────────────────
+function loadCls() {
+  clsData = {
+    warrior: { description:'Silný bojovník v přední linii. Vysoký HP a obrana.', hp_base:120, atk_base:18, spd_base:8 },
+    mage:    { description:'Mistr arkánné magie. Devastující kouzla, křehké tělo.', hp_base:70,  atk_base:10, spd_base:10 },
+    ranger:  { description:'Rychlý a přesný lovec. Mistr kritických zásahů.', hp_base:90,  atk_base:14, spd_base:18 },
+  };
+  renderClsGrid();
+}
+
+function renderClsGrid() {
+  const grid = document.getElementById('cls-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.entries(clsData).map(([k,c])=>`
+    <div class="cls-card" id="cc-${k}" onclick="pickCls('${k}')">
+      <div class="cls-emoji">${CLS_E[k]}</div>
+      <div class="cls-name">${CLS_N[k]}</div>
+      <div class="cls-desc">${c.description}</div>
+      <div class="cls-nums">HP:${c.hp_base} ATK:${c.atk_base} SPD:${c.spd_base}</div>
+    </div>`).join('');
+}
+function pickCls(k){selCls=k;document.querySelectorAll('.cls-card').forEach(c=>c.classList.remove('sel'));document.getElementById(`cc-${k}`)?.classList.add('sel');}
+async function createChar(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name) return showFMsg('Zadej jméno.','err');
+  if(!selCls) return showFMsg('Vyber povolání.','err');
+  document.getElementById('c-btn').disabled=true;
+  try{
+    const d=await api('POST','/character/create',{name,cls:selCls});
+    localStorage.setItem('dc_has_character','true');
+    closeModal('modal-create');
+    updateUI(d.character);
+    addAct(`🎉 Hrdina ${d.character.name} vstoupil!`);
+    toast('Vítej, hrdino!','s',5000);
+  }catch(e){showFMsg(e.message,'err');document.getElementById('c-btn').disabled=false;}
+}
+function showFMsg(msg,type){const el=document.getElementById('c-msg');el.className=`fmsg ${type}`;el.textContent=msg;}
+
+// ── ŽEBŘÍČEK ──────────────────────────────────────
+async function loadLB(){
+  try{
+    const d=await api('GET','/character/leaderboard');
+    document.getElementById('lb-list').innerHTML=d.slice(0,10).map(c=>`
+      <div class="lb-row">
+        <div class="lb-rank">${c.rank}</div>
+        <div style="font-size:.82rem">${CLS_E[c.cls]||'?'}</div>
+        <div class="lb-name">${esc(c.name)}</div>
+        <div class="lb-lv">Lv.${c.level}</div>
+      </div>`).join('')||'<div style="color:var(--text3);font-size:.75rem">Zatím žádní hráči.</div>';
+  }catch(e){}
+}
+
+// ── AKTIVITA ──────────────────────────────────────
+function addAct(text){
+  const log=document.getElementById('act-log');
+  if(log.querySelector('[style*="italic"]')) log.innerHTML='';
+  const now=new Date(), t=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const el=document.createElement('div');el.className='act-row';
+  el.innerHTML=`<div class="act-time">${t}</div><div class="act-txt">${text}</div>`;
+  log.prepend(el);
+  while(log.children.length>15) log.lastChild.remove();
+  set('rp-clock',t);
+}
+
+async function refreshChar(){
+  try{
+    updateUI(await api('GET','/character/me'));
+    if (document.getElementById('page-equipment')?.classList.contains('active')) renderEquip();
+    toast('Obnoveno','i',1200);
+  }
+  catch(e){if(e.message.includes('404'))openModal('modal-create');else toast(e.message,'e');}
+}
+
+// ── STAT ALOKACE ────────────────────────────────────────────────────────────
+const STAT_CZ = {strength:'Síla',dexterity:'Obratnost',intelligence:'Inteligence',endurance:'Výdrž',luck:'Štěstí'};
+
+async function allocStat(stat) {
+  try {
+    const d = await api('POST', '/character/allocate-stat', { stat });
+    updateUI(d.character);
+    if (document.getElementById('page-equipment')?.classList.contains('active')) renderEquip();
+    toast(`+1 ${STAT_CZ[stat] || stat}! Zbývá ${d.stat_points_remaining} bodů.`, 's', 3000);
+    addAct(`⬆ Alokováno: +1 ${STAT_CZ[stat] || stat}`);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── USE ITEM (lektvary / svitky) ─────────────────────────────────────────────
+async function useItem(invItemId, itemName) {
+  try {
+    const d = await api('POST', `/inventory/use/${invItemId}`);
+    closeModal('modal-item');
+    updateUI(d.character);
+    if (document.getElementById('page-equipment')?.classList.contains('active')) renderEquip();
+
+    const changes = Object.entries(d.stat_changes || {})
+      .map(([k,v]) => `+${v} ${STAT_CZ[k]||k}`).join(', ');
+    const xpStr = d.xp_gained ? ` +${d.xp_gained} XP` : '';
+    toast(`🧪 '${itemName}' použit!${changes ? ' ' + changes : ''}${xpStr}`, 's', 4000);
+    addAct(`🧪 Použit: ${itemName}${changes ? ' ('+changes+')' : ''}${xpStr}`);
+    if (d.leveled_up?.length) {
+      d.leveled_up.forEach(lv => toast(`⚡ Level up! Nyní level ${lv}`, 's', 5000));
+    }
+    await loadInventory();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── NPC OBCHOD ───────────────────────────────────────────────────────────────
+let shopRotTimer = null;
+
+async function loadShop() {
+  try {
+    const d = await api('GET', '/shop/');
+    renderShop(d);
+    startShopRotTimer(d.seconds_to_rotation);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function startShopRotTimer(seconds) {
+  if (shopRotTimer) clearInterval(shopRotTimer);
+  let s = seconds;
+  const tick = () => {
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+    const timeStr = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
+                          : `${m}:${String(ss).padStart(2,'0')}`;
+    set('shop-rot-time', timeStr);
+    if (s <= 0) { clearInterval(shopRotTimer); loadShop(); } else { s--; }
+  };
+  tick();
+  shopRotTimer = setInterval(tick, 1000);
+}
+
+function renderShop(data) {
+  const grid = document.getElementById('shop-npc-grid');
+  if (!grid) return;
+
+  grid.innerHTML = data.npcs.map(npc => {
+    const itemsHTML = npc.items.length === 0
+      ? '<div style="color:var(--text2);font-style:italic;padding:8px 8px 4px">Žádné zboží.</div>'
+      : npc.items.map(item => {
+          const rc = item.rarity_color || '#9d9d9d';
+          const canAfford = char && char.gold >= item.shop_price;
+          const mainBonus = Object.entries(item.bonuses || {}).find(([,v]) => v > 0);
+          const bonusTxt = mainBonus ? `+${mainBonus[1]} ${mainBonus[0].toUpperCase()}` : (item.type === 'potion' ? '✨ Spotřební' : '');
+          return `
+          <div class="shop-item">
+            <div class="shop-item-icon" style="filter:drop-shadow(0 0 4px ${rc}44)">${item.icon}</div>
+            <div class="shop-item-body">
+              <div class="shop-item-name" style="color:${rc}">${esc(item.name)}</div>
+              <div class="shop-item-sub">${bonusTxt} · Lv.${item.min_level}+</div>
+            </div>
+            <div class="shop-item-price">${item.shop_price.toLocaleString('cs')} G</div>
+            <button class="shop-buy-btn" ${canAfford ? '' : 'disabled'}
+              onclick="buyFromShop(${item.id},'${esc(item.name)}',${item.shop_price})">
+              Koupit
+            </button>
+          </div>`;
+        }).join('');
+
+    return `
+    <div class="shop-npc">
+      <div class="shop-npc-header">
+        <div class="shop-npc-emoji">${npc.emoji}</div>
+        <div>
+          <div class="shop-npc-name">${esc(npc.name)}</div>
+          <div class="shop-npc-desc">${esc(npc.desc)}</div>
+        </div>
+      </div>
+      <div class="shop-items">${itemsHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+async function buyFromShop(itemId, itemName, price) {
+  try {
+    const d = await api('POST', '/shop/buy', { item_id: itemId });
+    char.gold = d.gold_remaining;
+    set('tb-gold', char.gold.toLocaleString('cs'));
+    set('s-gold', char.gold.toLocaleString('cs') + ' G');
+    set('ov-gold', char.gold.toLocaleString('cs') + ' G');
+    toast(`🛒 Zakoupeno '${itemName}' za ${price} G.`, 's', 3500);
+    addAct(`🏪 Koupeno od NPC: ${itemName} (−${price} G)`);
+    // Aktualizuj tlačítka (afford check)
+    renderShop(await api('GET', '/shop/'));
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+
+// ── ARÉNA ─────────────────────────────────────────────────────
+let lastBattleLog = [];
+let attackInProgress = false;
+let arenaCooldownTimer = null;
+let arenaCooldownUntil = null;
+const ARENA_COOLDOWN_TOTAL_SECS = 300; // 5 minut
+
+function startArenaCooldown(untilISO) {
+  if (!untilISO) return;
+  arenaCooldownUntil = new Date(untilISO);
+  if (arenaCooldownTimer) clearInterval(arenaCooldownTimer);
+  _tickArenaCooldown();
+  arenaCooldownTimer = setInterval(_tickArenaCooldown, 1000);
+}
+
+function _tickArenaCooldown() {
+  const wrap = document.getElementById('arena-cooldown-wrap');
+  if (!wrap) return;
+
+  const now = new Date();
+  if (!arenaCooldownUntil || now >= arenaCooldownUntil) {
+    // Cooldown skončil
+    clearInterval(arenaCooldownTimer);
+    arenaCooldownTimer = null;
+    arenaCooldownUntil = null;
+    wrap.style.display = 'none';
+    document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+    return;
+  }
+
+  const secondsLeft = Math.max(0, (arenaCooldownUntil - now) / 1000);
+  const pct = Math.round((secondsLeft / ARENA_COOLDOWN_TOTAL_SECS) * 100);
+  const mins = Math.floor(secondsLeft / 60);
+  const secs = Math.floor(secondsLeft % 60);
+
+  wrap.style.display = 'block';
+  wrap.innerHTML = `
+    <div class="arena-cooldown">
+      <div class="arena-cd-label">
+        <span>⏱ Cooldown útoku</span>
+        <span class="arena-cd-time">${mins}:${String(secs).padStart(2,'0')}</span>
+      </div>
+      <div class="arena-cd-track">
+        <div class="arena-cd-fill" style="width:${pct}%"></div>
+      </div>
+    </div>`;
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+}
+
+async function loadArena() {
+  try {
+    const [opp, hist, lb, season, myResult] = await Promise.all([
+      api('GET', '/arena/opponents'),
+      api('GET', '/arena/history'),
+      api('GET', '/arena/season/leaderboard'),
+      api('GET', '/arena/season'),
+      api('GET', '/arena/season/my-result'),
+    ]);
+    renderSeasonBanner(season.season, myResult);
+    renderArenaStats(opp);
+    renderOpponents(opp.opponents);
+    renderArenaHistory(hist.matches);
+    renderArenaLB(lb);
+    // Cooldown ze serveru (např. po refreshi stránky)
+    if (opp.cooldown_until && !arenaCooldownTimer) {
+      startArenaCooldown(opp.cooldown_until);
+    }
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderSeasonBanner(season, myResult) {
+  const el = document.getElementById('season-banner');
+  if (!el) return;
+
+  const hasUnclaimed = myResult && myResult.unclaimed_count > 0;
+  const timeStr = season.days_remaining > 0
+    ? `Zbývá ${season.days_remaining} dní`
+    : season.hours_remaining > 0
+      ? `Zbývá ${season.hours_remaining} hodin`
+      : 'Sezóna expiruje...';
+
+  el.innerHTML = `
+    <div class="season-banner">
+      <div>
+        <div class="season-num">Sezóna ${season.number}</div>
+        <div class="season-lbl">Arena PvP</div>
+      </div>
+      <div style="flex:1">
+        <div class="season-timer">⏳ ${timeStr}</div>
+        <div style="font-size:.68rem;color:var(--text3);margin-top:2px">
+          ${new Date(season.start_at).toLocaleDateString('cs')} – ${new Date(season.end_at).toLocaleDateString('cs')}
+        </div>
+      </div>
+      ${hasUnclaimed
+        ? `<div style="text-align:right">
+             <div style="font-size:.68rem;color:var(--gold2);margin-bottom:4px">💰 ${myResult.total_unclaimed_gold} G čeká</div>
+             <button class="season-claim-btn" onclick="claimSeasonRewards()">Vybrat odměny</button>
+           </div>`
+        : `<div style="font-size:.68rem;color:var(--text3);font-family:'Cinzel',serif">žádné odměny<br>k vyzvednutí</div>`
+      }
+    </div>`;
+}
+
+async function claimSeasonRewards() {
+  try {
+    const d = await api('POST', '/arena/season/claim');
+    toast(d.message, 's', 5000);
+    addAct(`💰 Sezónní odměna: +${d.gold_gained} G`);
+    updateUI(d.character);
+    await loadArena();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderArenaStats(data) {
+  const wr = data.my_wins + data.my_losses > 0
+    ? Math.round(data.my_wins / (data.my_wins + data.my_losses) * 100) : 0;
+  document.getElementById('arena-my-stats').innerHTML = `
+    <div class="arena-stat-card">
+      <div class="arena-stat-val c-purple">${data.my_rank}</div>
+      <div class="arena-stat-lbl">ELO Rating</div>
+    </div>
+    <div class="arena-stat-card">
+      <div class="arena-stat-val c-green">${data.my_wins}W <span style="color:var(--accent2);font-size:1.2rem">${data.my_losses}L</span></div>
+      <div class="arena-stat-lbl">Výsledky</div>
+    </div>
+    <div class="arena-stat-card">
+      <div class="arena-stat-val c-gold">${wr}%</div>
+      <div class="arena-stat-lbl">Win Rate</div>
+    </div>`;
+}
+
+function renderOpponents(opponents) {
+  const el = document.getElementById('arena-opponents');
+  if (!opponents.length) {
+    el.innerHTML = '<div style="color:var(--text2);font-style:italic;text-align:center;padding:20px">Žádní soupeři k dispozici. Zaregistruj více hráčů!</div>';
+    return;
+  }
+  el.innerHTML = opponents.map(o => {
+    const wc = Math.round(o.win_chance * 100);
+    const wcc = wc >= 60 ? '#30a848' : wc >= 40 ? '#c89010' : '#b82030';
+    const eloDiff = o.arena_rank - (char?.arena?.rank || 1000);
+    const eloDiffStr = eloDiff > 0 ? `+${eloDiff}` : `${eloDiff}`;
+    return `
+      <div class="opponent-card">
+        <div class="opp-avatar">${o.cls_emoji}</div>
+        <div>
+          <div class="opp-name">${esc(o.name)}</div>
+          <div class="opp-meta">Lv.${o.level} ${o.cls_name} · ${o.wins}W/${o.losses}L</div>
+          <div class="opp-elo">ELO: ${o.arena_rank} <span style="color:${eloDiff>=0?'#e06060':'#60d080'};font-size:.65rem">(${eloDiffStr})</span></div>
+          <div class="opp-wc-bar"><div class="opp-wc-fill" style="width:${wc}%;background:${wcc}"></div></div>
+          <div style="font-size:.65rem;color:${wcc};margin-top:2px">Šance na výhru: ${wc}%</div>
+        </div>
+        <button class="attack-btn" id="atk-${o.id}" onclick="doAttack(${o.id},'${esc(o.name)}')">
+          ⚔ Útok
+        </button>
+      </div>`;
+  }).join('');
+}
+
+async function doAttack(defenderId, defenderName) {
+  if (attackInProgress) return;
+  attackInProgress = true;
+
+  // Disable všechna attack tlačítka
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+
+  toast(`⚔ Útočíš na ${defenderName}...`, 'i', 2000);
+
+  try {
+    const d = await api('POST', `/arena/attack/${defenderId}`);
+    const won = d.attacker_won;
+    lastBattleLog = d.battle_log;
+
+    // Zobraz výsledek
+    const resultEl = document.getElementById('arena-result');
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <div class="arena-result-card ${won ? 'win' : 'loss'}">
+        <div class="result-icon">${won ? '🏆' : '💀'}</div>
+        <div class="result-title" style="color:${won?'#60d080':'#f06878'}">${won ? 'VÍTĚZSTVÍ!' : 'PORÁŽKA'}</div>
+        <div style="font-size:.85rem;color:var(--text2)">vs ${esc(defenderName)}</div>
+        <div class="result-elo" style="color:${d.elo_change>=0?'#60d080':'#f06878'}">${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO → ${d.new_elo}</div>
+        <div style="font-size:.78rem;color:var(--gold2);margin-top:4px">+${d.gold_earned} 💰 Gold</div>
+        <button class="result-log-btn" onclick="toggleArenaLog()">📜 Zobrazit bojový log</button>
+      </div>`;
+
+    updateUI(d.character);
+    addAct(`${won ? '🏆' : '💀'} Aréna vs ${defenderName}: ${won ? 'výhra' : 'prohra'} (${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO)`);
+    toast(`${won ? '🏆 Vítězství!' : '💀 Prohra'} vs ${defenderName} · ${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO`, won ? 's' : 'e', 5000);
+    showAchievementToasts(d.new_achievements);
+
+    // Spusť cooldown ihned z odpovědi
+    if (d.character?.arena?.cooldown_until) {
+      startArenaCooldown(d.character.arena.cooldown_until);
+    }
+
+    // Obnov data
+    await loadArena();
+    loadNotifications();
+  } catch(e) {
+    toast(e.message, 'e');
+  } finally {
+    attackInProgress = false;
+  }
+}
+
+function toggleArenaLog() {
+  const wrap = document.getElementById('arena-log-wrap');
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    document.getElementById('arena-log').innerHTML = lastBattleLog.map(line => {
+      const cls = line.includes('zvítězil') || line.includes('přežil') ? 'bwin'
+                : line.includes('poražen') ? 'blose'
+                : line.includes('KRITICKÝ') ? 'bcrit'
+                : line.startsWith('[Kolo') || line.startsWith('─') || line.startsWith('⚔') ? 'bsep' : '';
+      return `<div class="${cls}">${esc(line)}</div>`;
+    }).join('');
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+
+function renderArenaHistory(matches) {
+  const el = document.getElementById('arena-history');
+  if (!matches.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:.75rem;font-style:italic">Zatím žádné zápasy...</div>';
+    return;
+  }
+  el.innerHTML = matches.slice(0, 8).map(m => {
+    const won = m.won;
+    const opponent = char && m.attacker_id === char.id ? m.defender : m.attacker;
+    const eloChange = m.elo_change;
+    return `<div class="hist-row">
+      <div class="hist-result">${won ? '🏆' : '💀'}</div>
+      <div class="hist-name">${esc(opponent)}</div>
+      <div class="hist-elo" style="color:${eloChange >= 0 ? '#60d080' : '#f06878'}">${eloChange >= 0 ? '+' : ''}${eloChange}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderArenaLB(lb) {
+  const el = document.getElementById('arena-lb');
+  const rankClass = r => r === 1 ? 'gold' : r === 2 ? 'silver' : r === 3 ? 'bronze' : '';
+  const medals = {1:'🥇',2:'🥈',3:'🥉'};
+  el.innerHTML = lb.slice(0, 10).map(p => {
+    const isMe = char && p.name === char.name;
+    return `<div class="season-lb-row" style="${isMe ? 'color:var(--gold2)' : ''}">
+      <div class="season-lb-rank ${rankClass(p.rank)}">${medals[p.rank] || p.rank}</div>
+      <div style="font-size:.85rem">${p.cls_emoji}</div>
+      <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem">${esc(p.name)}</div>
+      <div style="font-size:.66rem;color:var(--text2)">${p.winrate}%</div>
+      <div class="lb-elo">${p.arena_rank}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text3);font-size:.75rem">Zatím žádní hráči.</div>';
+}
+
+// ── NOTIFIKACE ─────────────────────────────────────────────────
+let notifPollInterval = null;
+
+async function loadNotifications() {
+  try {
+    const d = await api('GET', '/notifications/');
+    renderNotifications(d.notifications);
+    updateNotifBadge(d.unread);
+  } catch(e) {}
+}
+
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function renderNotifications(notifs) {
+  const el = document.getElementById('notif-list');
+  if (!el) return;
+  if (!notifs.length) {
+    el.innerHTML = '<div class="notif-empty">Žádné notifikace 🎉<br><span style="font-size:.8rem;display:block;margin-top:6px">Jdi bojovat do arény nebo nakupovat na tržišti!</span></div>';
+    return;
+  }
+  el.innerHTML = notifs.map(n => {
+    const dt = new Date(n.created_at);
+    const timeStr = `${dt.toLocaleDateString('cs')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    return `<div class="notif-card ${n.is_read ? '' : 'unread'}" onclick="readNotif(${n.id}, this)">
+      <div class="notif-icon">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${esc(n.title)}</div>
+        ${n.body ? `<div class="notif-text">${esc(n.body)}</div>` : ''}
+        <div class="notif-time">${timeStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function readNotif(id, el) {
+  el.classList.remove('unread');
+  el.querySelector('.notif-card\.unread\:\:before')?.remove();
+  try {
+    await api('POST', `/notifications/read/${id}`);
+    const d = await api('GET', '/notifications/');
+    updateNotifBadge(d.unread);
+  } catch(e) {}
+}
+
+async function markAllRead() {
+  try {
+    await api('POST', '/notifications/read-all');
+    await loadNotifications();
+    toast('Vše označeno jako přečteno', 'i', 2000);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function clearNotifs() {
+  try {
+    const d = await api('DELETE', '/notifications/clear');
+    await loadNotifications();
+    toast(`Smazáno ${d.deleted} notifikací`, 'i', 2000);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function startNotifPolling() {
+  // Poll každých 30 sekund pro nové notifikace
+  if (notifPollInterval) clearInterval(notifPollInterval);
+  notifPollInterval = setInterval(async () => {
+    try {
+      const d = await api('GET', '/notifications/');
+      updateNotifBadge(d.unread);
+    } catch(e) {}
+  }, 30000);
+}
+
+// ── ACHIEVEMENTY ──────────────────────────────────────────────
+async function loadAchievements() {
+  try {
+    const d = await api('GET', '/achievements/');
+    renderAchievements(d);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderAchievements(d) {
+  const el = document.getElementById('ach-content');
+  const pct = Math.round(d.unlocked_count / d.total_count * 100);
+
+  const CAT_ORDER = ['level','quest','arena','wealth','market','guild','special'];
+
+  let html = `
+    <div class="ach-points-bar">
+      <div>
+        <div class="ach-points-num">${d.total_points}</div>
+        <div class="ach-points-lbl">Achievement bodů</div>
+      </div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;font-size:.65rem;color:var(--text2);font-family:'Cinzel',serif;margin-bottom:5px">
+          <span>${d.unlocked_count} / ${d.total_count} odemčeno</span>
+          <span>${pct}%</span>
+        </div>
+        <div class="ach-progress-track">
+          <div class="ach-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div style="font-size:0.65rem;color:var(--text2);text-align:right;font-family:'Cinzel',serif">
+        <div style="color:var(--text3)">Max bodů</div>
+        <div style="color:var(--gold)">${d.max_points}</div>
+      </div>
+    </div>`;
+
+  for (const cat of CAT_ORDER) {
+    const items = d.categories[cat];
+    if (!items) continue;
+    const catName = d.category_names[cat] || cat;
+    const unlockedInCat = items.filter(a => a.unlocked).length;
+
+    html += `<div class="ach-category">
+      <div class="ach-cat-title">
+        ${catName}
+        <span class="ach-cat-count">${unlockedInCat}/${items.length}</span>
+      </div>
+      <div class="ach-grid">
+        ${items.map(a => {
+          const dt = a.unlocked_at ? new Date(a.unlocked_at) : null;
+          const dateStr = dt
+            ? `${dt.toLocaleDateString('cs')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`
+            : null;
+          return `<div class="ach-card ${a.unlocked ? 'unlocked' : 'locked'}">
+            <div class="ach-icon">${a.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div class="ach-name">${esc(a.name)}</div>
+              <div class="ach-desc">${esc(a.desc)}</div>
+              ${dateStr ? `<div class="ach-date">${dateStr}</div>` : ''}
+            </div>
+            <div class="ach-pts">+${a.points}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function showAchievementToasts(achievements) {
+  if (!achievements || !achievements.length) return;
+  const toastsEl = document.getElementById('toasts');
+  achievements.forEach((a, i) => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'ach-toast';
+      el.innerHTML = `
+        <div class="ach-toast-icon">${a.icon}</div>
+        <div>
+          <div class="ach-toast-title">Achievement odemčen!</div>
+          <div class="ach-toast-name">${esc(a.name)}</div>
+          <div class="ach-toast-pts">+${a.points} bodů</div>
+        </div>`;
+      toastsEl.append(el);
+      setTimeout(() => el.remove(), 5000);
+    }, i * 800);
+  });
+}
+
+// ── GUILD ─────────────────────────────────────────────────────
+const GUILD_EMBLEMS = ['🛡️','⚔️','🏰','🐉','🦅','🔮','⚡','🌙','🔥','💀','🐺','🍀'];
+let guildTab = 'members';
+let guildCreateOpen = false;
+let selEmblem = '🛡️';
+let chatPollInterval = null;
+
+async function loadGuild() {
+  try {
+    const d = await api('GET', '/guild/my');
+    if (d.guild) {
+      renderMyGuild(d);
+    } else {
+      await loadGuildList();
+    }
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function loadGuildList() {
+  try {
+    const d = await api('GET', '/guild/list');
+    renderGuildList(d.guilds);
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderGuildList(guilds) {
+  stopChatPoll();
+  const el = document.getElementById('guild-content');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2)">${guilds.length} cechů existuje</div>
+      <button class="btn btn-gold btn-sm" onclick="toggleCreateForm()">⚜ Vytvořit cech</button>
+    </div>
+    <div id="guild-create-wrap" style="display:none">
+      <div class="guild-create-form">
+        <div style="font-family:'Cinzel',serif;font-size:0.85rem;color:var(--gold2);margin-bottom:12px">⚜ Nový cech <span style="font-size:0.65rem;color:var(--text2);font-family:inherit">(stojí 500 G)</span></div>
+        <div class="fld"><label>Jméno cechu</label><input type="text" id="gc-name" placeholder="Legendární jméno cechu..." maxlength="48"></div>
+        <div class="fld"><label>Popis</label><input type="text" id="gc-desc" placeholder="Krátký popis cechu..." maxlength="256"></div>
+        <div class="fld">
+          <label>Emblem cechu</label>
+          <div class="guild-emblem-picker" id="gc-emblem-picker">
+            ${GUILD_EMBLEMS.map(e => `<div class="guild-emblem-opt${e === selEmblem ? ' sel' : ''}" onclick="pickEmblem('${e}')" data-emblem="${e}">${e}</div>`).join('')}
+          </div>
+        </div>
+        <div class="fmsg" id="gc-msg" style="margin-bottom:8px"></div>
+        <button class="btn btn-gold btn-full" onclick="createGuild()">⚜ Vytvořit cech</button>
+      </div>
+    </div>
+    <div id="guild-list-wrap">
+      ${!guilds.length
+        ? '<div style="color:var(--text2);font-style:italic;text-align:center;padding:30px">Zatím žádné cechy. Buď první!</div>'
+        : guilds.map(g => `
+          <div class="guild-list-card" onclick="joinGuild(${g.id},'${esc(g.name)}')">
+            <div class="guild-list-emblem">${g.emblem}</div>
+            <div>
+              <div class="guild-list-name">${esc(g.name)}</div>
+              ${g.description ? `<div class="guild-list-desc">${esc(g.description)}</div>` : ''}
+              <div class="guild-list-meta">Lv.${g.level} · ${g.member_count} členů · ${g.gold.toLocaleString('cs')} G v bance</div>
+            </div>
+            <button class="join-btn" onclick="event.stopPropagation();joinGuild(${g.id},'${esc(g.name)}')">Vstoupit</button>
+          </div>`).join('')
+      }
+    </div>`;
+}
+
+function toggleCreateForm() {
+  guildCreateOpen = !guildCreateOpen;
+  document.getElementById('guild-create-wrap').style.display = guildCreateOpen ? 'block' : 'none';
+}
+
+function pickEmblem(e) {
+  selEmblem = e;
+  document.querySelectorAll('.guild-emblem-opt').forEach(el => {
+    el.classList.toggle('sel', el.dataset.emblem === e);
+  });
+}
+
+async function createGuild() {
+  const name = document.getElementById('gc-name')?.value?.trim();
+  const desc = document.getElementById('gc-desc')?.value?.trim() || '';
+  const msgEl = document.getElementById('gc-msg');
+
+  if (!name || name.length < 3) {
+    if (msgEl) { msgEl.className = 'fmsg err'; msgEl.textContent = 'Jméno musí mít alespoň 3 znaky.'; }
+    return;
+  }
+  try {
+    const d = await api('POST', '/guild/create', { name, description: desc, emblem: selEmblem });
+    toast(d.message, 's', 4000);
+    addAct(`⚜ Cech "${name}" byl vytvořen`);
+    await refreshChar();
+    await loadGuild();
+    await loadGuildTopList();
+  } catch(e) {
+    if (msgEl) { msgEl.className = 'fmsg err'; msgEl.textContent = e.message; }
+  }
+}
+
+async function joinGuild(id, name) {
+  if (!confirm(`Vstoupit do cechu "${name}"?`)) return;
+  try {
+    const d = await api('POST', `/guild/join/${id}`);
+    toast(d.message, 's', 4000);
+    addAct(`⚜ Vstoupil jsi do cechu ${name}`);
+    await refreshChar();
+    await loadGuild();
+    await loadGuildTopList();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function renderMyGuild(data) {
+  const g = data.guild;
+  const members = data.members;
+  const isLeader = data.is_leader;
+
+  // Aktualizuj portrait
+  set('portrait-guild-name', `${g.emblem} ${g.name}`);
+
+  const el = document.getElementById('guild-content');
+  el.innerHTML = `
+    <div class="guild-header">
+      <div class="guild-emblem">${g.emblem}</div>
+      <div style="flex:1">
+        <div class="guild-title">${esc(g.name)}</div>
+        ${g.description ? `<div class="guild-desc">${esc(g.description)}</div>` : ''}
+        <div class="guild-meta-chips">
+          <span class="guild-chip">⚡ Level ${g.level}</span>
+          <span class="guild-chip">👥 ${g.member_count} členů</span>
+          <span class="guild-chip">💰 ${g.gold.toLocaleString('cs')} G</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+        ${isLeader
+          ? `<button class="btn btn-sm" style="background:rgba(180,30,30,.2);border-color:var(--accent);color:var(--accent2);font-size:.62rem" onclick="disbandGuild()">💀 Rozpustit</button>`
+          : `<button class="btn btn-sm" style="font-size:.62rem" onclick="leaveGuild()">🚪 Opustit</button>`
+        }
+      </div>
+    </div>
+
+    <div class="guild-tabs">
+      <button class="guild-tab active" id="gtab-members" onclick="switchGuildTab('members')">👥 Členové (${members.length})</button>
+      <button class="guild-tab" id="gtab-dungeon" onclick="switchGuildTab('dungeon')">⚔ Dungeon</button>
+      <button class="guild-tab" id="gtab-chat" onclick="switchGuildTab('chat')">💬 Chat</button>
+    </div>
+
+    <div id="guild-tab-dungeon" style="display:none">
+      <div id="dungeon-content">
+        <div style="color:var(--text2);font-style:italic;text-align:center;padding:30px">Načítám dungeon...</div>
+      </div>
+    </div>
+
+    <div id="guild-tab-members">
+      ${members.map(m => `
+        <div class="member-row">
+          <div class="member-avatar">${m.cls_emoji}</div>
+          <div style="flex:1">
+            <div class="member-name">${esc(m.name)} ${m.is_leader ? '<span class="member-leader-badge">LEADER</span>' : ''}</div>
+            <div class="member-lvl">Lv.${m.level} ${m.cls_name}</div>
+          </div>
+          ${isLeader && !m.is_leader
+            ? `<button class="member-kick-btn" onclick="kickMember(${m.id},'${esc(m.name)}')">Vyhodit</button>`
+            : ''
+          }
+        </div>`).join('')
+      }
+    </div>
+
+    <div id="guild-tab-chat" style="display:none">
+      <div class="gchat-wrap">
+        <div class="gchat-log" id="gchat-log">
+          <div style="color:var(--text3);font-size:.75rem;font-style:italic;text-align:center">Načítám chat...</div>
+        </div>
+        <div class="gchat-input-row">
+          <input class="gchat-input" id="gchat-input" placeholder="Napiš zprávu..." maxlength="300"
+            onkeydown="if(event.key==='Enter')sendChatMsg()">
+          <button class="gchat-send" onclick="sendChatMsg()">Odeslat</button>
+        </div>
+      </div>
+    </div>`;
+
+  guildTab = 'members';
+}
+
+function switchGuildTab(tab) {
+  guildTab = tab;
+  document.getElementById('guild-tab-members').style.display = tab === 'members' ? 'block' : 'none';
+  document.getElementById('guild-tab-dungeon').style.display = tab === 'dungeon' ? 'block' : 'none';
+  document.getElementById('guild-tab-chat').style.display    = tab === 'chat'    ? 'block' : 'none';
+  document.querySelectorAll('.guild-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`gtab-${tab}`)?.classList.add('active');
+
+  if (tab === 'chat') {
+    loadGuildChat();
+    startChatPoll();
+  } else {
+    stopChatPoll();
+  }
+  if (tab === 'dungeon') loadGuildDungeon();
+}
+
+async function loadGuildDungeon() {
+  const wrap = document.getElementById('dungeon-content');
+  if (!wrap) return;
+  try {
+    const d = await api('GET', '/guild/dungeon');
+    renderGuildDungeon(d);
+  } catch(e) {
+    wrap.innerHTML = `<div style="color:var(--accent);text-align:center;padding:20px">${esc(e.message)}</div>`;
+  }
+}
+
+function renderGuildDungeon(d) {
+  const wrap = document.getElementById('dungeon-content');
+  if (!wrap) return;
+  const b = d.dungeon;
+  const CLS_E = { warrior:'⚔️', mage:'🔮', ranger:'🏹' };
+  const maxDmg = d.contributions.length ? d.contributions[0].damage_dealt : 1;
+
+  const bossCard = b.is_defeated
+    ? `<div class="dungeon-defeated">✅ Boss poražen! Nový boss se brzy objeví.</div>`
+    : `
+      <div class="dungeon-boss-card">
+        <span class="dungeon-boss-emoji">${b.boss_emoji}</span>
+        <div class="dungeon-boss-name">${esc(b.boss_name.replace(b.boss_emoji,'').trim())}</div>
+        <div class="dungeon-hp-bar">
+          <div class="dungeon-hp-fill" style="width:${b.hp_percent}%"></div>
+        </div>
+        <div class="dungeon-hp-text">${b.boss_hp_current.toLocaleString()} / ${b.boss_hp_max.toLocaleString()} HP</div>
+        ${d.can_attack
+          ? `<button class="btn btn-red dungeon-attack-btn" onclick="dungeonAttack()">⚔ Zaútočit!</button>`
+          : b.is_defeated
+            ? ''
+            : `<button class="btn dungeon-attack-btn" disabled style="opacity:.5">⚔ Zaútočit</button>
+               <div class="dungeon-cooldown">Cooldown: ${d.cooldown_minutes} min</div>`
+        }
+      </div>`;
+
+  const contribRows = d.contributions.length === 0
+    ? `<div style="color:var(--text3);font-style:italic;font-size:.78rem;padding:10px 0">Zatím nikdo nezaútočil.</div>`
+    : d.contributions.map((c, i) => `
+      <div class="dungeon-contrib-row">
+        <div class="dungeon-contrib-rank">#${i+1}</div>
+        <div>${CLS_E[c.cls]||'⚔'} ${esc(c.name)}</div>
+        <div class="dungeon-contrib-dmg">${c.damage_dealt.toLocaleString()} dmg</div>
+      </div>
+      <div class="dungeon-contrib-bar">
+        <div class="dungeon-contrib-fill" style="width:${Math.round(c.damage_dealt/maxDmg*100)}%"></div>
+      </div>`).join('');
+
+  wrap.innerHTML = `
+    ${bossCard}
+    <div style="font-family:'Cinzel',serif;font-size:0.72rem;color:var(--text2);letter-spacing:1px;margin-bottom:8px;text-transform:uppercase">
+      Přispěvatelé
+    </div>
+    ${contribRows}`;
+}
+
+async function dungeonAttack() {
+  try {
+    const d = await api('POST', '/guild/dungeon/attack');
+    toast(`⚔ Zasáhl jsi za ${d.damage.toLocaleString()} dmg!`, 's');
+    if (d.boss_defeated) {
+      toast(`🏆 Boss poražen! +${d.reward_gold} G, +${d.reward_xp} XP`, 's', 5000);
+      addAct(`⚔ Boss cechu poražen! +${d.reward_gold} G`);
+      await refreshChar();
+    }
+    await loadGuildDungeon();
+  } catch(e) {
+    toast(e.message, 'e');
+  }
+}
+
+async function loadGuildChat() {
+  try {
+    const d = await api('GET', '/guild/chat');
+    renderChat(d.messages);
+  } catch(e) {}
+}
+
+function renderChat(messages) {
+  const el = document.getElementById('gchat-log');
+  if (!el) return;
+  if (!messages.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:.75rem;font-style:italic;text-align:center">Zatím žádné zprávy. Buď první!</div>';
+    return;
+  }
+  const CLS_E_MAP = {warrior:'⚔️',mage:'🔮',ranger:'🏹'};
+  el.innerHTML = messages.map(m => {
+    const t = new Date(m.created_at);
+    const timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    return `<div class="gchat-msg">
+      <span class="gchat-author">${CLS_E_MAP[m.author_cls]||'⚔'} ${esc(m.author)}</span>
+      <span style="color:var(--text3);font-size:.65rem;margin:0 4px">›</span>
+      <span class="gchat-text">${esc(m.text)}</span>
+      <span class="gchat-time">${timeStr}</span>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('gchat-input');
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  try {
+    await api('POST', '/guild/chat', { text });
+    input.value = '';
+    await loadGuildChat();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+function startChatPoll() {
+  stopChatPoll();
+  chatPollInterval = setInterval(() => {
+    if (guildTab === 'chat') loadGuildChat();
+  }, 8000);
+}
+
+function stopChatPoll() {
+  if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; }
+}
+
+async function leaveGuild() {
+  if (!confirm('Opravdu chceš opustit cech?')) return;
+  try {
+    const d = await api('POST', '/guild/leave');
+    toast(d.message, 'i', 3000);
+    addAct('🚪 Opustil jsi cech');
+    set('portrait-guild-name', '[bez cechu]');
+    await refreshChar();
+    await loadGuild();
+    await loadGuildTopList();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function disbandGuild() {
+  if (!confirm('Opravdu chceš ROZPUSTIT cech? Tato akce je nevratná!')) return;
+  try {
+    const d = await api('DELETE', '/guild/disband');
+    toast(d.message, 'i', 3000);
+    addAct('💀 Cech byl rozpuštěn');
+    set('portrait-guild-name', '[bez cechu]');
+    await refreshChar();
+    await loadGuild();
+    await loadGuildTopList();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function kickMember(charId, name) {
+  if (!confirm(`Vyhodit ${name} z cechu?`)) return;
+  try {
+    const d = await api('DELETE', `/guild/kick/${charId}`);
+    toast(d.message, 'i', 3000);
+    addAct(`⚔ Vyhozen: ${name}`);
+    await loadGuild();
+  } catch(e) { toast(e.message, 'e'); }
+}
+
+async function loadGuildTopList() {
+  try {
+    const d = await api('GET', '/guild/list');
+    const el = document.getElementById('rp-guild-list');
+    if (!el) return;
+    if (!d.guilds.length) {
+      el.innerHTML = '<div style="color:var(--text3);font-size:.75rem">Zatím žádné cechy.</div>';
+      return;
+    }
+    el.innerHTML = d.guilds.slice(0, 5).map((g, i) => `
+      <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem">
+        <div style="color:var(--text3);width:14px;text-align:right;font-family:'Cinzel',serif;font-size:.66rem">${i+1}</div>
+        <div style="font-size:.9rem">${g.emblem}</div>
+        <div style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(g.name)}</div>
+        <div style="font-size:.68rem;color:var(--text2)">Lv.${g.level}</div>
+        <div style="font-size:.68rem;color:var(--text3)">${g.member_count}👥</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+// ── INIT ──────────────────────────────────────────
+async function init(){
+  if(!token){location.href='/';return;}
+
+  // 1. Třídy — synchronní, vždy první
+  loadCls();
+
+  // 2. Zkus načíst postavu ze serveru
+  let charLoaded = false;
+  try{
+    const c = await api('GET','/character/me');
+    updateUI(c);
+    charLoaded = true;
+    addAct('👋 Přihlášen do dungeonu.');
+    loadLB();
+    loadNotifications();
+    startNotifPolling();
+    loadGuildTopList();
+    // Načti guild info pro portrait
+    try {
+      const gd = await api('GET', '/guild/my');
+      if (gd.guild) set('portrait-guild-name', `${gd.guild.emblem} ${gd.guild.name}`);
+    } catch(e) {}
+    try{const qs=await api('GET','/quest/status');if(qs.status!=='idle')addAct(`⚔ Probíhá: ${qs.quest?.name||'quest'}`);}catch(e){}
+  } catch(e) {
+    // Postava neexistuje nebo jiná chyba → vždy otevři modal tvorby
+    console.log('Postava nenalezena, otvírám modal:', e.message);
+  }
+
+  // 3. Pokud postava neexistuje — otevři modal (bez ohledu na localStorage flagy)
+  if (!charLoaded) {
+    localStorage.removeItem('dc_new_user');
+    openModal('modal-create');
+    loadLB();
+  }
+}
+
+// Spusť hned po načtení stránky
+init();
+</script>
+</body>
+</html>

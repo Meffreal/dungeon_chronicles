@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dungeon Chronicles — Vstup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #080810;
+    --bg2:      #0f0f1e;
+    --panel:    #12122a;
+    --border:   #2a2a5a;
+    --border2:  #4a3080;
+    --accent:   #c8273c;
+    --accent2:  #e8472c;
+    --gold:     #d4a017;
+    --gold2:    #f0c040;
+    --text:     #c8c8e0;
+    --text2:    #8888aa;
+    --common:   #9d9d9d;
+    --uncommon: #1eff00;
+    --rare:     #0070dd;
+    --epic:     #a335ee;
+    --legend:   #ff8000;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Crimson Text', serif;
+    font-size: 18px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Animované pozadí */
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 50%, rgba(80,20,20,0.18) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 80% at 80% 40%, rgba(20,20,80,0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 100% 100% at 50% 100%, rgba(40,10,60,0.25) 0%, transparent 60%);
+    animation: bgpulse 8s ease-in-out infinite alternate;
+  }
+  @keyframes bgpulse {
+    from { opacity: 0.7; }
+    to   { opacity: 1; }
+  }
+
+  /* Plovoucí runy v pozadí */
+  .rune {
+    position: fixed; font-size: 2rem; opacity: 0.04;
+    color: var(--gold); pointer-events: none; z-index: 0;
+    animation: runefloat linear infinite;
+  }
+  @keyframes runefloat {
+    from { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+    10%  { opacity: 0.06; }
+    90%  { opacity: 0.06; }
+    to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Hlavní kontejner */
+  .container {
+    position: relative; z-index: 1;
+    width: min(480px, 94vw);
+    display: flex; flex-direction: column; gap: 0;
+  }
+
+  /* Logo */
+  .logo {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadein 1.2s ease;
+  }
+  .logo h1 {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--accent) 50%, var(--gold2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    letter-spacing: 2px;
+    line-height: 1.15;
+  }
+  .logo .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--text2);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  .logo .ornament {
+    display: flex; align-items: center; gap: 12px;
+    justify-content: center; margin: 14px 0 0;
+  }
+  .logo .ornament::before,
+  .logo .ornament::after {
+    content: '';
+    height: 1px; flex: 1;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .logo .ornament span { color: var(--gold); font-size: 1.1rem; }
+
+  /* Panel */
+  .panel {
+    background: linear-gradient(160deg, var(--panel) 0%, #0d0d22 100%);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    box-shadow:
+      0 0 40px rgba(200,39,60,0.08),
+      0 0 80px rgba(20,20,80,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    animation: fadein 1s ease 0.3s both;
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--gold), var(--accent), transparent);
+  }
+
+  /* Taby */
+  .tabs {
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text2); cursor: pointer;
+    font-family: 'Cinzel', serif; font-size: 0.9rem;
+    letter-spacing: 2px; text-transform: uppercase;
+    transition: all 0.25s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    color: var(--gold2);
+    border-bottom-color: var(--gold);
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: flex; flex-direction: column; gap: 18px; }
+
+  /* Form prvky */
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text2);
+  }
+  .field input {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Crimson Text', serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 2px rgba(212,160,23,0.12);
+  }
+  .field input::placeholder { color: var(--text2); opacity: 0.5; }
+
+  /* Tlačítko */
+  .btn {
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--accent) 0%, #8a1528 100%);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem; letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative; overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(200,39,60,0.4); }
+  .btn:hover::after { opacity: 1; }
+  .btn:active { transform: translateY(0); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-gold {
+    background: linear-gradient(135deg, #7a5800 0%, #c8900a 50%, #7a5800 100%);
+    border-color: var(--gold);
+  }
+  .btn-gold:hover { box-shadow: 0 4px 20px rgba(212,160,23,0.4); }
+
+  /* Zprávy */
+  .message {
+    padding: 10px 14px; border-radius: 3px;
+    font-size: 0.92rem; display: none;
+  }
+  .message.error { background: rgba(200,39,60,0.15); border: 1px solid var(--accent); color: #ff8888; display: block; }
+  .message.success { background: rgba(60,180,80,0.12); border: 1px solid #3cb450; color: #88ff99; display: block; }
+
+  /* Separator */
+  .sep {
+    display: flex; align-items: center; gap: 12px;
+    color: var(--text2); font-size: 0.8rem;
+  }
+  .sep::before, .sep::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--border);
+  }
+
+  /* Animace */
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Loading overlay */
+  .loading {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 20px;
+    transition: opacity 0.5s;
+  }
+  .loading.hidden { opacity: 0; pointer-events: none; }
+  .loading-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 1.8rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--gold), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .loading-bar {
+    width: 200px; height: 3px;
+    background: var(--border);
+    border-radius: 2px; overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    border-radius: 2px;
+    animation: loadfill 1.5s ease forwards;
+  }
+  @keyframes loadfill { from { width: 0; } to { width: 100%; } }
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loading" id="loading">
+  <div class="loading-title">Dungeon Chronicles</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+  <div style="color:var(--text2);font-size:0.85rem;letter-spacing:3px;font-family:'Cinzel',serif">NAČÍTÁM...</div>
+</div>
+
+<!-- Animované runy v pozadí -->
+<div class="bg-canvas"></div>
+<div class="rune" style="left:8%;animation-duration:18s;animation-delay:0s;font-size:1.5rem">᛭</div>
+<div class="rune" style="left:22%;animation-duration:24s;animation-delay:4s;font-size:2rem">ᚱ</div>
+<div class="rune" style="left:65%;animation-duration:20s;animation-delay:2s;font-size:1.8rem">ᚦ</div>
+<div class="rune" style="left:80%;animation-duration:16s;animation-delay:6s;font-size:1.4rem">ᛟ</div>
+<div class="rune" style="left:45%;animation-duration:22s;animation-delay:1s;font-size:2.2rem">☽</div>
+<div class="rune" style="left:35%;animation-duration:19s;animation-delay:8s">⚔</div>
+<div class="rune" style="left:90%;animation-duration:26s;animation-delay:3s">🜃</div>
+
+<div class="container">
+  <!-- Logo -->
+  <div class="logo">
+    <h1>Dungeon<br>Chronicles</h1>
+    <div class="subtitle">Multiplayer RPG</div>
+    <div class="ornament"><span>⚔</span></div>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Přihlásit</button>
+      <button class="tab-btn" onclick="switchTab('register')">Registrovat</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="tab-content active" id="tab-login">
+      <div class="field">
+        <label>Uživatelské jméno</label>
+        <input type="text" id="login-username" placeholder="tvůj_hrdina" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Heslo</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="message" id="login-msg"></div>
+      <button class="btn" onclick="doLogin()" id="login-btn">Vstoupit do dungeonu</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="tab-content" id="tab-register">
+      <div class="field">
+        <label>Uživatelské jméno</label>
+        <input type="text" id="reg-username" placeholder="tvůj_hrdina" maxlength="32" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>E-mail</label>
+        <input type="email" id="reg-email" placeholder="hrdina@dungeon.cz" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Heslo</label>
+        <input type="password" id="reg-password" placeholder="min. 6 znaků" autocomplete="new-password">
+      </div>
+      <div class="message" id="reg-msg"></div>
+      <button class="btn btn-gold" onclick="doRegister()" id="reg-btn">Stát se hrdinou</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;color:var(--text2);font-size:0.78rem;margin-top:20px;font-family:'Cinzel',serif;letter-spacing:1px">
+    Dungeon Chronicles v0.1 · Session 1
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+
+// ── Loading screen ────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Zkontroluj token
+  const token = localStorage.getItem('dc_token');
+  if (token) {
+    // Ověř token
+    fetch(`${API}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          const hasChar = localStorage.getItem('dc_has_character') === 'true';
+          if (!hasChar) localStorage.setItem('dc_new_user', '1');
+          window.location.href = '/game';
+        } else {
+          localStorage.clear();
+          hideLoading();
+        }
+      })
+      .catch(() => hideLoading());
+  } else {
+    setTimeout(hideLoading, 800);
+  }
+});
+
+function hideLoading() {
+  document.getElementById('loading').classList.add('hidden');
+}
+
+// ── Tab přepínání ────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0) === (tab === 'login'));
+  });
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+// ── Helpers ──────────────────────────────────────────────────
+function showMsg(id, text, type = 'error') {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `message ${type}`;
+}
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Chvíli strpení...' : btn.dataset.orig || btn.textContent;
+  if (!loading && !btn.dataset.orig) btn.dataset.orig = btn.textContent;
+}
+
+async function apiPost(url, body) {
+  const res = await fetch(`${API}${url}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Chyba serveru');
+  return data;
+}
+
+async function apiPostForm(url, body) {
+  const form = new URLSearchParams(body);
+  const res = await fetch(`${API}${url}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || 'Chyba serveru');
+  return data;
+}
+
+function saveAuth(data) {
+  localStorage.setItem('dc_token', data.access_token);
+  localStorage.setItem('dc_username', data.username);
+  localStorage.setItem('dc_has_character', data.has_character);
+}
+
+// ── Login ────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) return showMsg('login-msg', 'Vyplň všechna pole.');
+
+  setLoading('login-btn', true);
+  try {
+    const data = await apiPostForm('/auth/login', { username, password });
+    saveAuth(data);
+    showMsg('login-msg', 'Přihlášení úspěšné! Vstupuješ...', 'success');
+    setTimeout(() => {
+      // Nastav příznak pro nového hráče bez postavy
+      if (!data.has_character) {
+        localStorage.setItem('dc_new_user', '1');
+      }
+      window.location.href = '/game';
+    }, 600);
+  } catch (e) {
+    showMsg('login-msg', e.message);
+    setLoading('login-btn', false);
+  }
+}
+
+// ── Register ─────────────────────────────────────────────────
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!username || !email || !password) return showMsg('reg-msg', 'Vyplň všechna pole.');
+
+  setLoading('reg-btn', true);
+  try {
+    const data = await apiPost('/auth/register', { username, email, password });
+    saveAuth(data);
+    // Nový hráč nikdy nemá postavu — nastav flag
+    localStorage.setItem('dc_new_user', '1');
+    showMsg('reg-msg', 'Účet vytvořen! Vítej, hrdino!', 'success');
+    setTimeout(() => { window.location.href = '/game'; }, 700);
+  } catch (e) {
+    showMsg('reg-msg', e.message);
+    setLoading('reg-btn', false);
+  }
+}
+
+// Enter klávesa
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const activeTab = document.querySelector('.tab-content.active').id;
+  if (activeTab === 'tab-login') doLogin();
+  else doRegister();
+});
+</script>
+</body>
+</html>
