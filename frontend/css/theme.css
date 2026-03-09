@@ -4361,9 +4361,11 @@
 }
 .snpc-avatar{
   font-size:3.8rem;line-height:1;
+  display:flex;align-items:center;justify-content:center;
   filter:drop-shadow(0 0 20px rgba(var(--snc-rgb),.6));
   animation:npcq-float 3.8s ease-in-out infinite;
 }
+.snpc-avatar .npc-portrait-svg{display:block;}
 .snpc-name{
   font-family:'Cinzel Decorative',serif;font-size:.82rem;letter-spacing:.5px;
   color:var(--snc-color,#c8a050);margin-top:10px;
