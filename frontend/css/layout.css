@@ -1,0 +1,218 @@
+/* ── TOPBAR ───────────────────────────────────────────────────────────────── */
+.topbar{height:50px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(2,4,8,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);position:relative;z-index:30;}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),var(--gold2),var(--accent),transparent);box-shadow:0 0 8px rgba(30,127,184,.4);}
+.tb-logo{font-family:'Cinzel Decorative',cursive;font-weight:900;font-size:0.9rem;background:linear-gradient(135deg,var(--gold2),var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;}
+.tb-sep{width:1px;height:28px;background:var(--border);}
+.tb-char{display:flex;align-items:center;gap:8px;}
+.tb-avatar{width:32px;height:32px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.tb-name{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--gold2);font-weight:700;}
+.tb-meta{display:flex;align-items:center;gap:5px;}
+.tb-lvl{background:var(--accent);color:#fff;font-family:'Cinzel',serif;font-size:0.65rem;padding:1px 5px;border-radius:2px;}
+.tb-cls{color:var(--text2);font-size:0.72rem;}
+.tb-gold{display:flex;align-items:center;gap:4px;font-family:'Share Tech Mono',monospace;font-size:0.85rem;color:var(--gold2);}
+.tb-online{margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 8px;}
+.tb-online-dot{width:8px;height:8px;border-radius:50%;background:#22dd66;flex-shrink:0;box-shadow:0 0 6px #22dd66,0 0 12px #22dd6688;animation:online-pulse 2s ease-in-out infinite;}
+.tb-online-count{font-family:'Cinzel',serif;font-size:0.72rem;color:#22dd66;font-weight:600;letter-spacing:1px;}
+@keyframes online-pulse{0%,100%{box-shadow:0 0 5px #22dd66,0 0 10px #22dd6677;}50%{box-shadow:0 0 10px #22dd66,0 0 20px #22dd66aa,0 0 30px #22dd6644;}}
+/* Quest status chip */
+.tb-quest-chip{display:flex;align-items:center;gap:6px;padding:3px 10px;border-radius:12px;background:rgba(42,184,112,.12);border:1px solid rgba(42,184,112,.35);cursor:pointer;transition:all .15s;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:var(--ls-base);color:var(--green2);}
+.tb-quest-chip:hover{background:rgba(42,184,112,.22);border-color:rgba(42,184,112,.6);}
+.tb-quest-chip.collecting{background:rgba(200,144,32,.15);border-color:rgba(200,144,32,.5);color:var(--gold2);}
+.tb-quest-chip.collecting:hover{background:rgba(200,144,32,.25);}
+.tb-quest-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:online-pulse 1.5s ease-in-out infinite;}
+/* Arena rank chip */
+.tb-rank-chip{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;background:rgba(163,53,238,.1);border:1px solid rgba(163,53,238,.3);cursor:pointer;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:var(--ls-base);color:#c080f0;transition:all .15s;}
+.tb-rank-chip:hover{background:rgba(163,53,238,.2);}
+.tb-actions{display:flex;gap:5px;}
+.tb-btn{background:rgba(30,127,184,.12);border:1px solid var(--border2);color:var(--text2);padding:4px 9px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:var(--ls-base);cursor:pointer;transition:all .15s;text-transform:uppercase;}
+.tb-btn:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 8px rgba(30,127,184,.3);}
+.tb-btn.dng:hover{border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 8px rgba(56,212,196,.3);}
+
+/* === WoW-style XP Strip === */
+.xp-strip{position:relative;height:5px;background:rgba(0,0,0,0.6);border-bottom:1px solid rgba(255,255,255,0.04);cursor:default;overflow:visible;}
+.xp-strip-fill{height:100%;background:linear-gradient(90deg,#7a4a00,#c8860a 50%,#f0b040);box-shadow:0 0 6px rgba(200,134,10,0.6);border-radius:0 2px 2px 0;transition:width 0.6s ease;}
+.xp-strip-lbl{display:none;position:absolute;right:10px;top:6px;font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--clr-text,#ccc);background:rgba(0,0,0,0.85);border:1px solid rgba(200,134,10,0.4);padding:2px 6px;border-radius:3px;white-space:nowrap;z-index:50;pointer-events:none;}
+.xp-strip:hover .xp-strip-lbl{display:block;}
+
+/* ── LAYOUT GRID ─────────────────────────────────────────────────────────── */
+.layout{display:grid;grid-template-columns:192px 1fr;flex:1;overflow:hidden;}
+
+/* ── LEVÝ PANEL ──────────────────────────────────────────────────────────── */
+.lpanel{background:linear-gradient(180deg,#06101e,#020408);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.lpanel::-webkit-scrollbar{width:3px;}
+.lpanel::-webkit-scrollbar-thumb{background:var(--border2);}
+
+.portrait-wrap{padding:10px;background:rgba(12,26,46,.5);border-bottom:1px solid var(--border);}
+.portrait-outer{border:2px solid var(--frame2);border-radius:4px;padding:3px;background:linear-gradient(135deg,var(--frame1),#100800,var(--frame1));box-shadow:0 0 0 1px var(--frame3),inset 0 0 0 1px rgba(200,144,32,.1);}
+.portrait-inner{background:radial-gradient(ellipse at 40% 30%,#1a1060,#0c0830 60%,#060418);border-radius:2px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.portrait-inner::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,144,32,.1),transparent 45%);}
+.portrait-emoji{font-size:3.8rem;position:relative;z-index:1;filter:drop-shadow(0 4px 12px rgba(0,0,0,.9));}
+.portrait-name{text-align:center;margin-top:6px;font-family:'Cinzel',serif;font-size:0.88rem;font-weight:700;color:var(--gold2);text-shadow:0 0 10px rgba(200,144,32,.3);}
+.portrait-guild{text-align:center;font-size:0.78rem;color:var(--text2);font-style:italic;margin-top:1px;}
+.portrait-level{margin-top:5px;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;padding:3px;background:rgba(30,127,184,.08);border-top:1px solid rgba(30,127,184,.2);}
+.portrait-level-num{font-family:'Cinzel',serif;font-size:0.88rem;font-weight:700;color:var(--accent);}
+
+.stats-sec{padding:5px 10px;border-bottom:1px solid var(--border);}
+.stats-title{font-family:'Cinzel',serif;font-size:0.67rem;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text3);padding:3px 0 4px;border-bottom:1px solid rgba(30,127,184,.2);margin-bottom:3px;}
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:1.5px 0;}
+.stat-lbl{color:var(--text2);font-size:0.84rem;display:flex;align-items:center;gap:4px;}
+.stat-ico{width:13px;text-align:center;font-size:0.76rem;}
+.stat-val{font-family:'Share Tech Mono',monospace;font-size:0.82rem;font-weight:600;}
+
+.stat-alloc-btn{background:rgba(42,184,112,.15);border:1px solid var(--green);color:var(--green2);width:18px;height:18px;border-radius:3px;font-size:0.85rem;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;transition:all .15s;}
+.stat-alloc-btn:hover{background:rgba(42,184,112,.35);transform:scale(1.1);}
+.stat-points-banner{background:rgba(42,184,112,.1);border:1px solid var(--green);border-radius:4px;padding:5px 10px;margin:5px 10px;display:none;text-align:center;font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:var(--ls-base);color:var(--green2);animation:pulse-green 1.8s ease-in-out infinite;}
+
+/* ── STAT POINTS NAV BADGE ── */
+.nav-btn{position:relative;}
+.sp-nav-badge{position:absolute;top:4px;right:6px;width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 6px rgba(42,184,112,.9);animation:sp-badge-pulse 1.4s ease-in-out infinite;display:none;}
+.sp-nav-badge.visible{display:block;}
+@keyframes sp-badge-pulse{0%,100%{box-shadow:0 0 4px rgba(42,184,112,.7);}50%{box-shadow:0 0 10px rgba(42,184,112,1),0 0 18px rgba(42,184,112,.5);}}
+
+/* ── BUFF CHIP v topbaru ─────────────────────────────────────────────────── */
+.tb-buff-chip{position:relative;display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;background:rgba(212,160,48,.12);border:1px solid rgba(212,160,48,.35);cursor:pointer;font-size:0.72rem;color:var(--gold2);font-family:'Cinzel',serif;letter-spacing:.5px;transition:background .15s,border-color .15s;user-select:none;flex-shrink:0;}
+.tb-buff-chip:hover{background:rgba(212,160,48,.22);border-color:rgba(212,160,48,.6);}
+.tb-buff-icon{font-size:0.82rem;line-height:1;}
+.tb-buff-dropdown{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:210px;background:var(--surface,#0d1520);border:1px solid rgba(212,160,48,.35);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.6);z-index:150;padding:6px 0;overflow:hidden;}
+.tb-buff-dropdown.open{display:block;}
+.tb-buff-entry{display:flex;flex-direction:column;padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.05);}
+.tb-buff-entry:last-child{border-bottom:none;}
+.tb-buff-entry-name{font-size:0.78rem;color:var(--gold2);font-weight:600;font-family:'Cinzel',serif;}
+.tb-buff-entry-bonuses{font-size:0.72rem;color:var(--text2);margin-top:2px;}
+.tb-buff-entry-timer{font-size:0.68rem;color:var(--green2);margin-top:2px;}
+.tb-buff-entry-timer.expired{color:var(--red);}
+
+/* ── PŘEHLED — stat buňky ───────────────────────────────────────────────── */
+.ov-stat-cell{display:flex;flex-direction:column;align-items:center;background:rgba(30,127,184,.08);border:1px solid var(--border2);border-radius:4px;padding:6px 4px;text-align:center;gap:2px;}
+.ov-stat-ico{font-size:1rem;line-height:1;}
+.ov-stat-lbl{font-family:'Cinzel',serif;font-size:0.60rem;letter-spacing:var(--ls-base);text-transform:uppercase;color:var(--text3);line-height:1.25;}
+.ov-stat-val{font-family:'Share Tech Mono',monospace;font-size:0.9rem;font-weight:700;line-height:1;}
+.ov-stat-cell.sm .ov-stat-val{font-size:0.78rem;}
+.ov-stat-cell.sm .ov-stat-ico{font-size:0.85rem;}
+
+.lnav{margin-top:auto;border-top:1px solid var(--border);}
+.nav-btn{
+  display:flex;align-items:center;gap:7px;width:100%;
+  padding:8px 11px;cursor:pointer;transition:all .18s cubic-bezier(.2,0,.1,1);
+  background:none;border:none;border-left:2px solid transparent;
+  color:var(--text2);font-family:'IM Fell English',serif;font-size:0.94rem;text-align:left;
+}
+.nav-btn .ni{font-size:0.9rem;width:17px;text-align:center;transition:transform .18s;}
+.nav-btn:hover{
+  background:rgba(30,127,184,.1);color:var(--text);
+  border-left-color:rgba(30,127,184,.35);
+  box-shadow:inset 2px 0 8px rgba(30,127,184,.08);
+}
+.nav-btn:hover .ni{transform:scale(1.15);}
+.nav-btn.active{
+  background:rgba(30,127,184,.16);color:var(--accent);
+  border-left-color:var(--accent);
+  box-shadow:inset 2px 0 12px rgba(30,127,184,.15),-1px 0 8px rgba(30,127,184,.25);
+}
+.nav-btn.active .ni{transform:scale(1.1);}
+.nav-btn .nb{margin-left:auto;font-size:0.64rem;color:var(--text3);font-family:'Cinzel',serif;letter-spacing:var(--ls-base);}
+.nav-btn.off{opacity:.3;cursor:not-allowed;}
+.nav-btn.off:hover{background:none;color:var(--text2);border-left-color:transparent;box-shadow:none;}
+
+/* ── GROUPED NAVIGATION ──────────────────────────────────────────────────── */
+.nav-group{border-bottom:1px solid rgba(30,127,184,.1);}
+.nav-group-header{display:flex;align-items:center;gap:7px;width:100%;padding:7px 11px;background:none;border:none;border-left:2px solid transparent;cursor:pointer;transition:all .15s;text-align:left;color:var(--text3);font-family:'Cinzel',serif;font-size:0.63rem;letter-spacing:2px;text-transform:uppercase;}
+.nav-group-header:hover{color:var(--text2);background:rgba(30,127,184,.07);border-left-color:rgba(30,127,184,.2);}
+.nav-group-header.open{color:var(--accent2);}
+.ng-arrow{font-size:0.55rem;transition:transform .2s ease;flex-shrink:0;line-height:1;opacity:.6;}
+.nav-group-header.open .ng-arrow{transform:rotate(90deg);opacity:1;}
+.ng-icon{font-size:0.88rem;width:17px;text-align:center;}
+.ng-label{flex:1;}
+.ng-notif{min-width:16px;height:16px;border-radius:8px;padding:0 4px;background:var(--green);color:#fff;font-size:0.58rem;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;}
+.nav-group-body{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.nav-group-body.open{max-height:500px;}
+/* Odsazení nav-btn uvnitř skupin */
+.nav-group-body .nav-btn{padding-left:22px;font-size:0.88rem;}
+
+/* ── HLAVNÍ OBLAST ───────────────────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.main-scroll{flex:1;overflow-y:auto;padding:14px;background:var(--bg2);}
+.main-scroll::-webkit-scrollbar{width:4px;}
+.main-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.page{display:none;}
+.page.active{display:block;}
+.page.page-entering{animation:pg-enter .22s cubic-bezier(.2,0,.1,1) both;}
+@keyframes pg-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.page-hdr{
+  display:flex;flex-direction:column;gap:4px;
+  padding-bottom:16px;margin-bottom:18px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  position:relative;
+}
+.page-hdr::after{
+  content:'';position:absolute;bottom:-1px;left:0;width:60px;height:1px;
+  background:linear-gradient(90deg,var(--accent),transparent);
+}
+.page-hdr-title{
+  font-family:'Cinzel Decorative',serif;font-size:1.1rem;
+  color:var(--text);letter-spacing:.5px;
+  display:flex;align-items:center;gap:10px;
+}
+.page-hdr-title::before{
+  content:'';display:block;width:3px;height:1.1rem;
+  background:var(--accent);border-radius:2px;flex-shrink:0;
+}
+.page-hdr-sub{
+  font-family:'Cinzel',serif;font-size:.62rem;letter-spacing:2px;
+  text-transform:uppercase;color:var(--text3);padding-left:13px;
+}
+
+
+
+/* ── MOBILNÍ UI (desktop: skryto) ────────────────────────────────────────── */
+.mob-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(2,4,8,.97);border-top:1px solid var(--border2);backdrop-filter:blur(14px);z-index:300;gap:0;}
+.mob-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--text3);cursor:pointer;padding:4px 2px;transition:color .15s;border-top:2px solid transparent;}
+.mob-tab.active{color:var(--accent2);border-top-color:var(--accent2);}
+.mob-tab:hover:not(.active){color:var(--text);}
+.mob-tab-icon{font-size:1.1rem;line-height:1;}
+.mob-tab-label{font-family:'Cinzel',serif;font-size:0.52rem;letter-spacing:.5px;text-transform:uppercase;line-height:1;}
+
+.mob-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:280;backdrop-filter:blur(2px);}
+.mob-backdrop.open{display:block;}
+
+.mob-drawer{display:none;position:fixed;bottom:56px;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border2);box-shadow:0 -8px 32px rgba(0,0,0,.6);z-index:290;max-height:65vh;overflow-y:auto;transform:translateY(110%);transition:transform .26s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.mob-drawer.open{transform:translateY(0);pointer-events:all;}
+
+.mob-drawer-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:1;}
+.mob-drawer-title{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--accent2);font-weight:700;letter-spacing:1px;}
+.mob-drawer-close{background:none;border:1px solid var(--border2);color:var(--text2);width:24px;height:24px;border-radius:3px;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mob-drawer-close:hover{border-color:var(--accent);color:var(--accent);}
+.mob-drawer-nav{padding:6px 0 8px;}
+.mob-drawer-nav .nav-btn{font-size:0.94rem;padding:11px 16px;}
+
+/* ── MOBILNÍ MEDIA QUERY (≤ 768 px) ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Jednosloupkový grid — lpanel schován */
+  .layout{grid-template-columns:1fr !important;}
+  .lpanel{display:none !important;}
+
+  /* Topbar — ponecháme jen logo + avatar + akce; zjednodušíme */
+  .tb-online{display:none !important;}
+  .tb-quest-chip{display:none !important;}
+  .tb-rank-chip{display:none !important;}
+  .tb-sep{display:none !important;}
+  .tb-crystals{display:none !important;}
+
+  /* Spodní padding pro tab bar */
+  .main-scroll{padding-bottom:68px !important;}
+
+  /* Zobrazíme tab bar a drawer */
+  .mob-tabbar{display:flex !important;}
+  .mob-drawer{display:block;}
+
+  /* Combat replay — vertikální layout */
+  .cr-combatants{flex-direction:column !important;gap:8px !important;}
+  .cr-side.cr-enemy{text-align:left !important;}
+  .cr-modal{width:calc(100vw - 24px) !important;max-width:none !important;padding:14px !important;}
+
+  /* Inventory — strip přejde na 4+3 */
+  .inv-equip-strip{grid-template-columns:repeat(4,1fr);}
+  .inv-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));}
+}
