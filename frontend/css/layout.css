@@ -185,7 +185,7 @@
 #page-equipment    .page-hdr { --ph-rgb: 180,130,60; }
 #page-inventory    .page-hdr { --ph-rgb: 160,110,50; }
 #page-faction      .page-hdr { --ph-rgb: 180,60,180; }
-#page-prestige     .page-hdr { --ph-rgb: 212,160,48; }
+#page-prestige     .page-hdr { --ph-rgb: 160,50,210; }
 #page-subclass     .page-hdr { --ph-rgb: 128,48,200; }
 #page-attunement   .page-hdr { --ph-rgb: 60,160,220; }
 #page-season       .page-hdr { --ph-rgb: 180,80,20; }
@@ -193,7 +193,10 @@
 #page-professions  .page-hdr { --ph-rgb: 150,100,50; }
 #page-world-events .page-hdr { --ph-rgb: 220,80,40; }
 #page-build        .page-hdr { --ph-rgb: 80,160,80; }
-#page-weekly       .page-hdr { --ph-rgb: 200,120,16; }
+#page-weekly       .page-hdr { --ph-rgb: 80,180,130; }
+#page-notifications .page-hdr { --ph-rgb: 150,80,180; }
+#page-account       .page-hdr { --ph-rgb: 120,120,140; }
+#page-support       .page-hdr { --ph-rgb: 80,140,180; }
 
 /* ── MOBILNÍ UI (desktop: skryto) ────────────────────────────────────────── */
 .mob-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(2,4,8,.97);border-top:1px solid var(--border2);backdrop-filter:blur(14px);z-index:300;gap:0;}
