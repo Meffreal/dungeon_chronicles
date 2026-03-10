@@ -173,7 +173,27 @@
   text-transform:uppercase;color:var(--text3);padding-left:13px;
 }
 
-
+/* ── Per-page color identity ─────────────────────────────────────────────── */
+#page-quests       .page-hdr { --ph-rgb: 32,178,170; }
+#page-arena        .page-hdr { --ph-rgb: 192,57,43; }
+#page-dungeons     .page-hdr { --ph-rgb: 123,47,191; }
+#page-boss         .page-hdr { --ph-rgb: 180,20,20; }
+#page-shop         .page-hdr { --ph-rgb: 200,120,16; }
+#page-market       .page-hdr { --ph-rgb: 200,144,32; }
+#page-guild        .page-hdr { --ph-rgb: 42,184,112; }
+#page-achievements .page-hdr { --ph-rgb: 212,160,48; }
+#page-equipment    .page-hdr { --ph-rgb: 180,130,60; }
+#page-inventory    .page-hdr { --ph-rgb: 160,110,50; }
+#page-faction      .page-hdr { --ph-rgb: 180,60,180; }
+#page-prestige     .page-hdr { --ph-rgb: 212,160,48; }
+#page-subclass     .page-hdr { --ph-rgb: 128,48,200; }
+#page-attunement   .page-hdr { --ph-rgb: 60,160,220; }
+#page-season       .page-hdr { --ph-rgb: 180,80,20; }
+#page-crystals     .page-hdr { --ph-rgb: 80,180,220; }
+#page-professions  .page-hdr { --ph-rgb: 150,100,50; }
+#page-world-events .page-hdr { --ph-rgb: 220,80,40; }
+#page-build        .page-hdr { --ph-rgb: 80,160,80; }
+#page-weekly       .page-hdr { --ph-rgb: 200,120,16; }
 
 /* ── MOBILNÍ UI (desktop: skryto) ────────────────────────────────────────── */
 .mob-tabbar{display:none;position:fixed;bottom:0;left:0;right:0;height:56px;background:rgba(2,4,8,.97);border-top:1px solid var(--border2);backdrop-filter:blur(14px);z-index:300;gap:0;}
