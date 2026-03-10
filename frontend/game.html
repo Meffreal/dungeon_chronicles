@@ -193,9 +193,9 @@
         <div class="hub-map">
 
           <!-- HORNÍ ŘAD -->
-          <div class="hub-building" id="hub-b-quests" onclick="showPage('quests')" style="--hub-color:#20b2aa">
+          <div class="hub-building" id="hub-b-quests" onclick="showPage('quests')" style="--hub-rgb:32,178,170">
             <div class="hub-b-top">
-              <div class="hub-b-icon">📜</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
             </div>
             <div class="hub-b-name">Nástěnka questů</div>
@@ -203,9 +203,9 @@
             <button class="hub-b-btn" onclick="event.stopPropagation();showPage('quests')">⚔ Vybrat quest</button>
           </div>
 
-          <div class="hub-building hub-building-future" id="hub-b-taverna" style="--hub-color:#c8860f">
+          <div class="hub-building hub-building-future" id="hub-b-taverna" style="--hub-rgb:200,134,15">
             <div class="hub-b-top">
-              <div class="hub-b-icon">🍺</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-locked">Brzy</div>
             </div>
             <div class="hub-b-name">Taverna</div>
@@ -213,9 +213,9 @@
             <button class="hub-b-btn" disabled>🚧 Brzy dostupné</button>
           </div>
 
-          <div class="hub-building" id="hub-b-boss" onclick="showBossPage()" style="--hub-color:#8b1010">
+          <div class="hub-building" id="hub-b-boss" onclick="showBossPage()" style="--hub-rgb:139,16,16">
             <div class="hub-b-top">
-              <div class="hub-b-icon">💀</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
             </div>
             <div class="hub-b-name">Chrám Bosse</div>
@@ -224,9 +224,9 @@
           </div>
 
           <!-- DOLNÍ ŘAD -->
-          <div class="hub-building" id="hub-b-arena" onclick="showPage('arena')" style="--hub-color:#1e7fb8">
+          <div class="hub-building" id="hub-b-arena" onclick="showPage('arena')" style="--hub-rgb:192,57,43">
             <div class="hub-b-top">
-              <div class="hub-b-icon">⚔</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
             </div>
             <div class="hub-b-name">Aréna</div>
@@ -234,9 +234,9 @@
             <button class="hub-b-btn" onclick="event.stopPropagation();showPage('arena')">🏟 Vstoupit</button>
           </div>
 
-          <div class="hub-building" id="hub-b-shop" onclick="showPage('shop')" style="--hub-color:#c89010">
+          <div class="hub-building" id="hub-b-shop" onclick="showPage('shop')" style="--hub-rgb:200,144,16">
             <div class="hub-b-top">
-              <div class="hub-b-icon">🏪</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-available">Otevřeno</div>
             </div>
             <div class="hub-b-name">Obchod</div>
@@ -244,9 +244,9 @@
             <button class="hub-b-btn" onclick="event.stopPropagation();showPage('shop')">🛒 Nakoupit</button>
           </div>
 
-          <div class="hub-building" id="hub-b-dungeons" onclick="showDungeonPage()" style="--hub-color:#7b2fbf">
+          <div class="hub-building" id="hub-b-dungeons" onclick="showDungeonPage()" style="--hub-rgb:123,47,191">
             <div class="hub-b-top">
-              <div class="hub-b-icon">🗝</div>
+              <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
             </div>
             <div class="hub-b-name">Dungeon</div>
@@ -261,8 +261,8 @@
           <div class="hub-npcs-title">Obyvatelé města</div>
           <div class="hub-npcs-row">
 
-            <div class="hub-npc" onclick="showPage('quests')">
-              <div class="hub-npc-avatar">🧙</div>
+            <div class="hub-npc" data-npc="aldric" onclick="showPage('quests')">
+              <div class="hub-npc-portrait"></div>
               <div class="hub-npc-body">
                 <div class="hub-npc-name">Aldric Starý</div>
                 <div class="hub-npc-role">Správce questů</div>
@@ -271,8 +271,8 @@
               <button class="hub-npc-btn" onclick="event.stopPropagation();showPage('quests')">📜 Questy</button>
             </div>
 
-            <div class="hub-npc" onclick="showPage('arena')">
-              <div class="hub-npc-avatar">⚔️</div>
+            <div class="hub-npc" data-npc="brutus" onclick="showPage('arena')">
+              <div class="hub-npc-portrait"></div>
               <div class="hub-npc-body">
                 <div class="hub-npc-name">Kapitán Brutus</div>
                 <div class="hub-npc-role">Velitel arény</div>
@@ -281,8 +281,8 @@
               <button class="hub-npc-btn" onclick="event.stopPropagation();showPage('arena')">🏟 Aréna</button>
             </div>
 
-            <div class="hub-npc" onclick="showPage('shop')">
-              <div class="hub-npc-avatar">🏪</div>
+            <div class="hub-npc" data-npc="orin" onclick="showPage('shop')">
+              <div class="hub-npc-portrait"></div>
               <div class="hub-npc-body">
                 <div class="hub-npc-name">Orin Obchodník</div>
                 <div class="hub-npc-role">Potulný kupec</div>
