@@ -24,17 +24,17 @@
 /* ── VÝBĚR POVOLÁNÍ ──────────────────────────────────────────────────────── */
 .cls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .cls-card{border:2px solid var(--border);border-radius:6px;padding:12px 8px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);position:relative;overflow:hidden;}
-.cls-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(56,212,196,.1));opacity:0;transition:opacity .2s;}
-.cls-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(30,127,184,.2);}
+.cls-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(230,126,34,.1));opacity:0;transition:opacity .2s;}
+.cls-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(192,57,43,.2);}
 .cls-card:hover::before{opacity:1;}
-.cls-card.sel{border-color:var(--accent);background:rgba(30,127,184,.15);box-shadow:0 0 12px rgba(30,127,184,.3);}
+.cls-card.sel{border-color:var(--accent);background:rgba(192,57,43,.15);box-shadow:0 0 12px rgba(192,57,43,.3);}
 .cls-emoji{font-size:1.8rem;margin-bottom:5px;} .cls-name{font-family:'Cinzel',serif;font-size:0.84rem;color:var(--accent);margin-bottom:3px;} .cls-desc{font-size:0.75rem;color:var(--text2);font-style:italic;line-height:var(--lh-snug);} .cls-nums{margin-top:5px;font-size:0.72rem;color:var(--text3);}
 
 /* ── FORMULÁŘE ───────────────────────────────────────────────────────────── */
 .fld{margin-bottom:11px;}
 .fld label{display:block;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
 .fld input{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IM Fell English',serif;font-size:0.96rem;outline:none;transition:all .2s;}
-.fld input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(30,127,184,.3);}
+.fld input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 .fmsg{padding:7px 11px;border-radius:3px;font-size:0.82rem;margin-bottom:9px;display:none;}
 .fmsg.err{display:block;background:rgba(232,64,64,.15);border:1px solid #e84040;color:#ff9090;}
 .fmsg.ok{display:block;background:rgba(42,184,112,.12);border:1px solid var(--green);color:#90ffa0;}
@@ -58,15 +58,15 @@
 .toast{background:linear-gradient(135deg,#120806,#1c0e08);border:1px solid var(--border2);border-radius:4px;padding:9px 13px;font-size:0.86rem;line-height:var(--lh-snug);max-width:310px;box-shadow:0 0 16px rgba(192,57,43,.2);animation:toast-in .24s ease;display:flex;align-items:flex-start;gap:6px;backdrop-filter:blur(8px);}
 .toast.ts{border-left:3px solid var(--green);box-shadow:0 0 16px rgba(42,184,112,.2);}
 .toast.te{border-left:3px solid #e84040;box-shadow:0 0 16px rgba(232,64,64,.2);}
-.toast.ti{border-left:3px solid var(--accent);box-shadow:0 0 16px rgba(30,127,184,.3);}
+.toast.ti{border-left:3px solid var(--accent);box-shadow:0 0 16px rgba(192,57,43,.3);}
 
 /* ── FRAKCE — VÝBĚR V MODALU ────────────────────────────────────────────── */
 .faction-section-lbl{font-family:'Cinzel',serif;font-size:0.68rem;letter-spacing:var(--ls-wider);text-transform:uppercase;color:var(--text2);margin:13px 0 7px;}
 .faction-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .faction-card{border:2px solid var(--border);border-radius:6px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);position:relative;overflow:hidden;}
-.faction-card::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .18s;background:linear-gradient(135deg,transparent,rgba(56,212,196,.1));}
-.faction-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(30,127,184,.2);border-color:var(--border2);}
-.faction-card.sel{background:rgba(30,127,184,.15);border-color:var(--accent);box-shadow:0 0 12px rgba(30,127,184,.3);}
+.faction-card::after{content:'';position:absolute;inset:0;opacity:0;transition:opacity .18s;background:linear-gradient(135deg,transparent,rgba(230,126,34,.1));}
+.faction-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(192,57,43,.2);border-color:var(--border2);}
+.faction-card.sel{background:rgba(192,57,43,.15);border-color:var(--accent);box-shadow:0 0 12px rgba(192,57,43,.3);}
 .faction-card.sel::after{opacity:1;}
 .faction-emblem{font-size:1.8rem;margin-bottom:5px;}
 .faction-card-name{font-family:'Cinzel',serif;font-size:0.72rem;margin-bottom:3px;}
@@ -120,14 +120,14 @@
 .faction-change-warning{background:rgba(184,32,48,.1);border:1px solid var(--accent);border-radius:4px;padding:10px 13px;margin-bottom:13px;font-size:0.8rem;color:#ff9090;line-height:1.5;}
 
 /* ── BOJOVÁ STRATEGIE ────────────────────────────────────────────────────── */
-.strategy-bar{background:linear-gradient(135deg,rgba(30,127,184,.06),rgba(56,212,196,.04));border:1px solid var(--border);border-radius:7px;padding:10px 13px;margin-bottom:14px;}
+.strategy-bar{background:linear-gradient(135deg,rgba(192,57,43,.06),rgba(230,126,34,.04));border:1px solid var(--border);border-radius:7px;padding:10px 13px;margin-bottom:14px;}
 .strategy-bar-top{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
 .strategy-label{font-family:'Cinzel',serif;font-size:.67rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);white-space:nowrap;}
 .strategy-desc{font-size:.72rem;color:var(--text3);font-style:italic;}
 .strategy-btns{display:flex;gap:6px;flex-wrap:wrap;}
 .strat-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:5px;padding:5px 11px;font-size:.75rem;color:var(--text2);cursor:pointer;transition:all .18s;white-space:nowrap;}
-.strat-btn:hover{background:rgba(30,127,184,.12);border-color:var(--accent);color:var(--accent);}
-.strat-btn.active{background:rgba(30,127,184,.2);border-color:var(--accent);color:var(--accent);font-weight:600;box-shadow:0 0 6px rgba(30,127,184,.25);}
+.strat-btn:hover{background:rgba(192,57,43,.12);border-color:var(--accent);color:var(--accent);}
+.strat-btn.active{background:rgba(192,57,43,.2);border-color:var(--accent);color:var(--accent);font-weight:600;box-shadow:0 0 6px rgba(192,57,43,.25);}
 
 /* ── DENNÍ QUESTY — legacy kept for safety ───────────────────────────────── */
 .daily-section{margin-bottom:18px;}
@@ -453,7 +453,7 @@
 .pr-form-row{margin-bottom:10px;}
 .pr-form-row label{display:block;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
 .pr-input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IM Fell English',serif;font-size:0.92rem;outline:none;transition:all .2s;}
-.pr-input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(30,127,184,.3);}
+.pr-input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 select.pr-input option{background:var(--panel2);}
 
 /* ── Inline action buttons ──────────────────────────────────────────────── */
@@ -594,11 +594,11 @@ select.pr-input option{background:var(--panel2);}
 .appearance-wrapper{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
 @media(max-width:1200px){.appearance-wrapper{grid-template-columns:1fr;}}
 
-.appearance-preview{background:linear-gradient(135deg,rgba(30,127,184,.08),rgba(56,212,196,.05));border:1px solid var(--border2);border-radius:6px;padding:20px;position:sticky;top:12px;min-height:fit-content;}
+.appearance-preview{background:linear-gradient(135deg,rgba(192,57,43,.08),rgba(230,126,34,.05));border:1px solid var(--border2);border-radius:6px;padding:20px;position:sticky;top:12px;min-height:fit-content;}
 .appearance-display{display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center;}
-.appearance-avatar{font-size:4rem;line-height:1;margin-bottom:8px;filter:drop-shadow(0 0 16px rgba(30,127,184,.4));}
-.appearance-avatar-container{display:flex;align-items:center;justify-content:center;margin-bottom:12px;min-height:140px;background:linear-gradient(135deg,rgba(30,127,184,.15),rgba(56,212,196,.1));border-radius:8px;padding:10px;position:relative;border:1px solid rgba(30,127,184,.3);}
-.appearance-avatar-img{max-width:130px;max-height:130px;width:auto;height:auto;filter:drop-shadow(0 0 16px rgba(30,127,184,.4));border-radius:8px;object-fit:contain;transition:opacity 0.3s ease;display:block;}
+.appearance-avatar{font-size:4rem;line-height:1;margin-bottom:8px;filter:drop-shadow(0 0 16px rgba(212,160,48,.4));}
+.appearance-avatar-container{display:flex;align-items:center;justify-content:center;margin-bottom:12px;min-height:140px;background:radial-gradient(ellipse at 50% 30%,rgba(192,57,43,.12),rgba(10,3,1,.8));border-radius:8px;padding:10px;position:relative;border:1px solid rgba(192,57,43,.25);}
+.appearance-avatar-img{max-width:130px;max-height:130px;width:auto;height:auto;filter:drop-shadow(0 0 16px rgba(212,160,48,.35));border-radius:8px;object-fit:contain;transition:opacity 0.3s ease;display:block;}
 .appearance-avatar-fallback{background:linear-gradient(135deg,#4ECDC4,#45B7D1);border-radius:8px;color:white;text-shadow:0 2px 4px rgba(0,0,0,0.3);font-size:3rem;width:130px;height:130px;display:none;}
 
 .appearance-stats{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%;font-size:0.85rem;line-height:1.5;margin-top:8px;padding-top:12px;border-top:1px solid var(--border2);}
@@ -607,7 +607,7 @@ select.pr-input option{background:var(--panel2);}
 
 .appearance-form{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:16px;}
 .appearance-form select{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:0.96rem;outline:none;transition:all .2s;cursor:pointer;}
-.appearance-form select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(30,127,184,.3);}
+.appearance-form select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 .appearance-form select:hover{border-color:var(--accent2);}
 
 /* Equipment portrait avatar image */
