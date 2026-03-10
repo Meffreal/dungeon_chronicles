@@ -1,0 +1,49 @@
+/* ── PROMĚNNÉ & RESET ─────────────────────────────────────────────────────── */
+:root {
+  --bg:#0a0503;       --bg2:#120806;   --bg3:#1c0e08;
+  --border:#3d1a0a;   --border2:#6b2d12;
+  --accent:#c0392b;   --accent2:#e67e22;
+  --gold:#d4a030;     --gold2:#f0c84a;  --gold3:#d4a030;
+  --text:#d8c8b8;     --text2:#a08878; --text3:#6a5040;
+  --green:#2ab870;    --green2:#50d070; --blue:#8b4010; --purple:#8030c0; --purple2:#b070f0;
+  --cls-warrior:#c8965a; --cls-mage:#5090d0; --cls-ranger:#4aad6a;
+  /* ── Typography scale ──────────────────────────────────────────────────── */
+  --fs-2xs:0.65rem;
+  --fs-xs: 0.72rem;
+  --fs-sm: 0.78rem;
+  --fs-base:0.88rem;
+  --fs-md: 0.94rem;
+  --fs-lg: 1.06rem;
+  --fs-xl: 1.18rem;
+  --lh-tight:1.35;   --lh-snug:1.5;   --lh-base:1.6;   --lh-loose:1.75;
+  --ls-tight:0.5px;  --ls-base:1px;   --ls-wide:1.5px; --ls-wider:2px;
+  --hp:#c02828;       --mp:#2050c8;    --xp:#28a840;
+  --common:#9d9d9d;   --uncommon:#1eff00; --rare:#0070dd; --epic:#a335ee; --legend:#ff8000;
+  --frame1:#2a1800;   --frame2:#7a5000; --frame3:#c89020; --frame4:#f0d060;
+}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital@0;1&family=Share+Tech+Mono&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:17px;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Crimson Text',serif;font-size:15px;line-height:1.5;display:flex;flex-direction:column;}
+
+/* ── UTILITY BARVY ───────────────────────────────────────────────────────── */
+.c-red{color:#e06060;} .c-green{color:#60d080;} .c-blue{color:#6090f0;} .c-gold{color:var(--gold2);} .c-purple{color:var(--purple2);} .c-cyan{color:#60d8e0;} .c-silver{color:#c0c0d0;}
+
+/* ── SCROLLBAR ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ── BOJOVÝ LOG ──────────────────────────────────────────────────────────── */
+.blog{background:rgba(0,0,0,.45);border:1px solid var(--border);border-radius:4px;padding:10px;font-family:monospace;font-size:0.82rem;line-height:1.7;color:var(--text2);max-height:240px;overflow-y:auto;}
+.bwin{color:var(--green2);font-weight:bold;} .blose{color:var(--accent2);font-weight:bold;} .bcrit{color:var(--gold2);} .bsep{color:var(--border3);}
+
+/* ── KEYFRAMES ───────────────────────────────────────────────────────────── */
+@keyframes pg-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@keyframes pulse-green{0%,100%{box-shadow:0 0 0 0 rgba(42,184,112,.4);}50%{box-shadow:0 0 0 4px rgba(42,184,112,.0);}}
+@keyframes aq-shine{0%{background-position:-200%}100%{background-position:200%}}
+@keyframes bar-gl{0%,100%{opacity:.2}50%{opacity:.8}}
+@keyframes toast-in{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:none}}
+@keyframes card-entrance{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes gold-shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 8px rgba(30,127,184,.2)}50%{box-shadow:0 0 16px rgba(30,127,184,.4)}}
