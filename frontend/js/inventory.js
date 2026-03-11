@@ -260,8 +260,9 @@ async function equipItem(invId) {
     const d = await api('POST', '/inventory/equip', { inv_item_id: invId });
     toast(d.message, 's', 2500);
     updateUI(d.character);
-    const slotEl = document.querySelector(`.inv-strip-slot[data-slot="${invItem?.item?.type}"]`);
-    if (slotEl) { slotEl.classList.remove('inv-strip-slot-warn','inv-strip-slot-crit'); slotEl.classList.add('slot-accept'); setTimeout(() => slotEl.classList.remove('slot-accept'), 520); }
+    const _slotType = invItem?.item?.type;
+    const slotEl = _slotType && document.querySelector(`.inv-strip-slot[data-slot="${_slotType}"]`);
+    if (slotEl) { slotEl.classList.remove('inv-strip-slot-warn','inv-strip-slot-crit'); slotEl.classList.add('slot-accept'); setTimeout(() => document.querySelector(`.inv-strip-slot[data-slot="${_slotType}"]`)?.classList.remove('slot-accept'), 520); }
     renderEquip();
     await loadInventory();
     addAct(`⚔ Nasazeno: ${itemName}`);
