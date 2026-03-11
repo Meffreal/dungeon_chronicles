@@ -719,7 +719,7 @@
   background: rgba(192,57,43,.15) !important;
   border-bottom-color: var(--accent) !important;
   color: var(--accent2) !important;
-  box-shadow: 0 0 8px rgba(192,57,43,.2);
+  box-shadow: 0 0 8px rgba(192,57,43,.2) !important;
 }
 
 /* Coming soon badge */
