@@ -455,7 +455,12 @@ function _playLevelUpAnim(newLevel) {
   const flash = document.createElement('div');
   flash.className = 'level-up-flash';
   document.body.appendChild(flash);
-  setTimeout(() => flash.remove(), 700);
+  setTimeout(() => flash.remove(), 900);
+  const runes = document.createElement('div');
+  runes.className = 'level-up-runes';
+  runes.textContent = '✦ ᚱ ✦';
+  document.body.appendChild(runes);
+  setTimeout(() => runes.remove(), 960);
   document.querySelectorAll('.portrait-outer, .equip-portrait-outer').forEach(el => {
     el.classList.remove('portrait-level-glow');
     void el.offsetWidth; // restart animation
@@ -483,6 +488,13 @@ function updateUI(c) {
     ? `<span style="color:${nameColor}">${esc(c.name)}</span>`
     : esc(c.name);
   set('tb-avatar', CLS_E[cl]);
+  const avatarEl = document.getElementById('tb-avatar');
+  if (avatarEl) {
+    avatarEl.dataset.cls = cl;
+    const activeFrameTb = c.season_portrait_frame || c.prestige_portrait_frame || c.crystal_portrait_frame || null;
+    if (activeFrameTb) avatarEl.dataset.frame = activeFrameTb;
+    else delete avatarEl.dataset.frame;
+  }
   setHTML('tb-name', titleHtml + nameHtml);
   set('tb-lvl', `Lv.${c.level}`); set('tb-cls', CLS_N[cl]);
   if (goldGained > 0) {
