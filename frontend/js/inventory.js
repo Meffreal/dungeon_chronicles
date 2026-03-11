@@ -261,7 +261,7 @@ async function equipItem(invId) {
     toast(d.message, 's', 2500);
     updateUI(d.character);
     const slotEl = document.querySelector(`.inv-strip-slot[data-slot="${invItem?.item?.type}"]`);
-    if (slotEl) { slotEl.classList.add('slot-accept'); setTimeout(() => slotEl.classList.remove('slot-accept'), 520); }
+    if (slotEl) { slotEl.classList.remove('inv-strip-slot-warn','inv-strip-slot-crit'); slotEl.classList.add('slot-accept'); setTimeout(() => slotEl.classList.remove('slot-accept'), 520); }
     renderEquip();
     await loadInventory();
     addAct(`⚔ Nasazeno: ${itemName}`);
