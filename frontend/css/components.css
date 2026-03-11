@@ -57,6 +57,7 @@
 .btn-red{background:linear-gradient(135deg,#5a0a0a,#8b1a1a);border-color:#e84040;}
 .btn-secondary{background:rgba(200,100,50,.04);border-color:var(--border2);color:var(--text2);}
 .btn-secondary:hover:not(:disabled){background:rgba(200,100,50,.09);border-color:var(--border2);box-shadow:none;color:var(--text);}
+.btn-secondary:active:not(:disabled){box-shadow:inset 0 2px 4px rgba(0,0,0,.3);transform:translateY(0) scale(.97);transition:transform .06s,box-shadow .06s;}
 .btn-full{width:100%;justify-content:center;}
 .btn-sm{padding:5px 11px;font-size:0.68rem;}
 
