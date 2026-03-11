@@ -185,7 +185,7 @@ async function loadQuests() {
     renderAQ(status);
     renderRecommended(recommended, status);
     renderDailyQuests(daily, status.status);
-    renderQList(quests, status.status, chainQuests);
+    renderQList(quests, status.status, chainQuests, status);
   } catch(e) { toast(e.message,'e'); }
 }
 
@@ -375,14 +375,19 @@ function runTimer(s) {
 }
 
 // ── Available quests list — renders NPC encounter board ──
-function renderQList(quests, status, chainQuests = []) {
+function renderQList(quests, status, chainQuests = [], fullStatus = null) {
   const el = document.getElementById('qlist-wrap');
   if (status !== 'idle') {
-    el.innerHTML = `<div class="empty-state-card">
+    let html = '';
+    if (fullStatus?.quest && (status === 'active' || status === 'collecting')) {
+      html += buildQuestCard(fullStatus.quest, true, false, false, false);
+    }
+    html += `<div class="empty-state-card">
   <div class="empty-state-icon">📜</div>
   <div class="empty-state-title">Žádné dostupné questy</div>
   <div class="empty-state-sub">Dokonči aktuální quest a potom si vyber nový.</div>
 </div>`;
+    el.innerHTML = html;
     return;
   }
 
