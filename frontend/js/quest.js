@@ -640,10 +640,18 @@ function triggerRewardBurst(xp, gold) {
   setTimeout(() => { el.classList.remove('reward-burst--active'); el.innerHTML = ''; }, 2200);
 }
 
+function _questFlash() {
+  const el = document.createElement('div');
+  el.className = 'quest-flash';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 600);
+}
+
 // ── Start quest ──
 async function startQuest(id, name, isDaily = false) {
   try {
     const d = await api('POST', '/quest/start', { quest_id: id, strategy: getStrategy(), is_daily: isDaily });
+    _questFlash();
     toast(`Quest "${name}" zahájen! ${d.success?'✅ Výhra předpovězena':'⚠ Bude to těžké'}`, 's', 3500);
     addAct(`⚔ Zahájen: ${name}`);
     await loadQuests();
@@ -667,6 +675,7 @@ async function collectQuest() {
   try {
     const d = await api('POST','/quest/collect');
     const success = d.success !== false;
+    if (success) _questFlash();
     let msg = `+${d.rewards.xp} XP`;
     if (d.rewards.gold > 0) msg += `, +${d.rewards.gold} G`;
     if (d.rewards.item) {

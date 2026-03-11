@@ -709,6 +709,17 @@ select.pr-input option{background:var(--panel2);}
 }
 .portrait-level-glow{animation:portrait-glow-anim 2s ease-out forwards !important;}
 
+/* Quest start/collect edge flash */
+.quest-flash{
+  position:fixed;inset:0;z-index:45;pointer-events:none;
+  animation:quest-flash-anim .55s ease-out forwards;
+}
+@keyframes quest-flash-anim{
+  0%  {opacity:0;box-shadow:inset 0 0 0px rgba(192,57,43,0);}
+  15% {opacity:1;box-shadow:inset 0 0 60px rgba(192,57,43,.35),inset 0 0 120px rgba(192,57,43,.15);}
+  100%{opacity:0;box-shadow:inset 0 0 20px rgba(192,57,43,0);}
+}
+
 /* ── Quest section styles moved to theme.css (qv2, qboard, qdaily-hdr) ── */
 
 /* ── EMPTY STATES ──────────────────────────────────────────────────────── */
