@@ -273,7 +273,7 @@ async function doAttack(defenderId, defenderName) {
   lastArenaEnemyAppearance = _oppData?.appearance || null;
 
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
-  toast(`⚔ Útočíš na ${defenderName}...`, 'i', 2000);
+  toast(`⚔ Útočíš na ${esc(defenderName)}...`, 'i', 2000);
 
   try {
     const d = await api('POST', `/arena/attack/${defenderId}`, { strategy: getStrategy() });
@@ -289,7 +289,7 @@ async function doAttack(defenderId, defenderName) {
     resultEl.style.display = 'block';
     const arcRgb = won ? '32,168,64' : '184,32,48';
     const charName = (typeof char !== 'undefined' && char?.name) ? esc(char.name) : 'Ty';
-    const charCls  = (typeof char !== 'undefined' && char?.cls)  ? char.cls : '';
+    const charCls  = (typeof char !== 'undefined' && char?.cls)  ? esc(char.cls) : '';
     resultEl.innerHTML = `
       <div class="arena-result-card ${won ? 'win' : 'loss'}" style="--arc-rgb:${arcRgb}">
         <div class="arc-header">
@@ -340,7 +340,7 @@ async function doAttack(defenderId, defenderName) {
       toast(`⚡ Level up! Nyní level ${lv}${spHint}`, 's', 7000);
     }
     addAct(`${won ? '🏆' : '💀'} Aréna vs ${defenderName}: ${won ? 'výhra' : 'prohra'} (${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO, +${d.xp_gained||0} XP)`);
-    toast(`${won ? '🏆 Vítězství!' : '💀 Prohra'} vs ${defenderName} · ${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO · +${d.xp_gained||0} XP`, won ? 's' : 'e', 5000);
+    toast(`${won ? '🏆 Vítězství!' : '💀 Prohra'} vs ${esc(defenderName)} · ${d.elo_change >= 0 ? '+' : ''}${d.elo_change} ELO · +${d.xp_gained||0} XP`, won ? 's' : 'e', 5000);
     showAchievementToasts(d.new_achievements);
     if (typeof notifyWeeklyCompleted === 'function') notifyWeeklyCompleted(d.weekly_completed);
 

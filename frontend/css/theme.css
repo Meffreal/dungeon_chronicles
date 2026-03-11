@@ -388,7 +388,7 @@
 }
 .arc-header::before{content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,rgba(var(--arc-rgb,32,168,64),.12),transparent);pointer-events:none;}
-.arc-outcome{font-family:'Cinzel Decorative',cursive;font-size:1.3rem;letter-spacing:2px;line-height:1.2;}
+.arc-outcome{font-family:'Cinzel Decorative',serif;font-size:1.3rem;letter-spacing:2px;line-height:1.2;}
 .arc-outcome.win{color:#60d080;text-shadow:0 0 16px rgba(32,168,64,.5);}
 .arc-outcome.loss{color:#f06878;text-shadow:0 0 16px rgba(184,32,48,.5);}
 .arc-vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px 16px;}
