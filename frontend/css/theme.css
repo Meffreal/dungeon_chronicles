@@ -2028,6 +2028,10 @@
   border-bottom: 1px solid var(--border);
   margin-bottom: 14px;
 }
+.hub-header.tod-dawn  {background:linear-gradient(135deg,rgba(180,100,20,.18),rgba(212,140,30,.08),transparent);}
+.hub-header.tod-day   {background:linear-gradient(135deg,rgba(60,120,180,.12),rgba(100,160,220,.06),transparent);}
+.hub-header.tod-dusk  {background:linear-gradient(135deg,rgba(192,57,43,.18),rgba(180,80,20,.1),transparent);}
+.hub-header.tod-night {background:linear-gradient(135deg,rgba(20,30,80,.25),rgba(10,20,60,.15),transparent);}
 .hub-city-icon {
   font-size: 1.8rem;
   line-height: 1;

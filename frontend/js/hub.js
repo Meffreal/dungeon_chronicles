@@ -280,11 +280,23 @@ const HUB_NPCS = [
 
 let _hubCdIntervals = [];
 
+// ── Time-of-day ambient atmosphere ──────────────────────────────────────────
+
+function applyTimeOfDay() {
+  const h = new Date().getHours();
+  const tod = h >= 5 && h < 10 ? 'dawn' : h >= 10 && h < 17 ? 'day' : h >= 17 && h < 21 ? 'dusk' : 'night';
+  const el = document.querySelector('.hub-header');
+  if (!el) return;
+  el.classList.remove('tod-dawn','tod-day','tod-dusk','tod-night');
+  el.classList.add('tod-' + tod);
+}
+
 // ── Hlavní load funkce ──────────────────────────────────────────────────────
 
 async function loadHub() {
   _hubCdIntervals.forEach(clearInterval);
   _hubCdIntervals = [];
+  applyTimeOfDay();
 
   // Načti news feed (nezávislé, non-blocking)
   if (typeof loadNewsFeed === 'function') loadNewsFeed();
