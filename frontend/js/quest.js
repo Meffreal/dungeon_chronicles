@@ -227,6 +227,7 @@ function buildQuestCard(q, active, isRecommended = false, isDaily = false, skipa
     isDaily       ? 'qv2--daily'       : '',
     ci            ? 'qv2--chain'       : '',
     active        ? 'qv2--locked'      : '',
+    active        ? 'qv2--active'      : '',
   ].filter(Boolean).join(' ');
 
   const clickFn = active ? '' : `startQuest(${q.id},'${esc(q.name)}',${isDaily})`;
@@ -236,6 +237,7 @@ function buildQuestCard(q, active, isRecommended = false, isDaily = false, skipa
       ${active ? '' : `onclick="${clickFn}"`}>
     ${chainBadge}
     <div class="qv2-stripe"></div>
+    ${active ? `<div class="qv2-active-badge">&#9654; Probíhá</div>` : ''}
     <div class="qv2-ico"><span>${q.icon}</span></div>
     <div class="qv2-body">
       <div class="qv2-head">

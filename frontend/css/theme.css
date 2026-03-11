@@ -281,6 +281,26 @@
 .qdaily-reset{font-size:0.67rem;color:var(--text3);font-variant-numeric:tabular-nums;font-family:'Cinzel',serif;}
 .qv2--daily{border-color:rgba(200,144,32,.25);}
 .qv2--daily .qv2-stripe{background:linear-gradient(180deg,var(--gold2),#905010);}
+.qv2--active{
+  border-color:rgba(var(--qrgb,32,178,170),.45) !important;
+  background:linear-gradient(160deg,rgba(var(--qrgb,32,178,170),.04),var(--panel)) !important;
+  box-shadow:0 0 0 1px rgba(var(--qrgb,32,178,170),.1),0 4px 16px rgba(0,0,0,.4) !important;
+}
+.qv2--active .qv2-stripe{
+  animation:qv2-stripe-pulse 2s ease-in-out infinite;
+}
+@keyframes qv2-stripe-pulse{
+  0%,100%{opacity:.7;}
+  50%{opacity:1;box-shadow:3px 0 18px rgba(var(--qrgb,32,178,170),.5);}
+}
+.qv2-active-badge{
+  position:absolute;top:6px;left:6px;
+  background:rgba(var(--qrgb,32,178,170),.18);
+  border:1px solid rgba(var(--qrgb,32,178,170),.4);
+  border-radius:8px;padding:1px 7px;
+  font-family:'Cinzel',serif;font-size:0.55rem;letter-spacing:1px;
+  color:rgba(var(--qrgb,32,178,170),1);text-transform:uppercase;
+}
 .daily-bonus-badge{display:inline-flex;align-items:center;gap:3px;background:rgba(200,144,32,.1);border:1px solid rgba(200,144,32,.2);border-radius:10px;padding:1px 8px;font-size:0.67rem;color:var(--gold2);font-family:'Cinzel',serif;}
 
 /* Section separator */
