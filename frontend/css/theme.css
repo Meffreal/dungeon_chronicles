@@ -45,7 +45,7 @@
 }
 .shop-card::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(circle at 50% 0%,rgba(var(--rgb),0.08),transparent 60%);
+  background:radial-gradient(circle at 50% 0%,rgba(var(--rgb,0,0,0),0.08),transparent 60%);
   pointer-events:none;
 }
 .shop-card:hover:not(.shop-card-broke){
