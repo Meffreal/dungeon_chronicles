@@ -28,7 +28,7 @@
   /* ── TYPOGRAFIE ─────────────────────────────────────────────────────────── */
   --font-display: 'Cinzel Decorative', serif;
   --font-heading: 'Cinzel', serif;
-  --font-body:    'IM Fell English', serif;
+  --font-body:    'IM Fell English', 'Crimson Text', serif;
   --font-ui:      'Josefin Sans', sans-serif;
   --font-rune:    'UnifrakturMaguntia', cursive;
 
@@ -65,5 +65,22 @@
   --z-flash:  50;
   --z-modal:  100;
   --z-toast:  200;
+
+  /* ── ALIASY & COMPAT TOKENY ─────────────────────────────────────────────── */
+  --surface:  var(--clr-slate);          /* alias pro starý --surface */
+  --panel2:   var(--clr-stone);          /* starý --panel2 */
+  --frame1:   rgba(201, 168, 76, 0.1);  /* jemný golden frame */
+  --frame2:   rgba(201, 168, 76, 0.2);
+  --frame3:   rgba(201, 168, 76, 0.35);
+  --ls-base:  0.01em;
+  --ls-wide:  0.05em;
+  --ls-wider: 0.1em;
+  --gold-rgb: 201, 168, 76;             /* pro rgba() použití */
+
+  /* ── BORDERS — doplňkové ────────────────────────────────────────────────── */
+  --border3:  1px solid rgba(201, 168, 76, 0.15);  /* subtle golden divider */
+
+  /* ── TEXT VRSTVENÍ ──────────────────────────────────────────────────────── */
+  --text1:    rgba(255, 255, 255, 0.6);  /* subdued text */
 
 }
