@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dungeon Chronicles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/static/css/design-system.css?v=1">
 <link rel="stylesheet" href="/static/css/base.css?v=3">
 <link rel="stylesheet" href="/static/css/layout.css?v=4">
 <link rel="stylesheet" href="/static/css/components.css?v=4">
-<link rel="stylesheet" href="/static/css/theme.css?v=7">
+<link rel="stylesheet" href="/static/css/theme.css?v=8">
+<link rel="stylesheet" href="/static/css/textures.css?v=2">
+<link rel="stylesheet" href="/static/css/ui-enhance.css?v=1">
 </head>
 <body>
 
@@ -168,93 +171,150 @@
       <!-- HUB — MĚSTO ASHENVEIL -->
       <div class="page active" id="page-overview">
 
-        <!-- Header: název města + info o postavě -->
-        <div class="hub-header">
-          <div class="hub-city-icon">🏙</div>
-          <div class="hub-city-text">
+        <!-- Panorama: gothic skyline + city identity -->
+        <div class="hub-panorama hub-header" id="hub-panorama">
+          <svg class="hub-panorama-svg" viewBox="0 0 800 180" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hp-sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#020308"/><stop offset="50%" stop-color="#080416"/><stop offset="100%" stop-color="#180814"/></linearGradient>
+              <radialGradient id="hp-moon-halo" cx="50%" cy="50%" r="50%"><stop offset="40%" stop-color="#c8b080" stop-opacity=".1"/><stop offset="100%" stop-color="#c8b080" stop-opacity="0"/></radialGradient>
+              <radialGradient id="hp-moon-face" cx="45%" cy="35%" r="60%"><stop offset="0%" stop-color="#e0d8c8"/><stop offset="100%" stop-color="#a09880"/></radialGradient>
+              <filter id="hp-glow-soft"><feGaussianBlur stdDeviation="6"/></filter>
+              <filter id="hp-glow"><feGaussianBlur stdDeviation="3"/></filter>
+              <radialGradient id="hp-torch1" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff8800" stop-opacity=".55"/><stop offset="100%" stop-color="#ff8800" stop-opacity="0"/></radialGradient>
+              <radialGradient id="hp-torch2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff8800" stop-opacity=".55"/><stop offset="100%" stop-color="#ff8800" stop-opacity="0"/></radialGradient>
+              <linearGradient id="hp-fog" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1a1020" stop-opacity="0"/><stop offset="100%" stop-color="#160c18" stop-opacity=".88"/></linearGradient>
+            </defs>
+            <!-- Sky -->
+            <rect width="800" height="180" fill="url(#hp-sky)"/>
+            <!-- Stars -->
+            <circle cx="45" cy="14" r=".9" fill="#fff" opacity=".7"/><circle cx="120" cy="9" r=".6" fill="#fff" opacity=".5"/><circle cx="200" cy="19" r=".8" fill="#fff" opacity=".65"/><circle cx="290" cy="7" r=".5" fill="#fff" opacity=".8"/><circle cx="340" cy="23" r=".7" fill="#fff" opacity=".55"/><circle cx="420" cy="11" r=".9" fill="#fff" opacity=".7"/><circle cx="510" cy="6" r=".6" fill="#fff" opacity=".6"/><circle cx="580" cy="16" r=".8" fill="#fff" opacity=".5"/><circle cx="720" cy="21" r=".7" fill="#fff" opacity=".6"/><circle cx="760" cy="11" r=".6" fill="#fff" opacity=".7"/><circle cx="80" cy="31" r=".5" fill="#e8e0d0" opacity=".4"/><circle cx="160" cy="36" r=".6" fill="#e8e0d0" opacity=".4"/><circle cx="450" cy="29" r=".5" fill="#e8e0d0" opacity=".45"/><circle cx="680" cy="33" r=".6" fill="#e8e0d0" opacity=".4"/><circle cx="620" cy="14" r=".4" fill="#fff" opacity=".6"/>
+            <!-- Moon halo glow -->
+            <ellipse cx="665" cy="40" rx="65" ry="65" fill="url(#hp-moon-halo)" filter="url(#hp-glow-soft)"/>
+            <!-- Moon -->
+            <circle cx="665" cy="40" r="27" fill="url(#hp-moon-face)"/>
+            <!-- Moon craters -->
+            <circle cx="658" cy="36" r="4" fill="#c0b8a8" opacity=".22"/><circle cx="672" cy="44" r="3" fill="#c0b8a8" opacity=".18"/><circle cx="671" cy="32" r="2" fill="#c0b8a8" opacity=".16"/>
+            <!-- Ravens -->
+            <path d="M182,46 Q185,43 188,45 Q185,42 188,45 Q191,42 194,44" fill="none" stroke="#08060c" stroke-width="1.2" opacity=".65"/>
+            <path d="M542,33 Q545,30 548,32 Q545,29 548,32 Q551,29 554,31" fill="none" stroke="#08060c" stroke-width="1.2" opacity=".55"/>
+            <!-- Distant mountains -->
+            <path d="M0,132 L55,88 L110,112 L195,72 L275,98 L355,62 L435,92 L520,58 L598,82 L675,52 L748,78 L800,62 L800,135 Z" fill="#07030e" opacity=".95"/>
+            <!-- Gothic cathedral center (silhouette) -->
+            <g fill="#0e0818" opacity=".75">
+              <rect x="320" y="82" width="48" height="53"/>
+              <rect x="308" y="95" width="88" height="40"/>
+              <rect x="311" y="52" width="18" height="78"/>
+              <polygon points="311,52 320,32 329,52"/>
+              <rect x="375" y="52" width="18" height="78"/>
+              <polygon points="375,52 384,32 393,52"/>
+              <rect x="348" y="42" width="12" height="50"/>
+              <polygon points="348,42 354,20 360,42"/>
+              <polygon points="308,130 318,105 325,130"/>
+              <polygon points="393,130 383,105 376,130"/>
+              <rect x="334" y="62" width="6" height="22"/><polygon points="334,62 337,52 340,62"/>
+              <rect x="364" y="62" width="6" height="22"/><polygon points="364,62 367,52 370,62"/>
+            </g>
+            <!-- Rose window glow on cathedral -->
+            <circle cx="344" cy="70" r="9" fill="#8b0000" opacity=".55" filter="url(#hp-glow)"/>
+            <circle cx="344" cy="70" r="5" fill="#cc0000" opacity=".3" filter="url(#hp-glow)"/>
+            <!-- Left towers group -->
+            <g fill="#0c0616" opacity=".7">
+              <rect x="28" y="85" width="22" height="50"/><polygon points="28,85 39,65 50,85"/>
+              <rect x="60" y="95" width="16" height="40"/><polygon points="60,95 68,78 76,95"/>
+            </g>
+            <!-- Right towers group -->
+            <g fill="#0c0616" opacity=".65">
+              <rect x="702" y="80" width="20" height="55"/><polygon points="702,80 712,62 722,80"/>
+              <rect x="732" y="90" width="22" height="45"/><polygon points="732,90 743,72 754,90"/>
+              <rect x="764" y="97" width="16" height="38"/><polygon points="764,97 772,80 780,97"/>
+            </g>
+            <!-- Torch glows -->
+            <ellipse cx="132" cy="128" rx="28" ry="18" fill="url(#hp-torch1)" filter="url(#hp-glow)"/>
+            <circle cx="132" cy="118" r="3.5" fill="#ff9900" opacity=".9"/>
+            <ellipse cx="668" cy="128" rx="28" ry="18" fill="url(#hp-torch2)" filter="url(#hp-glow)"/>
+            <circle cx="668" cy="118" r="3.5" fill="#ff9900" opacity=".9"/>
+            <!-- Foreground stone wall -->
+            <path d="M0,142 Q200,132 400,138 Q600,132 800,140 L800,180 L0,180 Z" fill="#100810"/>
+            <!-- Battlements -->
+            <rect x="0" y="134" width="14" height="12" fill="#0d060f"/><rect x="22" y="134" width="14" height="12" fill="#0d060f"/><rect x="44" y="132" width="14" height="12" fill="#0d060f"/><rect x="66" y="134" width="14" height="12" fill="#0d060f"/><rect x="88" y="133" width="14" height="12" fill="#0d060f"/>
+            <rect x="692" y="132" width="14" height="12" fill="#0d060f"/><rect x="714" y="134" width="14" height="12" fill="#0d060f"/><rect x="736" y="133" width="14" height="12" fill="#0d060f"/><rect x="758" y="134" width="14" height="12" fill="#0d060f"/><rect x="780" y="132" width="14" height="12" fill="#0d060f"/>
+            <!-- Fog overlay -->
+            <rect width="800" height="180" fill="url(#hp-fog)"/>
+          </svg>
+          <div class="hub-panorama-identity">
             <div class="hub-city-name">Ashenveil</div>
-            <div class="hub-city-tagline" id="hub-char-tagline">Tvoje základna operací</div>
+            <div id="hub-char-tagline" class="hub-char-tagline">Tvoje základna operací</div>
           </div>
-          <div class="hub-header-actions">
-            <div id="dash-pending-actions" class="hub-pending-inline"></div>
-          </div>
+          <div id="dash-pending-actions" class="hub-pending-inline"></div>
         </div>
 
         <!-- News feed / patch notes -->
         <div id="hub-news-feed" style="display:none"></div>
 
-        <!-- Dashboard summary strip -->
+        <!-- STATUS STRIP (mobile priorita) -->
         <div id="hub-summary-strip" class="hub-summary-strip"></div>
 
         <!-- Next action widget -->
         <div id="hub-next-action"></div>
 
-        <!-- Mapa města: 3×2 grid budov -->
-        <div class="hub-map">
+        <!-- 2.5D Gothic City Street -->
+        <div class="hub-street">
+          <div class="hub-street-label">Ulice Ashenveilu</div>
+          <div class="hub-buildings-row">
 
-          <!-- HORNÍ ŘAD -->
-          <div class="hub-building" id="hub-b-quests" onclick="showPage('quests')" style="--hub-rgb:32,178,170">
-            <div class="hub-b-top">
+            <div class="hub-bld" id="hub-b-dungeons" onclick="showDungeonPage()" style="--bld-rgb:100,40,180">
               <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
+              <div class="hub-bld-label">
+                <span class="hub-bld-name">Dungeon</span>
+                <div class="hub-b-sub"></div>
+              </div>
+              <button class="hub-b-btn" onclick="event.stopPropagation();showDungeonPage()">🏰 Vstoupit</button>
             </div>
-            <div class="hub-b-name">Nástěnka questů</div>
-            <div class="hub-b-sub"></div>
-            <button class="hub-b-btn" onclick="event.stopPropagation();showPage('quests')">⚔ Vybrat quest</button>
-          </div>
 
-          <div class="hub-building hub-building-future" id="hub-b-taverna" style="--hub-rgb:200,134,15">
-            <div class="hub-b-top">
-              <div class="hub-b-art"></div>
-              <div class="hub-b-badge hub-badge-locked">Brzy</div>
-            </div>
-            <div class="hub-b-name">Taverna</div>
-            <div class="hub-b-sub">NPC, buffy, denní questy</div>
-            <button class="hub-b-btn" disabled>🚧 Brzy dostupné</button>
-          </div>
-
-          <div class="hub-building" id="hub-b-boss" onclick="showBossPage()" style="--hub-rgb:139,16,16">
-            <div class="hub-b-top">
+            <div class="hub-bld" id="hub-b-quests" onclick="showPage('quests')" style="--bld-rgb:32,178,170">
               <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
+              <div class="hub-bld-label">
+                <span class="hub-bld-name">Nástěnka questů</span>
+                <div class="hub-b-sub"></div>
+              </div>
+              <button class="hub-b-btn" onclick="event.stopPropagation();showPage('quests')">⚔ Vybrat quest</button>
             </div>
-            <div class="hub-b-name">Chrám Bosse</div>
-            <div class="hub-b-sub"></div>
-            <button class="hub-b-btn" onclick="event.stopPropagation();showBossPage()">⚔ Zaútočit</button>
-          </div>
 
-          <!-- DOLNÍ ŘAD -->
-          <div class="hub-building" id="hub-b-arena" onclick="showPage('arena')" style="--hub-rgb:192,57,43">
-            <div class="hub-b-top">
+            <div class="hub-bld hub-bld-hero" id="hub-b-boss" onclick="showBossPage()" style="--bld-rgb:139,16,16">
               <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
+              <div class="hub-bld-label">
+                <span class="hub-bld-name">Chrám Bosse</span>
+                <div class="hub-b-sub"></div>
+              </div>
+              <button class="hub-b-btn" onclick="event.stopPropagation();showBossPage()">⚔ Zaútočit</button>
             </div>
-            <div class="hub-b-name">Aréna</div>
-            <div class="hub-b-sub"></div>
-            <button class="hub-b-btn" onclick="event.stopPropagation();showPage('arena')">🏟 Vstoupit</button>
-          </div>
 
-          <div class="hub-building" id="hub-b-shop" onclick="showPage('shop')" style="--hub-rgb:200,144,16">
-            <div class="hub-b-top">
-              <div class="hub-b-art"></div>
-              <div class="hub-b-badge hub-badge-available">Otevřeno</div>
-            </div>
-            <div class="hub-b-name">Obchod</div>
-            <div class="hub-b-sub">Vybavení, svitky, potiony</div>
-            <button class="hub-b-btn" onclick="event.stopPropagation();showPage('shop')">🛒 Nakoupit</button>
-          </div>
-
-          <div class="hub-building" id="hub-b-dungeons" onclick="showDungeonPage()" style="--hub-rgb:123,47,191">
-            <div class="hub-b-top">
+            <div class="hub-bld" id="hub-b-shop" onclick="showPage('shop')" style="--bld-rgb:200,144,16">
               <div class="hub-b-art"></div>
               <div class="hub-b-badge hub-badge-loading">···</div>
+              <div class="hub-bld-label">
+                <span class="hub-bld-name">Obchod</span>
+                <div class="hub-b-sub">Vybavení, svitky</div>
+              </div>
+              <button class="hub-b-btn" onclick="event.stopPropagation();showPage('shop')">🛒 Nakoupit</button>
             </div>
-            <div class="hub-b-name">Dungeon</div>
-            <div class="hub-b-sub"></div>
-            <button class="hub-b-btn" onclick="event.stopPropagation();showDungeonPage()">🏰 Vstoupit</button>
-          </div>
 
-        </div><!-- /hub-map -->
+            <div class="hub-bld" id="hub-b-arena" onclick="showPage('arena')" style="--bld-rgb:192,57,43">
+              <div class="hub-b-art"></div>
+              <div class="hub-b-badge hub-badge-loading">···</div>
+              <div class="hub-bld-label">
+                <span class="hub-bld-name">Aréna</span>
+                <div class="hub-b-sub"></div>
+              </div>
+              <button class="hub-b-btn" onclick="event.stopPropagation();showPage('arena')">🏟 Vstoupit</button>
+            </div>
+
+          </div><!-- /hub-buildings-row -->
+          <div class="hub-street-ground"></div>
+        </div><!-- /hub-street -->
 
         <!-- NPC strip -->
         <div class="hub-npcs">
@@ -302,15 +362,15 @@
           </div>
         </div>
 
-        <!-- State compat elementy (skryté, aktualizuje je updateUI/state.js) -->
-        <span id="ov-name"       style="display:none">—</span>
-        <span id="ov-cls"        style="display:none">—</span>
-        <span id="ov-level"      style="display:none">—</span>
-        <span id="ov-xp"         style="display:none">—</span>
-        <span id="ov-gold"       style="display:none">—</span>
-        <span id="ov-arena"      style="display:none">—</span>
-        <span id="ov-wl"         style="display:none">—</span>
-        <span id="dash-atk"      style="display:none">—</span>
+        <!-- State compat elementy (skryté) -->
+        <span id="ov-name"  style="display:none">—</span>
+        <span id="ov-cls"   style="display:none">—</span>
+        <span id="ov-level" style="display:none">—</span>
+        <span id="ov-xp"    style="display:none">—</span>
+        <span id="ov-gold"  style="display:none">—</span>
+        <span id="ov-arena" style="display:none">—</span>
+        <span id="ov-wl"    style="display:none">—</span>
+        <span id="dash-atk" style="display:none">—</span>
         <span id="dash-def"      style="display:none">—</span>
         <span id="dash-avatar"   style="display:none">—</span>
         <div  id="dash-xp-fill"  style="display:none"></div>
@@ -318,7 +378,8 @@
         <div  id="ov-appearance" style="display:none">—</div>
         <div  id="ov-desc"       style="display:none">—</div>
         <div  id="ov-log-wrap"   style="display:none"><div class="blog" id="ov-log"></div></div>
-      </div>
+
+      </div><!-- /page-overview -->
 
       <!-- QUESTY -->
       <div class="page" id="page-quests">

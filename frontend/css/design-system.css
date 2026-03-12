@@ -1,0 +1,69 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OBSIDIAN CODEX — Design System Foundation
+   Dungeon Chronicles v0.7 — HC Gauntlet redesign
+   Self-contained: no external dependencies beyond Google Fonts
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Josefin+Sans:wght@300;400;600&family=UnifrakturMaguntia&display=swap');
+
+:root {
+
+  /* ── PRIMÁRNÍ PALETA — Obsidian Codex ──────────────────────────────────── */
+  --clr-void:     #050508;
+  --clr-obsidian: #0d0d14;
+  --clr-slate:    #1a1a2e;
+  --clr-stone:    #2d2d3d;
+  --clr-ash:      #4a4a5e;
+
+  /* ── AKCENTY ────────────────────────────────────────────────────────────── */
+  --clr-gold:        #c9a84c;
+  --clr-gold-bright: #f4d03f;
+  --clr-blood:       #8b1a1a;
+  --clr-crimson:     #c0392b;
+  --clr-soul:        #4a90d9;
+  --clr-soul-bright: #7fb3e8;
+  --clr-poison:      #27ae60;
+  --clr-ember:       #e67e22;
+
+  /* ── TYPOGRAFIE ─────────────────────────────────────────────────────────── */
+  --font-display: 'Cinzel Decorative', serif;
+  --font-heading: 'Cinzel', serif;
+  --font-body:    'IM Fell English', serif;
+  --font-ui:      'Josefin Sans', sans-serif;
+  --font-rune:    'UnifrakturMaguntia', cursive;
+
+  /* ── SPACING ────────────────────────────────────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── BORDERS & GLOWS ────────────────────────────────────────────────────── */
+  --border-rune:        1px solid rgba(201, 168, 76, 0.3);
+  --border-rune-active: 1px solid rgba(201, 168, 76, 0.8);
+  --glow-gold:  0 0 12px rgba(201, 168, 76, 0.4), 0 0 32px rgba(201, 168, 76, 0.15);
+  --glow-soul:  0 0 12px rgba(74, 144, 217, 0.5), 0 0 32px rgba(74, 144, 217, 0.2);
+  --glow-blood: 0 0 12px rgba(192, 57, 43, 0.6);
+  --glow-ember: 0 0 12px rgba(230, 126, 34, 0.5);
+
+  /* ── TRANSITIONS ────────────────────────────────────────────────────────── */
+  --transition-fast: 150ms ease;
+  --transition-mid:  300ms ease;
+  --transition-slow: 600ms ease;
+
+  /* ── BORDER RADIUS ──────────────────────────────────────────────────────── */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  /* ── Z-INDEX STACK ──────────────────────────────────────────────────────── */
+  --z-topbar: 30;
+  --z-flash:  50;
+  --z-modal:  100;
+  --z-toast:  200;
+
+}
