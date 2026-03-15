@@ -5,7 +5,7 @@ Bloodline je per-user systém. Každá smrt postavy přidá XP do Bloodline.
 XP se nikdy neresetuje — kumulují se přes všechny runy.
 """
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -254,7 +254,7 @@ async def award_death_bloodline_xp(
     all_unlocks = get_unlocks_for_level(new_level)
     bloodline.unlocks_json = {
         "unlocks": all_unlocks,
-        "last_updated": datetime.utcnow().isoformat(),
+        "last_updated": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
     }
 
     return {

@@ -3,7 +3,7 @@ routers/admin.py — Admin panel
 Chráněno statickým klíčem v hlavičce X-Admin-Key.
 """
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, case, union_all, union
@@ -255,7 +255,7 @@ async def admin_analytics(db: AsyncSession = Depends(get_db)):
     """Analytics dashboard: retention, engagement, combat, economy."""
     from datetime import timedelta
 
-    now        = datetime.utcnow()
+    now        = datetime.now(timezone.utc).replace(tzinfo=None)
     cutoff_14d = now - timedelta(days=14)
     cutoff_7d  = now - timedelta(days=7)
 
@@ -683,7 +683,7 @@ async def admin_crystal_shop_items():
 @router.get("/crystal-sales", dependencies=[Depends(_check_key)])
 async def admin_list_crystal_sales(db: AsyncSession = Depends(get_db)):
     """Admin: seznam všech naplánovaných a aktivních Crystal shop slev."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     res = await db.execute(
         select(ScheduledCrystalSale).order_by(ScheduledCrystalSale.ends_at.desc()).limit(50)
     )
@@ -712,7 +712,7 @@ async def admin_create_crystal_sale(req: CreateSaleRequest, db: AsyncSession = D
     if req.duration_hours < 1:
         raise HTTPException(400, "Délka akce musí být aspoň 1 hodina.")
 
-    now       = datetime.utcnow()
+    now       = datetime.now(timezone.utc).replace(tzinfo=None)
     starts_at = now + timedelta(hours=req.starts_in_hours)
     ends_at   = starts_at + timedelta(hours=req.duration_hours)
 
@@ -756,7 +756,7 @@ async def admin_cancel_crystal_sale(sale_id: int, db: AsyncSession = Depends(get
 @router.get("/world-event", dependencies=[Depends(_check_key)])
 async def admin_world_event(db: AsyncSession = Depends(get_db)):
     """Aktuální World Event + statistiky přispěvatelů."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     res = await db.execute(
         select(WorldEvent).where(WorldEvent.is_active == True, WorldEvent.ends_at > now)
         .order_by(WorldEvent.id.desc()).limit(1)
@@ -803,7 +803,7 @@ async def admin_world_event(db: AsyncSession = Depends(get_db)):
 @router.post("/world-event/complete", dependencies=[Depends(_check_key)])
 async def admin_complete_world_event(db: AsyncSession = Depends(get_db)):
     """Admin: force-completes aktuální World Event."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     res = await db.execute(
         select(WorldEvent).where(WorldEvent.is_active == True, WorldEvent.ends_at > now)
         .order_by(WorldEvent.id.desc()).limit(1)
@@ -832,7 +832,7 @@ async def admin_new_world_event(req: NewEventRequest, db: AsyncSession = Depends
     from datetime import timedelta
 
     # Deaktivuj stávající
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     old_res = await db.execute(
         select(WorldEvent).where(WorldEvent.is_active == True, WorldEvent.ends_at > now)
     )
@@ -887,7 +887,7 @@ async def admin_schedule_world_event(req: ScheduleEventRequest, db: AsyncSession
     if req.duration_days < 1:
         raise HTTPException(400, "Délka musí být aspoň 1 den.")
 
-    now       = datetime.utcnow()
+    now       = datetime.now(timezone.utc).replace(tzinfo=None)
     starts_at = now + timedelta(hours=req.starts_in_hours)
     ends_at   = starts_at + timedelta(days=req.duration_days)
 
@@ -990,7 +990,7 @@ async def admin_spawn_boss(req: AdminSpawnBossRequest, db: AsyncSession = Depend
 @router.post("/broadcast", dependencies=[Depends(_check_key)])
 async def admin_broadcast(req: BroadcastRequest, db: AsyncSession = Depends(get_db)):
     """Admin: pošle systémovou notifikaci všem hráčům nebo konkrétnímu hráči."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     if req.target == "all":
         chars_res = await db.execute(select(Character))
@@ -1256,7 +1256,7 @@ async def admin_crystal_analytics(db: AsyncSession = Depends(get_db)):
     from sqlalchemy import cast, Date
     from datetime import timedelta
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
 
     # Celkové součty
     totals_res = await db.execute(
@@ -1372,7 +1372,7 @@ async def admin_analytics_advanced(db: AsyncSession = Depends(get_db)):
     """
     from datetime import timedelta
 
-    now        = datetime.utcnow()
+    now        = datetime.now(timezone.utc).replace(tzinfo=None)
     cutoff_14d = now - timedelta(days=14)
     cutoff_7d  = now - timedelta(days=7)
 

@@ -4,7 +4,7 @@ models/world_event.py — World Events systém (komunální sezónní cíle)
 Celá komunita hráčů přispívá k společnému cíli (např. "zabijte 10 000 nepřátel").
 Po dosažení cíle mohou všichni přispěvatelé vybrat odměnu.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, Integer, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
@@ -76,7 +76,7 @@ class WorldEvent(Base):
     reward_title:    Mapped[str|None] = mapped_column(String(64), nullable=True)
 
     def to_dict(self) -> dict:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         remaining_secs = max(0, int((self.ends_at - now).total_seconds())) if self.ends_at > now else 0
         pct = min(100, round(self.current_progress / self.goal * 100, 1)) if self.goal > 0 else 0
         return {

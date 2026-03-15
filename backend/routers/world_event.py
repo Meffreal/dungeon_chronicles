@@ -34,7 +34,7 @@ async def _get_char(user: User, db: AsyncSession) -> Character:
 
 async def _get_active_event(db: AsyncSession) -> WorldEvent | None:
     """Vrátí aktuálně aktivní event (nebo None)."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     res = await db.execute(
         select(WorldEvent)
         .where(WorldEvent.is_active == True, WorldEvent.ends_at > now)
@@ -59,7 +59,7 @@ async def _get_or_create_contrib(
             event_id=event_id,
             character_id=char_id,
             contribution=0,
-            last_contrib_at=datetime.utcnow(),
+            last_contrib_at=datetime.now(timezone.utc).replace(tzinfo=None),
         )
         db.add(contrib)
         await db.flush()
@@ -85,7 +85,7 @@ async def add_world_event_contribution(
 
         contrib = await _get_or_create_contrib(event.id, char_id, db)
         contrib.contribution += amount
-        contrib.last_contrib_at = datetime.utcnow()
+        contrib.last_contrib_at = datetime.now(timezone.utc).replace(tzinfo=None)
 
         # Aktualizuj globální progress
         event.current_progress += amount
@@ -228,7 +228,7 @@ async def claim_event_reward(
     claim = WorldEventClaim(
         event_id=event.id,
         character_id=char.id,
-        claimed_at=datetime.utcnow(),
+        claimed_at=datetime.now(timezone.utc).replace(tzinfo=None),
         gold_received=gold_reward,
         crystals_received=crystals_reward,
     )
@@ -277,7 +277,7 @@ async def ensure_active_world_event(db: AsyncSession | None = None) -> None:
         db = AsyncSessionLocal()
 
     try:
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         existing = await db.execute(
             select(WorldEvent).where(WorldEvent.is_active == True, WorldEvent.ends_at > now)
         )

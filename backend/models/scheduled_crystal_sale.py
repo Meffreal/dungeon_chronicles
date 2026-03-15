@@ -4,7 +4,7 @@ models/scheduled_crystal_sale.py — Naplánované slevy v Crystal shopu
 Admin může nastavit časově omezenou slevu na libovolnou položku z CRYSTAL_SHOP.
 Sleva se automaticky aktivuje v starts_at a deaktivuje v ends_at.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
@@ -22,11 +22,11 @@ class ScheduledCrystalSale(Base):
     label:        Mapped[str|None] = mapped_column(String(64), nullable=True)   # "Black Friday" apod.
 
     def is_currently_active(self, now: datetime | None = None) -> bool:
-        now = now or datetime.utcnow()
+        now = now or datetime.now(timezone.utc).replace(tzinfo=None)
         return self.starts_at <= now <= self.ends_at
 
     def to_dict(self, now: datetime | None = None) -> dict:
-        now = now or datetime.utcnow()
+        now = now or datetime.now(timezone.utc).replace(tzinfo=None)
         return {
             "id":            self.id,
             "item_key":      self.item_key,
