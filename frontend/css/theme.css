@@ -2103,13 +2103,14 @@
   font-family: 'Cinzel', serif;
 }
 .hub-pending-inline {
-  position: absolute;
-  bottom: 14px;
-  right: 16px;
-  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px;
   font-size: 0.72rem;
   color: var(--gold2);
   font-style: italic;
+  min-height: 0;
 }
 /* Tod overlay via ::after pseudo-element */
 .hub-header { position: relative; }
