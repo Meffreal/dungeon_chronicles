@@ -244,7 +244,7 @@
 .main-scroll::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25);border-radius:2px;}
 .main-scroll::-webkit-scrollbar-track{background:transparent;}
 
-.page{display:none;}
+.page{display:none;background:transparent;}
 .page.active{display:block;}
 .page.page-entering{animation:pg-enter .22s cubic-bezier(.2,0,.1,1) both;}
 @keyframes pg-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}

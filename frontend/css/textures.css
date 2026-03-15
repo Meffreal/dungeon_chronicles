@@ -247,6 +247,7 @@ body {
 [class*="-bar"],
 [class*="bar-"] {
   overflow: hidden;
+  position: relative;
 }
 [class*="-bar"]::after,
 [class*="bar-"]::after {
