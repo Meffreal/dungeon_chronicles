@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, case, union_all, union
 from sqlalchemy.orm import selectinload, aliased
+from typing import Literal
 from pydantic import BaseModel
 
 from database import get_db
@@ -28,6 +29,7 @@ from models.scheduled_crystal_sale import ScheduledCrystalSale
 from models.crystal import CRYSTAL_SHOP
 from models.experiment import Experiment, OVERRIDABLE_PARAMS
 from models.balance_alert import BalanceAlert
+from models.bug_report import BugReport
 from game.experiments import invalidate_experiment_cache
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -1055,6 +1057,13 @@ class UpdateExperimentRequest(BaseModel):
     overrides:   dict | None = None
 
 
+class BugStatusUpdate(BaseModel):
+    status: Literal["open", "in_progress", "resolved", "closed"]
+
+class BugNoteUpdate(BaseModel):
+    admin_note: str
+
+
 @router.get("/experiments", dependencies=[Depends(_check_key)])
 async def admin_list_experiments(db: AsyncSession = Depends(get_db)):
     """Admin: seznam všech A/B experimentů + přehled overridovatelných parametrů."""
@@ -1559,3 +1568,87 @@ async def admin_run_balance_check(db: AsyncSession = Depends(get_db)):
     if new_alerts:
         await db.commit()
     return {"message": "Balance check dokončen.", "new_alerts": new_alerts, "count": len(new_alerts)}
+
+
+# ── BUG REPORTS ──────────────────────────────────────────────────────────────
+
+@router.get("/bugs")
+async def admin_list_bugs(
+    status: str | None = None,
+    severity: str | None = None,
+    _: str = Depends(_check_key),
+    db: AsyncSession = Depends(get_db),
+):
+    q = select(BugReport).order_by(BugReport.created_at.desc())
+    if status:
+        q = q.where(BugReport.status == status)
+    if severity:
+        q = q.where(BugReport.severity == severity)
+    reports = (await db.execute(q)).scalars().all()
+    return [r.to_dict() for r in reports]
+
+
+@router.get("/bugs/{report_id}")
+async def admin_get_bug(
+    report_id: int,
+    _: str = Depends(_check_key),
+    db: AsyncSession = Depends(get_db),
+):
+    report = (await db.execute(
+        select(BugReport).where(BugReport.id == report_id)
+    )).scalars().first()
+    if not report:
+        raise HTTPException(404, "Report nenalezen.")
+    return report.to_dict()
+
+
+@router.patch("/bugs/{report_id}/status")
+async def admin_update_bug_status(
+    report_id: int,
+    payload: BugStatusUpdate,
+    _: str = Depends(_check_key),
+    db: AsyncSession = Depends(get_db),
+):
+    report = (await db.execute(
+        select(BugReport).where(BugReport.id == report_id)
+    )).scalars().first()
+    if not report:
+        raise HTTPException(404, "Report nenalezen.")
+    report.status = payload.status
+    report.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    return {"ok": True}
+
+
+@router.patch("/bugs/{report_id}/note")
+async def admin_update_bug_note(
+    report_id: int,
+    payload: BugNoteUpdate,
+    _: str = Depends(_check_key),
+    db: AsyncSession = Depends(get_db),
+):
+    report = (await db.execute(
+        select(BugReport).where(BugReport.id == report_id)
+    )).scalars().first()
+    if not report:
+        raise HTTPException(404, "Report nenalezen.")
+    report.admin_note = payload.admin_note
+    report.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    return {"ok": True}
+
+
+@router.delete("/bugs/{report_id}")
+async def admin_delete_bug(
+    report_id: int,
+    _: str = Depends(_check_key),
+    db: AsyncSession = Depends(get_db),
+):
+    report = (await db.execute(
+        select(BugReport).where(BugReport.id == report_id)
+    )).scalars().first()
+    if not report:
+        raise HTTPException(404, "Report nenalezen.")
+    await db.delete(report)
+    await db.commit()
+    return {"ok": True}

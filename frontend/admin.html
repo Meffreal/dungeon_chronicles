@@ -78,6 +78,7 @@
     <button class="tab" onclick="switchTab('broadcast')">📢 Broadcast</button>
     <button class="tab" onclick="switchTab('news');loadAdminNews()">📰 Novinky</button>
     <button class="tab" onclick="switchTab('alerts');loadAlerts()" id="tab-alerts">⚠️ Alerts</button>
+    <button class="tab" onclick="switchTab('bugs');loadBugReports()" id="tab-bugs">🐛 Bug Reporty</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -537,7 +538,7 @@
   <!-- NEWS FEED PANEL -->
   <div class="panel" id="panel-news">
     <h2>Správa novinek / patch notes</h2>
-    <div class="card" style="max-width:640px;margin-bottom:20px">
+    <div class="card" id="news-form" style="max-width:640px;margin-bottom:20px">
       <h3 style="margin:0 0 12px;font-size:.9rem;color:#c89010">Přidat zprávu</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div>
@@ -612,6 +613,93 @@
     <div class="msg-out" id="alerts-msg"></div>
   </div>
 
+  <!-- BUG REPORTS -->
+  <div class="panel" id="panel-bugs">
+    <h2>Bug Reporty</h2>
+
+    <div class="search-row" style="margin-bottom:14px">
+      <select id="bug-filter-status" class="txt-input" style="width:160px">
+        <option value="">Všechny stavy</option>
+        <option value="open">🔴 Open</option>
+        <option value="in_progress">🟡 In Progress</option>
+        <option value="resolved">🟢 Resolved</option>
+        <option value="closed">⚫ Closed</option>
+      </select>
+      <select id="bug-filter-severity" class="txt-input" style="width:160px">
+        <option value="">Všechny závažnosti</option>
+        <option value="cosmetic">💅 Kosmetická</option>
+        <option value="minor">⚠️ Menší</option>
+        <option value="critical">🔥 Kritická</option>
+      </select>
+      <button class="btn" onclick="loadBugReports()">↺ Načíst</button>
+      <span id="bug-count" style="font-size:.75rem;color:#707090;margin-left:auto"></span>
+    </div>
+
+    <table id="bug-table">
+      <thead>
+        <tr>
+          <th>Závažnost</th>
+          <th>Název</th>
+          <th>Hráč</th>
+          <th>Sekce</th>
+          <th>Datum</th>
+          <th>Stav</th>
+        </tr>
+      </thead>
+      <tbody id="bug-tbody"></tbody>
+    </table>
+
+    <div id="bug-detail" style="display:none;margin-top:20px;background:#0e0e1e;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h2 style="margin:0" id="bug-detail-title">Detail reportu</h2>
+        <button class="btn btn-sm" onclick="document.getElementById('bug-detail').style.display='none'">✕ Zavřít</button>
+      </div>
+
+      <div class="two-col" style="margin-bottom:12px">
+        <div>
+          <div style="font-size:.7rem;color:#707090;margin-bottom:4px">HRÁČ</div>
+          <div id="bd-player" style="font-size:.88rem"></div>
+        </div>
+        <div>
+          <div style="font-size:.7rem;color:#707090;margin-bottom:4px">SEKCE / ČAS</div>
+          <div id="bd-meta" style="font-size:.88rem"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:10px">
+        <div style="font-size:.7rem;color:#707090;margin-bottom:4px">POPIS</div>
+        <div id="bd-description" style="font-size:.85rem;line-height:1.6;background:#141428;padding:10px;border-radius:4px"></div>
+      </div>
+
+      <div id="bd-steps-wrap" style="margin-bottom:10px;display:none">
+        <div style="font-size:.7rem;color:#707090;margin-bottom:4px">KROKY K REPRODUKCI</div>
+        <div id="bd-steps" style="font-size:.85rem;line-height:1.6;background:#141428;padding:10px;border-radius:4px"></div>
+      </div>
+
+      <div class="action-row" style="margin-bottom:10px">
+        <label>Stav:</label>
+        <select id="bd-status-select" class="txt-input" style="width:160px">
+          <option value="open">🔴 Open</option>
+          <option value="in_progress">🟡 In Progress</option>
+          <option value="resolved">🟢 Resolved</option>
+          <option value="closed">⚫ Closed</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="font-size:.7rem;color:#707090;margin-bottom:4px">ADMIN POZNÁMKA (interní)</div>
+        <textarea id="bd-note" class="txt-input" style="width:100%;height:70px" placeholder="Interní poznámka (hráč ji nevidí)..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="saveBugChanges()">💾 Uložit změny</button>
+        <button class="btn" onclick="prefillBugFixNews()">📰 Vytvořit Bug Fix novinku</button>
+        <button class="btn btn-red" onclick="deleteBugReport()">🗑 Smazat report</button>
+      </div>
+      <div id="bd-msg" class="msg-out"></div>
+    </div>
+  </div>
+
 </div><!-- /content -->
 
 <script>
@@ -632,7 +720,7 @@ async function adminApi(method, path, body) {
 }
 
 function switchTab(tab) {
-  const tabs = ['overview','players','economy','content','events','boss','analytics','experiments','crystals-analytics','broadcast','news'];
+  const tabs = ['overview','players','economy','content','events','boss','analytics','experiments','crystals-analytics','broadcast','news','alerts','bugs'];
   document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
@@ -1723,6 +1811,138 @@ async function runBalanceCheck() {
     msg.textContent = `✓ Check dokončen. Nové alerty: ${data.count}`;
     loadAlerts();
   } catch (e) { msg.textContent = '✗ ' + e.message; }
+}
+
+// ── BUG REPORTS ──────────────────────────────────────────────────────────────
+
+let _selectedBugId = null;
+
+function _esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function loadBugReports() {
+  const status   = document.getElementById('bug-filter-status').value;
+  const severity = document.getElementById('bug-filter-severity').value;
+  let url = '/admin/bugs?';
+  if (status)   url += `status=${encodeURIComponent(status)}&`;
+  if (severity) url += `severity=${encodeURIComponent(severity)}&`;
+
+  let reports;
+  try { reports = await adminApi('GET', url); } catch (e) { return; }
+
+  const tbody = document.getElementById('bug-tbody');
+  document.getElementById('bug-count').textContent = `${reports.length} reportů`;
+
+  if (!reports.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:#707090;text-align:center;padding:20px">Žádné reporty.</td></tr>';
+    return;
+  }
+
+  const severityBadge = {
+    cosmetic: '<span class="badge" style="background:rgba(120,120,120,.2);color:#aaa;border:1px solid rgba(120,120,120,.3)">💅 Kosmetická</span>',
+    minor:    '<span class="badge" style="background:rgba(200,170,0,.15);color:#c8a800;border:1px solid rgba(200,170,0,.3)">⚠️ Menší</span>',
+    critical: '<span class="badge badge-d">🔥 Kritická</span>',
+  };
+  const statusBadge = {
+    open:        '<span class="badge badge-d">🔴 Open</span>',
+    in_progress: '<span class="badge" style="background:rgba(200,170,0,.15);color:#c8a800;border:1px solid rgba(200,170,0,.3)">🟡 In Progress</span>',
+    resolved:    '<span class="badge badge-e">🟢 Resolved</span>',
+    closed:      '<span class="badge" style="background:rgba(80,80,80,.2);color:#808080;border:1px solid rgba(80,80,80,.3)">⚫ Closed</span>',
+  };
+
+  tbody.innerHTML = reports.map(r => `
+    <tr style="cursor:pointer" onclick="showBugDetail(${r.id})">
+      <td>${severityBadge[r.severity] || _esc(r.severity)}</td>
+      <td><strong>${_esc(r.title)}</strong></td>
+      <td>${_esc(r.char_name) || '—'} <span style="color:#707090;font-size:.72rem">Lv.${r.char_level || '?'} ${_esc(r.char_class)}</span></td>
+      <td><span style="color:#707090;font-size:.78rem">${_esc(r.page_context) || '—'}</span></td>
+      <td style="color:#707090;font-size:.78rem">${r.created_at ? r.created_at.slice(0,16).replace('T',' ') : '—'}</td>
+      <td>${statusBadge[r.status] || _esc(r.status)}</td>
+    </tr>
+  `).join('');
+}
+
+async function showBugDetail(id) {
+  _selectedBugId = id;
+  let r;
+  try { r = await adminApi('GET', `/admin/bugs/${id}`); } catch (e) { return; }
+
+  document.getElementById('bug-detail-title').textContent = `#${r.id} — ${r.title}`;
+  document.getElementById('bd-player').textContent = `${r.char_name || '?'} · Lv.${r.char_level || '?'} ${r.char_class || ''}`;
+  document.getElementById('bd-meta').textContent = `${r.page_context || 'neznámá sekce'} · ${r.created_at ? r.created_at.slice(0,16).replace('T',' ') : ''}`;
+  document.getElementById('bd-description').textContent = r.description;
+
+  const stepsWrap = document.getElementById('bd-steps-wrap');
+  if (r.steps) {
+    document.getElementById('bd-steps').textContent = r.steps;
+    stepsWrap.style.display = 'block';
+  } else {
+    stepsWrap.style.display = 'none';
+  }
+
+  document.getElementById('bd-status-select').value = r.status;
+  document.getElementById('bd-note').value = r.admin_note || '';
+  document.getElementById('bd-msg').style.display = 'none';
+  document.getElementById('bug-detail').style.display = 'block';
+  document.getElementById('bug-detail').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function saveBugChanges() {
+  if (!_selectedBugId) return;
+  const status = document.getElementById('bd-status-select').value;
+  const note   = document.getElementById('bd-note').value.trim();
+  const msg    = document.getElementById('bd-msg');
+
+  try {
+    const [r1, r2] = await Promise.all([
+      adminApi('PATCH', `/admin/bugs/${_selectedBugId}/status`, { status }),
+      adminApi('PATCH', `/admin/bugs/${_selectedBugId}/note`, { admin_note: note }),
+    ]);
+    msg.textContent = '✓ Uloženo';
+    msg.style.background = 'rgba(50,200,80,.08)';
+    msg.style.color = '#80d080';
+    msg.style.display = 'block';
+    loadBugReports();
+  } catch (e) {
+    msg.textContent = '✗ Chyba při ukládání';
+    msg.style.background = 'rgba(200,50,50,.1)';
+    msg.style.color = '#d08080';
+    msg.style.display = 'block';
+  }
+}
+
+async function deleteBugReport() {
+  if (!_selectedBugId) return;
+  if (!confirm(`Smazat report #${_selectedBugId}?`)) return;
+  const msg = document.getElementById('bd-msg');
+  try {
+    await adminApi('DELETE', `/admin/bugs/${_selectedBugId}`);
+    document.getElementById('bug-detail').style.display = 'none';
+    _selectedBugId = null;
+    loadBugReports();
+  } catch (e) {
+    msg.textContent = '✗ Chyba při mazání'; msg.style.background = 'rgba(200,50,50,.1)'; msg.style.color = '#d08080';
+    msg.style.display = 'block';
+  }
+}
+
+function prefillBugFixNews() {
+  switchTab('news');
+  loadAdminNews();
+  setTimeout(() => {
+    const titleEl = document.getElementById('news-title');
+    const typeEl  = document.getElementById('news-type');
+    const bugTitle = document.getElementById('bug-detail-title').textContent.replace(/^#\d+ — /, '');
+    if (titleEl) titleEl.value = `[Bug Fix] ${bugTitle}`;
+    if (typeEl)  typeEl.value = 'hotfix';
+    document.getElementById('news-form')?.scrollIntoView({ behavior: 'smooth' });
+  }, 300);
 }
 </script>
 </body>
