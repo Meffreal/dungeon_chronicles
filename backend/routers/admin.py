@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, case, union_all, union
 from sqlalchemy.orm import selectinload, aliased
+from typing import Literal
 from pydantic import BaseModel
 
 from database import get_db
@@ -1057,7 +1058,7 @@ class UpdateExperimentRequest(BaseModel):
 
 
 class BugStatusUpdate(BaseModel):
-    status: str  # open | in_progress | resolved | closed
+    status: Literal["open", "in_progress", "resolved", "closed"]
 
 class BugNoteUpdate(BaseModel):
     admin_note: str
@@ -1608,9 +1609,6 @@ async def admin_update_bug_status(
     _: str = Depends(_check_key),
     db: AsyncSession = Depends(get_db),
 ):
-    valid = {"open", "in_progress", "resolved", "closed"}
-    if payload.status not in valid:
-        raise HTTPException(400, f"Neplatný stav. Povoleno: {valid}")
     report = (await db.execute(
         select(BugReport).where(BugReport.id == report_id)
     )).scalars().first()
