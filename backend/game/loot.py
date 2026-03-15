@@ -31,6 +31,26 @@ def roll_rarity(difficulty: str) -> Rarity:
     weights = RARITY_WEIGHTS.get(difficulty, RARITY_WEIGHTS["normal"])
     return random.choices(RARITIES, weights=weights, k=1)[0]
 
+async def get_dungeon_set_item(db, char_cls: str):
+    """
+    Vrátí náhodný setový item odpovídající třídě postavy.
+    Volá se při dokončení dungeon questu — garantovaný drop setového kusu.
+    """
+    from sqlalchemy import select
+    from models.item import Item
+    from models.sets import CLS_TO_SET_ID
+
+    set_id = CLS_TO_SET_ID.get(char_cls)
+    if set_id is None:
+        return None
+
+    result = await db.execute(
+        select(Item).where(Item.set_id == set_id)
+    )
+    items = result.scalars().all()
+    return random.choice(items) if items else None
+
+
 async def get_random_item_for_quest(db, difficulty: str, character_level: int):
     """
     Vybere náhodný item z databáze odpovídající obtížnosti a levelu.

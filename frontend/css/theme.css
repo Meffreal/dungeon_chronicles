@@ -143,7 +143,7 @@
 /* ── Karta postavy (horní) ── */
 .equip-char-card{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:11px 14px;position:relative;}
 .equip-char-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold2);border-radius:3px 0 0 3px;box-shadow:3px 0 12px rgba(200,144,32,.35);}
-.equip-portrait-outer{width:76px;flex-shrink:0;border:2px solid var(--frame2);border-radius:5px;padding:2px;background:linear-gradient(135deg,var(--frame1),#100800,var(--frame1));box-shadow:0 0 0 1px var(--frame3),0 0 16px rgba(200,144,32,.15),0 4px 18px rgba(0,0,0,.6);position:relative;}
+.equip-portrait-outer{width:76px;flex-shrink:0;border:2px solid var(--frame2);border-radius:5px;padding:2px;background:linear-gradient(135deg,var(--frame1),#0d0d14,var(--frame1));box-shadow:0 0 0 1px var(--frame3),0 0 16px rgba(200,144,32,.15),0 4px 18px rgba(0,0,0,.6);position:relative;}
 .equip-portrait-outer::before,.equip-portrait-outer::after{content:'◆';position:absolute;color:var(--frame3);font-size:0.5rem;z-index:2;}
 .equip-portrait-outer::before{top:-1px;left:2px;}
 .equip-portrait-outer::after{bottom:-1px;right:2px;}
@@ -1496,7 +1496,7 @@
 .cr-overlay.cr-open { opacity: 1; pointer-events: all; }
 
 .cr-modal {
-  background: linear-gradient(160deg, #120806, #1c0e08);
+  background: linear-gradient(160deg, #0d0d14, #1a1a2e);
   border: 1px solid var(--border2);
   border-radius: 10px;
   padding: 24px;
@@ -2343,128 +2343,8 @@
 .hub-chip-daily    { border-left-color: rgba(255,175,25,.45); background: rgba(200,140,10,.04); }
 .hub-chip-daily .hub-chip-text { color: #e8c040; }
 
-/* ── NPC strip ─────────────────────────────────────────────────────── */
-.hub-npcs {
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: rgba(0,0,0,.18);
-  padding: 10px 16px 14px;
-}
-.hub-npcs-title {
-  font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text3);
-  margin-bottom: 10px;
-}
-.hub-npcs-row {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-}
-.hub-npc {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  min-width: 100px;
-  flex: 1;
-  max-width: 140px;
-  cursor: pointer;
-  padding: 6px 4px;
-  border-radius: 6px;
-  transition: background .15s;
-}
-.hub-npc:hover {
-  background: rgba(255,255,255,.05);
-}
-.hub-npc-avatar {
-  font-size: 2.2rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
-}
-.hub-npc-portrait{width:56px;height:64px;flex-shrink:0;}
-.hub-npc-portrait svg{width:100%;height:100%;}
-.hub-npc-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 100%;
-}
-.hub-npc-name {
-  font-family: 'Cinzel', serif;
-  font-size: 0.63rem;
-  color: var(--text);
-  letter-spacing: .5px;
-  text-align: center;
-}
-.hub-npc-role {
-  font-size: 0.58rem;
-  color: var(--text3);
-  text-align: center;
-}
-.hub-npc-speech {
-  font-size: 0.6rem;
-  color: var(--text2);
-  font-style: italic;
-  text-align: center;
-  background: rgba(255,255,255,.04);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 6px;
-  min-height: 2.4em;
-  line-height: 1.4;
-  width: 100%;
-  box-sizing: border-box;
-}
-.hub-npc-btn {
-  font-size: 0.62rem;
-  padding: 3px 10px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: var(--text2);
-  cursor: pointer;
-  transition: background .15s;
-  white-space: nowrap;
-}
-.hub-npc-btn:hover {
-  background: rgba(255,255,255,.12);
-  color: var(--text);
-}
+/* REMOVED: .hub-npcs, .hub-npc*, .hub-activity-panel, .hub-activity-* (NPC strip + Activity panel) */
 
-/* ── Activity panel ────────────────────────────────────────────────── */
-.hub-activity-panel {
-  padding: 14px 16px;
-}
-.hub-activity-title {
-  font-family: 'Cinzel', serif;
-  font-size: 0.65rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text2);
-  margin-bottom: 10px;
-}
-.hub-activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.dash-activity-item,
-.dash-act-item {
-  font-size: 0.72rem;
-  color: var(--text2);
-  padding: 4px 0;
-  border-bottom: 1px solid rgba(255,255,255,.04);
-}
-.dash-activity-empty {
-  font-size: 0.72rem;
-  color: var(--text3);
-  font-style: italic;
-  padding: 8px 0;
-}
 /* ── Next action widget ─────────────────────────────────────────────── */
 .hub-next-action {
   display: flex; align-items: center; gap: 12px;
@@ -2493,7 +2373,6 @@
   .hub-b-btn { font-size: 0.5rem; padding: 3px 4px; }
   .hub-chip { padding: 7px 12px 7px 10px; }
   .hub-chip-text { font-size: 0.65rem; }
-  .hub-npc { min-width: 75px; }
 }
 
 /* ── COMBAT BUILD PAGE ─────────────────────────────────────────────────────── */
@@ -4486,7 +4365,7 @@
   background:
     radial-gradient(ellipse at 40% 20%,rgba(220,80,20,.55) 0%,transparent 48%),
     radial-gradient(ellipse at 70% 70%,rgba(160,50,10,.45) 0%,transparent 45%),
-    linear-gradient(162deg,#120804 0%,#1e0d06 40%,#240e04 70%,#120804 100%);
+    linear-gradient(162deg,#0d0d14 0%,#1a1a2e 40%,#2d2d3d 70%,#0d0d14 100%);
 }
 .snpc-art--smith::before{
   content:'';position:absolute;inset:0;
@@ -4804,3 +4683,598 @@
 
 /* Gate grid override — nahrazuje .dng-cards grid */
 .dng-cards{display:none!important;}
+
+/* ── HUB — OBSIDIAN CODEX ── */
+
+/* ── Time of day — panorama overlay ── */
+.hub-panorama.tod-dawn  { filter: sepia(.18) hue-rotate(-20deg) brightness(.95); }
+.hub-panorama.tod-day   { filter: brightness(.85) saturate(.8); }
+.hub-panorama.tod-dusk  { filter: sepia(.3) hue-rotate(15deg) brightness(.9); }
+.hub-panorama.tod-night { filter: brightness(.7) saturate(.6); }
+
+/* Hub background time-of-day wrappers */
+.hub-bg--dawn  { background: linear-gradient(160deg, #1a0a2e 0%, #3b1a2e 40%, #7a3020 80%, #c06020 100%); }
+.hub-bg--day   { background: linear-gradient(180deg, #04080f 0%, #060c1a 50%, #0a1228 100%); }
+.hub-bg--dusk  { background: linear-gradient(160deg, #0e0616 0%, #2a0c10 30%, #6a2010 65%, #c04018 100%); }
+.hub-bg--night {
+  background: radial-gradient(ellipse at 20% 15%, rgba(180,160,255,.04) 0%, transparent 55%),
+              radial-gradient(ellipse at 75% 8%,  rgba(200,180,255,.03) 0%, transparent 45%),
+              linear-gradient(180deg, #020308 0%, #040210 100%);
+}
+
+/* ── Ambient particles ── */
+.hub-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.hub-particle {
+  position: absolute;
+  bottom: -8px;
+  border-radius: 50%;
+  will-change: transform, opacity;
+  animation: hub-particle-rise linear infinite;
+}
+
+.hub-particle--ember {
+  background: radial-gradient(circle, rgba(255,160,40,.9) 0%, rgba(220,80,10,.4) 60%, transparent 100%);
+  box-shadow: 0 0 4px 1px rgba(255,120,20,.35);
+}
+
+.hub-particle--ash {
+  background: radial-gradient(circle, rgba(180,160,140,.7) 0%, rgba(120,110,100,.3) 60%, transparent 100%);
+}
+
+@keyframes hub-particle-rise {
+  0%   { transform: translateY(0) translateX(0) scale(1);     opacity: 0; }
+  8%   { opacity: var(--p-opacity, .4); }
+  85%  { opacity: var(--p-opacity, .4); }
+  100% { transform: translateY(-100vh) translateX(var(--p-drift, 20px)) scale(.4); opacity: 0; }
+}
+
+/* ── District grid ── */
+.hub-district-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 768px) {
+  .hub-district-grid { grid-template-columns: 1fr; }
+}
+
+/* ── District card ── */
+.hub-district-card {
+  position: relative;
+  min-height: 120px;
+  padding: 16px 16px 14px;
+  background: rgba(8, 5, 14, .72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(160, 120, 50, .18);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  will-change: transform, box-shadow;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.hub-district-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 18px; height: 18px;
+  border-top: 1px solid rgba(200,160,60,.45);
+  border-left: 1px solid rgba(200,160,60,.45);
+  border-radius: 6px 0 0 0;
+  pointer-events: none;
+}
+
+.hub-district-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 18px; height: 18px;
+  border-bottom: 1px solid rgba(200,160,60,.45);
+  border-right: 1px solid rgba(200,160,60,.45);
+  border-radius: 0 0 6px 0;
+  pointer-events: none;
+}
+
+.hub-district-card:hover {
+  transform: scale(1.02);
+  border-color: rgba(200, 160, 60, .55);
+  box-shadow: 0 6px 24px rgba(0,0,0,.55), 0 0 14px rgba(180,130,30,.18) inset;
+}
+
+.hub-district-card:active {
+  transform: scale(.99);
+}
+
+/* ── Gauntlet special card ── */
+.hub-district-card--gauntlet {
+  border-color: rgba(160, 30, 30, .35);
+  background: rgba(14, 4, 4, .8);
+  animation: gauntlet-border-pulse 3s ease-in-out infinite;
+}
+
+.hub-district-card--gauntlet::before {
+  border-color: rgba(220, 50, 50, .5);
+}
+
+.hub-district-card--gauntlet::after {
+  border-color: rgba(220, 50, 50, .5);
+}
+
+.hub-district-card--gauntlet:hover {
+  border-color: rgba(220, 60, 60, .75);
+  box-shadow: 0 6px 28px rgba(0,0,0,.65), 0 0 20px rgba(180,20,20,.2) inset;
+}
+
+@keyframes gauntlet-border-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(160,20,20,.08) inset; }
+  50%       { box-shadow: 0 0 18px rgba(200,30,30,.2) inset, 0 0 6px rgba(180,20,20,.15); }
+}
+
+/* ── District card sub-elements ── */
+.hub-district-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.hub-district-name {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--gold, #c8a020);
+  letter-spacing: .04em;
+}
+
+.hub-district-card--gauntlet .hub-district-name {
+  color: #e05050;
+}
+
+.hub-district-desc {
+  font-family: 'IM Fell English', 'Georgia', serif;
+  font-style: italic;
+  font-size: .8rem;
+  color: var(--clr-muted, #7a6a5a);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.hub-district-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  background: rgba(160, 20, 20, .25);
+  border: 1px solid rgba(200, 40, 40, .4);
+  color: #e06060;
+  text-transform: uppercase;
+  align-self: flex-start;
+}
+
+/* ── Player status card ── */
+.hub-status-card {
+  margin: 0 16px 12px;
+  padding: 12px 14px;
+  background: rgba(8, 5, 14, .72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(160,120,50,.2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.hub-status-header {
+  font-family: 'Cinzel', serif;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--gold, #c8a020);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hub-status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.hub-status-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .72rem;
+}
+
+.hub-status-bar-label {
+  width: 22px;
+  font-family: 'Cinzel', serif;
+  font-size: .6rem;
+  color: var(--clr-muted, #7a6a5a);
+  flex-shrink: 0;
+}
+
+.hub-status-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,.07);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.hub-status-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width .4s ease;
+}
+
+.hub-status-bar-fill--hp { background: linear-gradient(90deg, #8b1010, #c03030); }
+.hub-status-bar-fill--mp { background: linear-gradient(90deg, #1030a0, #3060d0); }
+
+.hub-status-gold {
+  font-family: 'Cinzel', serif;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--gold, #c8a020);
+  white-space: nowrap;
+}
+
+/* ── MOBILE OVERRIDES 768px ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Hub district grid — 1 sloupec */
+  /* (definováno v sekci hub níže, zachováno zde pro jistotu) */
+  .hub-district-grid{grid-template-columns:1fr;}
+
+  /* Quest board — menší padding, skrytí seal */
+  .qv2{padding-right:var(--space-4,12px);}
+  .qv2-right{display:none;}
+
+  /* Shop — menší karty */
+  .shop-item-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .shop-npc-stage{padding:12px 14px;gap:12px;}
+  .shop-npc-avatar{font-size:3rem;}
+
+  /* Market — karty na 1 sloupec */
+  .market-listings{grid-template-columns:1fr;}
+
+  /* Achievements — bez extra margin */
+  .ach-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+
+  /* Inventory — equipment silhouette zachovává %, sloty menší */
+  .equip-silhouette{max-width:320px;margin:0 auto;}
+
+  /* Arena — výsledky vertikálně */
+  .arena-vs{flex-direction:column;gap:8px;}
+
+  /* Guild — tabulka scrollovatelná */
+  .guild-table-wrap{overflow-x:auto;}
+  .guild-table{min-width:520px;}
+
+  /* Professions — 1 sloupec */
+  .prof-grid{grid-template-columns:1fr;}
+
+  /* Season pass — tiers horizontální scroll */
+  .season-tiers{
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
+  .season-tier-card{scroll-snap-align:start;flex-shrink:0;width:80vw;max-width:280px;}
+
+  /* Build — talent grid 2 sloupce */
+  .talent-grid{grid-template-columns:repeat(2,1fr);}
+
+  /* Dungeon — info panely pod sebou */
+  .dungeon-layout{flex-direction:column;}
+
+  /* Boss — layout vertikální */
+  .boss-layout{flex-direction:column;}
+  .boss-info-panel{max-width:100%;}
+}
+/* ── END MOBILE OVERRIDES ────────────────────────────────────────────────── */
+
+/* B.1 — HC Warning */
+.hc-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 16px 0 8px;
+  padding: 12px 16px;
+  background: rgba(139,26,26,0.12);
+  border: 1px solid rgba(139,26,26,0.35);
+  border-radius: 4px;
+  text-align: center;
+}
+.hc-warning__icon {
+  font-size: 1.4rem;
+  filter: drop-shadow(0 0 6px rgba(139,26,26,0.8));
+}
+.hc-warning__text {
+  color: #e8c5c5;
+  font-size: 0.95rem;
+  margin: 0;
+}
+.hc-warning__sub {
+  color: var(--clr-muted, #666);
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+/* B.5 — Death Screen */
+.page--death {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #000;
+  display: none;
+}
+.page--death.active {
+  display: block;
+}
+.death-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, #1a0505 0%, #050508 60%, #000 100%);
+}
+.death-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%);
+  pointer-events: none;
+}
+.death-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+  max-width: 480px;
+  text-align: center;
+}
+.death-skull {
+  font-size: 4rem;
+  filter: drop-shadow(0 0 20px rgba(139,26,26,0.9));
+  animation: death-skull-pulse 2s ease-in-out infinite;
+}
+@keyframes death-skull-pulse {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(139,26,26,0.9)); }
+  50%       { filter: drop-shadow(0 0 40px rgba(200,50,50,1)); }
+}
+.death-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 3rem;
+  color: #8b1a1a;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 30px rgba(139,26,26,0.6);
+  margin: 0;
+}
+.death-epitaph { display: flex; flex-direction: column; gap: 6px; }
+.death-hero-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  color: #e8e0d0;
+  margin: 0;
+}
+.death-hero-info { color: var(--clr-muted, #888); font-size: 0.9rem; margin: 0; }
+.death-killed-by { color: #c87070; font-size: 0.85rem; margin: 0; }
+.death-divider { color: rgba(201,168,76,0.4); letter-spacing: 0.5em; }
+.death-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+
+/* B.6 — Arena safety */
+.arena-safety-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(32,80,200,0.12);
+  border: 1px solid rgba(32,80,200,0.3);
+  border-radius: 20px;
+  color: #7090e0;
+  font-size: 0.78rem;
+  margin-bottom: 12px;
+}
+
+/* C.5 — Bloodline page */
+.bl-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  background: rgba(139,26,26,0.08);
+  border: 1px solid rgba(139,26,26,0.2);
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.bl-level-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.bl-level-num {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 3rem;
+  color: #c9a84c;
+  text-shadow: 0 0 20px rgba(201,168,76,0.5);
+  line-height: 1;
+}
+.bl-level-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.3em;
+  color: var(--clr-muted, #888);
+  text-transform: uppercase;
+}
+.bl-xp-wrap { width: 100%; max-width: 300px; }
+.bl-xp-bar-bg {
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.bl-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b1a1a, #c9a84c);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.bl-xp-text { font-size: 0.75rem; color: var(--clr-muted, #888); }
+.bl-stat { font-size: 0.85rem; color: #c87070; }
+
+.bl-section { margin-bottom: 20px; }
+.bl-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--clr-muted, #888);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.bl-fallen-list { display: flex; flex-direction: column; gap: 6px; }
+.bl-fallen-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  border-left: 2px solid rgba(139,26,26,0.4);
+}
+.bl-fallen-name { font-family: 'Cinzel', serif; font-size: 0.85rem; color: #e8e0d0; flex: 1; }
+.bl-fallen-meta { font-size: 0.75rem; color: var(--clr-muted, #888); }
+.bl-fallen-death { font-size: 0.75rem; color: #c87070; }
+.bl-unlocks-list { display: flex; flex-direction: column; gap: 8px; }
+.bl-unlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(201,168,76,0.05);
+  border: 1px solid rgba(201,168,76,0.12);
+  border-radius: 4px;
+}
+.bl-unlock-icon { font-size: 1rem; flex-shrink: 0; }
+.bl-unlock-desc { font-size: 0.82rem; color: #c8b88a; line-height: 1.4; }
+
+/* E.5 — Hall of the Fallen + Living Ladder */
+.hall-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.hall-tab {
+  padding: 6px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  color: var(--clr-muted, #888);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hall-tab--active {
+  background: rgba(201,168,76,0.1);
+  border-color: rgba(201,168,76,0.3);
+  color: #c9a84c;
+}
+.hall-fallen-count {
+  font-size: 0.78rem;
+  color: var(--clr-muted, #888);
+  margin-bottom: 12px;
+}
+.hall-fallen-list { display: flex; flex-direction: column; gap: 8px; }
+.hall-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(139,26,26,0.15);
+  border-radius: 4px;
+  border-left: 3px solid rgba(139,26,26,0.5);
+}
+.hall-entry-skull { font-size: 1.2rem; flex-shrink: 0; opacity: 0.6; }
+.hall-entry-body { flex: 1; }
+.hall-entry-name { font-family: 'Cinzel', serif; font-size: 0.95rem; color: #e8e0d0; }
+.hall-entry-meta { font-size: 0.78rem; color: var(--clr-muted, #888); margin-top: 2px; }
+.hall-entry-death { font-size: 0.75rem; color: #c87070; margin-top: 2px; }
+.hall-entry-epitaph { font-size: 0.78rem; color: #9090b0; font-style: italic; margin-top: 4px; }
+.hall-entry-date { font-size: 0.7rem; color: var(--clr-muted, #888); flex-shrink: 0; align-self: center; }
+
+.hall-ladder-list { display: flex; flex-direction: column; gap: 6px; }
+.hall-ladder-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 4px;
+}
+.hall-ladder-entry--top {
+  background: rgba(201,168,76,0.06);
+  border-color: rgba(201,168,76,0.2);
+}
+.hall-ladder-rank { font-size: 1rem; width: 28px; text-align: center; flex-shrink: 0; }
+.hall-ladder-name { font-family: 'Cinzel', serif; font-size: 0.9rem; color: #e8e0d0; flex: 1; }
+.hall-ladder-meta { font-size: 0.75rem; color: var(--clr-muted, #888); }
+
+/* F.4 — Class mechanic badges */
+.cls-mechanic-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
+}
+.rage-badge {
+  background: rgba(139,26,26,0.2);
+  border: 1px solid rgba(139,26,26,0.4);
+  color: #e07070;
+}
+.chain-badge {
+  background: rgba(32,120,32,0.15);
+  border: 1px solid rgba(32,120,32,0.35);
+  color: #70c070;
+}
+.first-strike-badge {
+  background: rgba(32,80,200,0.15);
+  border: 1px solid rgba(32,80,200,0.35);
+  color: #7090e0;
+}

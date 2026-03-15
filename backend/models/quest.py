@@ -2,7 +2,7 @@
 models/quest.py — Questy a dungeony (time-based auto-fight)
 """
 import enum
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
@@ -18,32 +18,28 @@ class QuestDifficulty(str, enum.Enum):
     HARD   = "hard"
     BOSS   = "boss"
 
-# ── Definice questů ───────────────────────────────────────────────────────────
-QUEST_DEFINITIONS = [
-    # id, name, desc, difficulty, duration_min, xp, gold_min, gold_max, min_level, icon
-    (1,  "Skřeti v lese",        "Vyčisti skupinu skřetů.",              "easy",   2,  25,  15,  30,  1, "🌲"),
-    (2,  "Starý hřbitov",        "Prozkoumej opuštěný hřbitov.",         "easy",   3,  35,  20,  40,  1, "🪦"),
-    (3,  "Kobky pod hradem",     "Prohledej temné kobky.",               "normal", 5,  60,  40,  70,  2, "🏰"),
-    (4,  "Ohnivá jeskyně",       "Přežij žár ohnivé jeskyně.",           "normal", 7,  85,  55, 100,  3, "🔥"),
-    (5,  "Temný les",            "Prober se přes les plný netopýrů.",    "normal", 6,  75,  50,  90,  3, "🦇"),
-    (6,  "Ruiny dávné civilizace","Prozkumej záhadné ruiny.",            "hard",  10, 140,  90, 150,  5, "🗿"),
-    (7,  "Hradní bašta",         "Proraž se přes hradní stráže.",        "hard",  12, 170, 110, 180,  6, "⚔️"),
-    (8,  "Dračí hnízdo",         "Loupež v dračím hnízdě.",              "hard",  15, 210, 140, 220,  8, "🐲"),
-    (9,  "Věž čaroděje",         "Výstup na vrchol magické věže.",       "hard",  14, 195, 130, 205,  7, "🗼"),
-    (10, "BOSS: Kostěný král",   "Epický souboj s Kostěným králem.",     "boss",  20, 400, 300, 500, 10, "💀"),
-    (11, "BOSS: Chaos drak",     "Legendární souboj s Chaos Drakem.",    "boss",  30, 700, 600, 900, 15, "🐉"),
-    # ── Nové questy ──
-    (12, "Bažiny prokletých",    "Proboj se jedovatými bažinami.",       "normal", 6,  80,  55, 95,  4, "🐸"),
-    (13, "Pirátský přístav",     "Vyčisti přístav plný pirátů.",         "normal", 8, 105,  70,115,  5, "🏴‍☠️"),
-    (14, "Podzemní labyrint",    "Najdi cestu z nekonečného bludišťě.",  "hard",  13, 175, 115,185,  7, "🌀"),
-    (15, "Sněžné vrcholky",      "Přežij mráz a horské bestie.",         "hard",  14, 190, 125,195,  8, "🏔️"),
-    (16, "Katakomby zla",        "Prohledej katakomby plné nemrtvých.",  "hard",  16, 220, 145,225,  9, "⚰️"),
-    (17, "Podvodní chrám",       "Potop se do zatopených ruin chrámu.",  "hard",  18, 250, 160,250, 10, "🌊"),
-    (18, "Pustina démonů",       "Přežij démonické pustiny.",            "hard",  20, 290, 190,290, 12, "👿"),
-    (19, "Plující ostrov",       "Bojuj na palubě plujícího ostrova.",   "hard",  22, 330, 220,340, 13, "🏝️"),
-    (20, "BOSS: Stínový král",   "Střetnutí s pánem temnoty.",           "boss",  35, 900, 700,1100,18, "👤"),
-    (21, "BOSS: Věčný drak",     "Drak starý jako samotný svět.",        "boss",  45,1400,1100,1600,25, "🌋"),
-]
+# ── Definice questů — načteny z config/quests.json ───────────────────────────
+# Přidat nový quest = přidat řádek do backend/config/quests.json (bez deploymentu)
+from game.config_loader import load_quest_definitions as _lqd
+QUEST_DEFINITIONS = _lqd()
+
+# DB-backed disabled quest set — importuj get_disabled_quest_ids() pro async přístup.
+# Zachováno pro zpětnou kompatibilitu importu (_DISABLED_QUESTS) — nyní vždy prázdná,
+# skutečný stav je v DB tabulce disabled_quests (viz models/disabled_quest.py).
+_DISABLED_QUESTS: set[int] = set()   # Deprecated — use get_disabled_quest_ids(db)
+
+
+class DailyQuestRotation(Base):
+    """Denní rotace 3 questů pro každého hráče — reset v 00:00 UTC."""
+    __tablename__ = "daily_quest_rotations"
+
+    id:           Mapped[int] = mapped_column(primary_key=True)
+    character_id: Mapped[int] = mapped_column(Integer, ForeignKey("characters.id"), index=True)
+    date:         Mapped[str] = mapped_column(String(10))   # "YYYY-MM-DD" UTC
+    quest_ids:    Mapped[str] = mapped_column(Text)          # JSON "[1, 5, 13]"
+
+    character = relationship("Character")
+
 
 class Quest(Base):
     __tablename__ = "quests"
@@ -66,6 +62,9 @@ class Quest(Base):
     success:      Mapped[bool] = mapped_column(Boolean, default=True)
     battle_log:   Mapped[str]  = mapped_column(Text, default="")  # JSON string
 
+    # Daily quest příznak
+    is_daily:     Mapped[bool] = mapped_column(Boolean, default=False)
+
     character   = relationship("Character", back_populates="quest")
     reward_item = relationship("Item")
 
@@ -83,14 +82,14 @@ class Quest(Base):
             return False
         # Porovnávej vždy naive UTC (SQLite ignoruje timezone info)
         fa = self.finish_at.replace(tzinfo=None) if self.finish_at.tzinfo else self.finish_at
-        return datetime.utcnow() >= fa
+        return datetime.now(timezone.utc).replace(tzinfo=None) >= fa
 
     @property
     def seconds_remaining(self) -> int:
         if self.status != QuestStatus.ACTIVE or self.finish_at is None:
             return 0
         fa = self.finish_at.replace(tzinfo=None) if self.finish_at.tzinfo else self.finish_at
-        remaining = (fa - datetime.utcnow()).total_seconds()
+        remaining = (fa - datetime.now(timezone.utc).replace(tzinfo=None)).total_seconds()
         return max(0, int(remaining))
 
     def to_dict(self) -> dict:

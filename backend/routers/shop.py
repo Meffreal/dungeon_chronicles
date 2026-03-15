@@ -13,6 +13,8 @@ from database import get_db
 from models.user import User
 from models.character import Character
 from models.item import Item, InventoryItem
+from models.economy import log_gold, GoldReason
+from models.shop_sale import ShopSale
 from routers.auth import get_current_user
 
 router = APIRouter(prefix="/shop", tags=["shop"])
@@ -72,16 +74,36 @@ def _shop_price(item: Item) -> int:
     return max(10, round(item.sell_price * mult))
 
 
-async def _npc_stock(npc: dict, db: AsyncSession) -> list[Item]:
+async def _npc_stock(npc: dict, db: AsyncSession, char_id: int | None = None) -> list[Item]:
     result = await db.execute(
-        select(Item).where(Item.item_type.in_(npc["types"]))
+        select(Item).where(
+            Item.item_type.in_(npc["types"]),
+            Item.rarity != "set",
+        )
     )
     all_items = result.scalars().all()
     if not all_items:
         return []
-    rng = random.Random(_current_slot() * 1000 + npc["seed_offset"])
-    count = min(npc["stock_count"], len(all_items))
-    return rng.sample(all_items, count)
+
+    slot = _current_slot()
+    rng  = random.Random(slot * 100_000 + npc["seed_offset"] * 10_000 + (char_id or 0))
+
+    # Vyber rozšířený pool (2× stock_count) pro případ, že hráč část koupí
+    pool_size = min(npc["stock_count"] * 2, len(all_items))
+    pool = rng.sample(all_items, pool_size)
+
+    # Odstraň itemy již nakoupené tímto hráčem v tomto slotu
+    if char_id is not None:
+        bought_res = await db.execute(
+            select(ShopSale.item_id).where(
+                ShopSale.character_id == char_id,
+                ShopSale.rotation_slot == slot,
+            )
+        )
+        bought_ids = {row[0] for row in bought_res.all()}
+        pool = [i for i in pool if i.id not in bought_ids]
+
+    return pool[:npc["stock_count"]]
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -99,7 +121,7 @@ async def get_shop(
 
     npcs_out = []
     for npc in NPCS:
-        items = await _npc_stock(npc, db)
+        items = await _npc_stock(npc, db, char.id)
         npcs_out.append({
             "id":    npc["id"],
             "name":  npc["name"],
@@ -139,22 +161,24 @@ async def buy_from_shop(
     if not item:
         raise HTTPException(404, "Item nenalezen.")
 
-    # Ověř že item je v aktuálním slotu alespoň jednoho NPC
+    # Ověř že item je v aktuálním slotu alespoň jednoho NPC (pro tohoto hráče)
     in_stock = False
     for npc in NPCS:
         if item.item_type in npc["types"]:
-            stock = await _npc_stock(npc, db)
+            stock = await _npc_stock(npc, db, char.id)
             if any(s.id == req.item_id for s in stock):
                 in_stock = True
                 break
     if not in_stock:
-        raise HTTPException(400, "Tento item není aktuálně v nabídce.")
+        raise HTTPException(400, "Tento item není aktuálně v nabídce (nebo jsi ho již koupil).")
 
     price = _shop_price(item)
     if char.gold < price:
         raise HTTPException(400, f"Nedostatek zlata. Potřebuješ {price} G, máš {char.gold} G.")
 
     char.gold -= price
+    await log_gold(db, char, -price, GoldReason.SHOP_PURCHASE,
+                   {"item_id": item.id, "item_name": item.name, "price": price})
 
     inv_res = await db.execute(
         select(InventoryItem).where(
@@ -167,6 +191,13 @@ async def buy_from_shop(
         existing.quantity += 1
     else:
         db.add(InventoryItem(character_id=char.id, item_id=item.id, quantity=1))
+
+    # Zaznamenej nákup → item zmizí z nabídky tohoto hráče do rotace
+    db.add(ShopSale(
+        character_id=char.id,
+        item_id=req.item_id,
+        rotation_slot=_current_slot(),
+    ))
 
     await db.commit()
 

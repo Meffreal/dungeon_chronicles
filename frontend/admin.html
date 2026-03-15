@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dungeon Chronicles — Admin</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#0a0a14;color:#c8c8d8;font-family:'Segoe UI',sans-serif;font-size:14px;min-height:100vh}
+  h1{font-size:1.3rem;color:#c89010;letter-spacing:2px;font-variant:small-caps}
+  h2{font-size:.9rem;color:#9090c0;letter-spacing:1px;text-transform:uppercase;margin:18px 0 10px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:6px}
+  h3{font-size:.78rem;color:#707090;text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px}
+  .topbar{background:#0e0e1e;border-bottom:1px solid rgba(255,255,255,.07);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .key-input{background:#141428;border:1px solid #333;color:#c8c8d8;padding:5px 10px;border-radius:4px;font-size:.82rem;width:200px}
+  .btn{background:#1e2a3e;border:1px solid #2a3a5e;color:#a0b8d0;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:.8rem;transition:background .15s}
+  .btn:hover{background:#243040}
+  .btn-red{background:#2a1010;border-color:#5e2a2a;color:#d08080}.btn-red:hover{background:#3a1818}
+  .btn-green{background:#0e2a1e;border-color:#2a5e3a;color:#80d0a0}.btn-green:hover{background:#183a28}
+  .btn-gold{background:#2a2010;border-color:#5e4a10;color:#d0a840}.btn-gold:hover{background:#3a3018}
+  .btn-sm{padding:3px 10px;font-size:.72rem}
+  .content{padding:18px 20px;max-width:1200px}
+  .tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid rgba(255,255,255,.07);flex-wrap:wrap}
+  .tab{background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;color:#707090;padding:8px 16px;cursor:pointer;font-size:.8rem;letter-spacing:.5px;transition:color .15s}
+  .tab:hover{color:#a0a0c0}
+  .tab.active{color:#c89010;border-bottom-color:#c89010}
+  .panel{display:none}.panel.active{display:block}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .stat-card{background:#0e0e1e;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:12px;text-align:center}
+  .stat-val{font-size:1.4rem;font-weight:700;color:#c89010}
+  .stat-lbl{font-size:.66rem;color:#707090;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+  table{width:100%;border-collapse:collapse;font-size:.82rem}
+  th{color:#707090;font-weight:400;text-align:left;padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:.72rem;letter-spacing:.5px;text-transform:uppercase}
+  td{padding:6px 10px;border-bottom:1px solid rgba(255,255,255,.04)}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.68rem}
+  .badge-d{background:rgba(200,50,50,.15);color:#d08080;border:1px solid rgba(200,50,50,.3)}
+  .badge-e{background:rgba(50,200,80,.12);color:#80d080;border:1px solid rgba(50,200,80,.25)}
+  .badge-info{background:rgba(50,150,220,.12);color:#80b8e0;border:1px solid rgba(50,150,220,.25)}
+  .err{color:#d08080;font-size:.82rem;padding:10px;background:rgba(200,50,50,.1);border-radius:4px;margin:8px 0}
+  .ok{color:#80d080;font-size:.82rem;padding:10px;background:rgba(50,200,80,.08);border-radius:4px;margin:8px 0}
+  .search-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .txt-input{background:#141428;border:1px solid #333;color:#c8c8d8;padding:6px 12px;border-radius:4px;font-size:.85rem}
+  .section-chip{display:inline-block;background:rgba(200,144,32,.1);border:1px solid rgba(200,144,32,.3);color:#c89010;padding:2px 10px;border-radius:12px;font-size:.7rem;margin:10px 0 6px}
+  pre{background:#0e0e1e;border:1px solid rgba(255,255,255,.06);border-radius:4px;padding:12px;font-size:.76rem;overflow-x:auto;color:#a0c0a0;line-height:1.6}
+  .action-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0;padding:10px;background:#0e0e1e;border:1px solid rgba(255,255,255,.05);border-radius:5px}
+  .action-row label{font-size:.75rem;color:#707090;min-width:80px}
+  .num-input{background:#141428;border:1px solid #333;color:#c8c8d8;padding:4px 8px;border-radius:4px;font-size:.85rem;width:110px}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{background:#0e0e1e;border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:14px;margin-bottom:12px}
+  .boss-hp-bar{height:12px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;margin:6px 0}
+  .boss-hp-fill{height:100%;background:#8b1010;transition:width .5s}
+  .we-prog-bar{height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin:4px 0}
+  .we-prog-fill{height:100%;background:#c89010;transition:width .5s}
+  select.txt-input{cursor:pointer}
+  textarea.txt-input{height:80px;resize:vertical;font-family:'Segoe UI',sans-serif}
+  .msg-out{font-size:.82rem;padding:8px 12px;border-radius:4px;margin:8px 0;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>⚔ Admin Panel</h1>
+  <input class="key-input txt-input" id="admin-key" type="password" placeholder="Admin klíč..." value="dungeon-admin-2024">
+  <button class="btn" onclick="loadAll()">↺ Načíst vše</button>
+  <span id="status-lbl" style="font-size:.75rem;color:#707090;margin-left:auto"></span>
+</div>
+
+<div class="content">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview')">📊 Přehled</button>
+    <button class="tab" onclick="switchTab('players')">👤 Hráči</button>
+    <button class="tab" onclick="switchTab('economy')">💰 Economy</button>
+    <button class="tab" onclick="switchTab('content');loadContent()">🎮 Content</button>
+    <button class="tab" onclick="switchTab('events');loadAdminEvent()">🌍 World Events</button>
+    <button class="tab" onclick="switchTab('boss');loadAdminBoss()">💀 Boss</button>
+    <button class="tab" onclick="switchTab('analytics');loadAnalytics();loadAdvancedAnalytics()">📈 Analytics</button>
+    <button class="tab" onclick="switchTab('experiments');loadExperiments()">🧪 Experimenty</button>
+    <button class="tab" onclick="switchTab('crystals-analytics');loadCrystalAnalytics()">💎 Crystaly</button>
+    <button class="tab" onclick="switchTab('broadcast')">📢 Broadcast</button>
+    <button class="tab" onclick="switchTab('news');loadAdminNews()">📰 Novinky</button>
+    <button class="tab" onclick="switchTab('alerts');loadAlerts()" id="tab-alerts">⚠️ Alerts</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="panel active" id="panel-overview">
+    <h2>Statistiky hry</h2>
+    <div class="stat-grid" id="stats-grid"><div style="color:#707090">Načítám...</div></div>
+    <h2>Top hráči (level)</h2>
+    <table id="top-chars-table"><tr><th>Jméno</th><th>Třída</th><th>Level</th><th>Gold</th><th>ELO</th></tr></table>
+  </div>
+
+  <!-- PLAYERS -->
+  <div class="panel" id="panel-players">
+    <h2>Lookup hráče</h2>
+    <div class="search-row">
+      <input class="txt-input" id="player-name-input" placeholder="Jméno postavy..." style="flex:1;max-width:280px" onkeydown="if(event.key==='Enter')lookupPlayer()">
+      <button class="btn" onclick="lookupPlayer()">Hledat</button>
+    </div>
+    <div id="player-detail"></div>
+    <!-- Akce nad hráčem -->
+    <div id="player-actions" style="display:none">
+      <h2>Akce nad hráčem: <span id="pa-name" style="color:#c89010"></span></h2>
+
+      <h3>💰 Gold</h3>
+      <div class="action-row">
+        <label>Částka (G)</label>
+        <input class="num-input txt-input" id="pa-gold-amount" type="number" placeholder="+500 nebo -200">
+        <input class="txt-input" id="pa-gold-reason" type="text" placeholder="Důvod (volitelný)" style="flex:1;max-width:200px">
+        <button class="btn btn-gold" onclick="paGold()">Provést</button>
+      </div>
+
+      <h3>💎 Crystaly</h3>
+      <div class="action-row">
+        <label>Crystaly</label>
+        <input class="num-input txt-input" id="pa-crystals-amount" type="number" placeholder="50" min="1">
+        <button class="btn" onclick="paCrystals()">Přidat Crystaly</button>
+      </div>
+
+      <h3>⚡ Level</h3>
+      <div class="action-row">
+        <label>Nový level</label>
+        <input class="num-input txt-input" id="pa-level" type="number" placeholder="1–999" min="1" max="999">
+        <label style="margin-left:8px">
+          <input type="checkbox" id="pa-reset-xp" checked style="margin-right:4px">Reset XP
+        </label>
+        <button class="btn btn-gold" onclick="paSetLevel()">Nastavit level</button>
+      </div>
+
+      <h3>⚔ Quest &amp; Cech</h3>
+      <div class="action-row">
+        <button class="btn btn-red" onclick="paResetQuest()">Reset aktivního questu</button>
+        <button class="btn btn-red" onclick="paKickGuild()">Vyhodit z cechu</button>
+      </div>
+
+      <div class="msg-out" id="pa-msg"></div>
+    </div>
+  </div>
+
+  <!-- ECONOMY -->
+  <div class="panel" id="panel-economy">
+    <h2>Economy monitor</h2>
+    <div id="economy-overview"></div>
+    <div class="two-col">
+      <div>
+        <h2>Top gold holders</h2>
+        <table id="top-gold-table"><tr><th>#</th><th>Jméno</th><th>Třída</th><th>Level</th><th>Gold</th></tr></table>
+      </div>
+      <div>
+        <h2>Transakce dle důvodu</h2>
+        <table id="tx-table"><tr><th>Důvod</th><th>Počet</th><th>Celkem</th></tr></table>
+      </div>
+    </div>
+    <h2>Gold per level</h2>
+    <table id="per-level-table"><tr><th>Level</th><th>Průměr gold</th><th>Hráčů</th></tr></table>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="panel" id="panel-content">
+    <div class="two-col">
+      <div>
+        <h2>Vytvořit nový quest</h2>
+        <div class="card">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Název questu *</label>
+              <input class="txt-input" id="nq-name" type="text" placeholder="Název..." style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Ikona</label>
+              <input class="txt-input" id="nq-icon" type="text" placeholder="⚔️" value="⚔️" style="width:100%">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Popis</label>
+            <input class="txt-input" id="nq-desc" type="text" placeholder="Stručný popis..." style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Obtížnost</label>
+              <select class="txt-input" id="nq-diff" style="width:100%">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+                <option value="boss">Boss</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Trvání (min)</label>
+              <input class="txt-input num-input" id="nq-dur" type="number" value="10" min="1" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Min. level</label>
+              <input class="txt-input num-input" id="nq-minlv" type="number" value="1" min="1" style="width:100%">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">XP odměna</label>
+              <input class="txt-input num-input" id="nq-xp" type="number" value="100" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Gold min</label>
+              <input class="txt-input num-input" id="nq-gmin" type="number" value="50" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Gold max</label>
+              <input class="txt-input num-input" id="nq-gmax" type="number" value="100" min="0" style="width:100%">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="createQuest()" style="width:100%">➕ Vytvořit quest</button>
+          <div class="msg-out" id="nq-msg"></div>
+        </div>
+
+        <h2 style="margin-top:16px">Crystal shop slevy</h2>
+        <div class="card">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Položka</label>
+              <select class="txt-input" id="sale-item" style="width:100%"></select>
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Slevová cena (💎)</label>
+              <input class="txt-input num-input" id="sale-cost" type="number" min="1" placeholder="180" style="width:100%">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Začátek (za X hodin)</label>
+              <input class="txt-input num-input" id="sale-start" type="number" value="0" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Délka (hodin)</label>
+              <input class="txt-input num-input" id="sale-dur" type="number" value="24" min="1" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Label (volitelný)</label>
+              <input class="txt-input" id="sale-label" type="text" placeholder="Black Friday" style="width:100%">
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="createSale()" style="width:100%">🏷️ Naplánovat slevu</button>
+          <div class="msg-out" id="sale-msg"></div>
+        </div>
+
+        <h2 style="margin-top:14px">Aktivní a plánované slevy</h2>
+        <div id="sales-list"><div style="color:#707090;font-size:.8rem">Načítám...</div></div>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <h2 style="margin:0">Správa questů</h2>
+          <button class="btn btn-sm" onclick="reloadConfig()" style="font-size:.7rem">↺ Reload config</button>
+        </div>
+        <div id="quest-list-wrap"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORLD EVENTS -->
+  <div class="panel" id="panel-events">
+    <h2>Aktuální World Event</h2>
+    <div id="we-admin-current"><div style="color:#707090">Načítám...</div></div>
+
+    <div class="two-col" style="margin-top:16px">
+      <div>
+        <h2>Spustit z definice</h2>
+        <div class="card">
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Definice eventu</label>
+            <select class="txt-input" id="we-def-select" style="width:100%"></select>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Délka (dní)</label>
+            <input class="txt-input num-input" id="we-duration" type="number" value="7" min="1" max="30">
+          </div>
+          <button class="btn btn-gold" onclick="weNewEvent()" style="width:100%">🌍 Spustit nový event</button>
+          <div class="msg-out" id="we-msg"></div>
+        </div>
+
+        <h2 style="margin-top:14px">Vlastní event</h2>
+        <div class="card">
+          <div style="margin-bottom:8px">
+            <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Název *</label>
+            <input class="txt-input" id="wec-name" type="text" placeholder="Název eventu..." style="width:100%">
+          </div>
+          <div style="margin-bottom:8px">
+            <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Popis</label>
+            <input class="txt-input" id="wec-desc" type="text" placeholder="Popis..." style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Typ</label>
+              <select class="txt-input" id="wec-type" style="width:100%">
+                <option value="quests">quests</option>
+                <option value="dungeon_clears">dungeon_clears</option>
+                <option value="boss_damage">boss_damage</option>
+                <option value="kills">kills</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Cíl</label>
+              <input class="txt-input num-input" id="wec-goal" type="number" value="500" min="1" style="width:100%">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Odměna Gold</label>
+              <input class="txt-input num-input" id="wec-gold" type="number" value="1000" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Odměna 💎</label>
+              <input class="txt-input num-input" id="wec-crystals" type="number" value="50" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Titul (volitelný)</label>
+              <input class="txt-input" id="wec-title" type="text" placeholder="Hrdina" style="width:100%">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Začátek (za X hodin)</label>
+              <input class="txt-input num-input" id="wec-start" type="number" value="0" min="0" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.72rem;color:#707090;display:block;margin-bottom:3px">Délka (dní)</label>
+              <input class="txt-input num-input" id="wec-dur" type="number" value="7" min="1" style="width:100%">
+            </div>
+          </div>
+          <button class="btn btn-gold" onclick="weScheduleCustom()" style="width:100%">📅 Naplánovat vlastní event</button>
+          <div class="msg-out" id="wec-msg"></div>
+        </div>
+
+        <h2 style="margin-top:14px">Force Complete</h2>
+        <div class="card">
+          <p style="font-size:.8rem;color:#707090;margin-bottom:10px">Označí aktuální event jako dokončený — hráči mohou vybrat odměny.</p>
+          <button class="btn btn-green" onclick="weComplete()" style="width:100%">✅ Dokončit event</button>
+        </div>
+      </div>
+
+      <div>
+        <h2>Top přispěvatelé</h2>
+        <div class="card">
+          <table id="we-top-table"><tr><th>#</th><th>Hráč</th><th>Příspěvek</th></tr></table>
+        </div>
+        <h2>Historie eventů</h2>
+        <div class="card" style="padding:0">
+          <table id="we-hist-table"><tr><th>Název</th><th>Typ</th><th>Progress</th><th>Stav</th></tr></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOSS -->
+  <div class="panel" id="panel-boss">
+    <h2>Aktivní World Boss</h2>
+    <div id="boss-admin-current"><div style="color:#707090">Načítám...</div></div>
+
+    <div class="two-col" style="margin-top:16px">
+      <div>
+        <h2>Spawnovvat nového bosse</h2>
+        <div class="card">
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Typ bosse</label>
+            <select class="txt-input" id="boss-key-select" style="width:100%"></select>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Počet hráčů (pro HP scaling)</label>
+            <input class="txt-input num-input" id="boss-player-count" type="number" value="10" min="1">
+          </div>
+          <button class="btn btn-red" onclick="bossSpawn()" style="width:100%">💀 Spawnovvat bosse</button>
+          <div class="msg-out" id="boss-msg"></div>
+        </div>
+        <h2>Nedávní bossové</h2>
+        <table id="boss-recent-table"><tr><th>Jméno</th><th>HP max</th><th>Status</th></tr></table>
+      </div>
+
+      <div>
+        <h2>Participanti (aktuální boss)</h2>
+        <div class="card" style="padding:0">
+          <table id="boss-parts-table"><tr><th>#</th><th>Hráč</th><th>Damage</th><th>Útoků</th><th>%</th></tr></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS -->
+  <div class="panel" id="panel-analytics">
+    <h2>Analytics přehled</h2>
+    <div class="stat-grid" id="an-stat-grid"><div style="color:#707090">Načítám...</div></div>
+
+    <div class="two-col">
+      <div>
+        <h2>Registrace (posledních 14 dní)</h2>
+        <div class="card" id="an-reg-chart" style="padding:10px 14px"></div>
+
+        <h2>Level distribuce hráčů</h2>
+        <div class="card" id="an-level-chart" style="padding:10px 14px"></div>
+      </div>
+      <div>
+        <h2>Distribuce tříd</h2>
+        <div class="card" id="an-cls-chart" style="padding:10px 14px"></div>
+
+        <h2>Arena win rate dle třídy</h2>
+        <div class="card" style="padding:0">
+          <table id="an-winrate-table">
+            <tr><th>Třída</th><th>Výhry</th><th>Zápasy</th><th>Win %</th></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h2>Gold flow (posledních 7 dní)</h2>
+        <div class="card" style="padding:0">
+          <table id="an-gold-table">
+            <tr><th>Den</th><th>Příjmy</th><th>Výdaje</th><th>Net</th><th>Tx</th></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h2>Arena aktivita (7 dní)</h2>
+        <div class="card" id="an-arena-chart" style="padding:10px 14px"></div>
+
+        <h2>Top quest completers</h2>
+        <div class="card" style="padding:0">
+          <table id="an-quest-table">
+            <tr><th>#</th><th>Hráč</th><th>Třída</th><th>Lv</th><th>Questy</th></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced analytics -->
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,.07);margin:24px 0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <h2 style="margin:0;border:none;padding:0">🔬 Advanced Analytics</h2>
+      <button class="btn btn-sm" onclick="loadAdvancedAnalytics(true)">🔄 Načíst / Obnovit</button>
+    </div>
+    <div id="an-adv-content">
+      <div style="color:#505070;font-size:.8rem">Klikni 🔄 pro načtení pokročilé analytiky (funnel, matchupy, DAU, economy health).</div>
+    </div>
+  </div>
+
+  <!-- EXPERIMENTS -->
+  <div class="panel" id="panel-experiments">
+    <h2>🧪 A/B Experimenty</h2>
+    <p style="color:#707090;font-size:.8rem;margin-bottom:16px">
+      Každý hráč je náhodně zařazen do skupiny 0–9 (10% každá). Experiment definuje
+      skupiny a override hodnoty combat/ekonomiky. Metriky se porovnávají per skupina.
+    </p>
+
+    <div class="two-col">
+      <!-- Formulář pro nový experiment -->
+      <div>
+        <h3>Nový experiment</h3>
+        <div class="card" style="max-width:520px">
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Název</label>
+            <input class="txt-input" id="exp-name" type="text" placeholder="např. Snížení ABILITY_TRIGGER_PROB" style="width:100%">
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Popis</label>
+            <input class="txt-input" id="exp-desc" type="text" placeholder="Co testujeme a proč..." style="width:100%">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Skupina od (0–9)</label>
+              <input class="txt-input" id="exp-gstart" type="number" min="0" max="9" value="5" style="width:100%">
+            </div>
+            <div>
+              <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Skupina do (0–9)</label>
+              <input class="txt-input" id="exp-gend" type="number" min="0" max="9" value="9" style="width:100%">
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Override parametry (JSON)</label>
+            <textarea class="txt-input" id="exp-overrides" rows="4"
+              placeholder='{"ability_trigger_prob": 0.30, "gold_reward_win": 1.5}'
+              style="width:100%;font-family:monospace;font-size:.78rem"></textarea>
+            <div style="font-size:.7rem;color:#505070;margin-top:4px" id="exp-params-hint">Načítám dostupné parametry...</div>
+          </div>
+          <button class="btn btn-sm" onclick="createExperiment()">➕ Vytvořit experiment</button>
+          <div class="msg-box" id="exp-create-msg" style="display:none;margin-top:8px;padding:8px;border-radius:6px"></div>
+        </div>
+      </div>
+
+      <!-- Aktivní experimenty -->
+      <div>
+        <h3>Aktivní experimenty <button class="btn btn-sm" onclick="loadExperiments()" style="margin-left:8px">🔄</button></h3>
+        <div id="exp-list"><div style="color:#707090">Načítám...</div></div>
+      </div>
+    </div>
+
+    <!-- Analytics per skupina -->
+    <h3 style="margin-top:24px">Metriky per skupina <button class="btn btn-sm" onclick="loadExpAnalytics()" style="margin-left:8px">🔄</button></h3>
+    <div id="exp-analytics"><div style="color:#707090">Klikni 🔄 pro načtení analytiky.</div></div>
+  </div>
+
+  <!-- CRYSTAL ANALYTICS -->
+  <div class="panel" id="panel-crystals-analytics">
+    <h2>💎 Crystal Economy Analytics</h2>
+    <p style="color:#707090;font-size:.8rem;margin-bottom:16px">
+      Přehled crystal ekonomiky — earned vs spent, distribuce zdrojů, top hráči, denní aktivita.
+    </p>
+    <div id="crystal-analytics-content" style="color:#707090">Načítání...</div>
+  </div>
+
+  <!-- BROADCAST -->
+  <div class="panel" id="panel-broadcast">
+    <h2>Broadcast notifikace</h2>
+    <div class="card" style="max-width:560px">
+      <div style="margin-bottom:12px">
+        <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Příjemce</label>
+        <input class="txt-input" id="bc-target" type="text" placeholder="all — nebo username/jméno postavy" style="width:100%">
+        <div style="font-size:.7rem;color:#505070;margin-top:4px">Napiš "all" pro všechny hráče, nebo konkrétní jméno.</div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Nadpis notifikace</label>
+        <input class="txt-input" id="bc-title" type="text" placeholder="Systémová zpráva..." style="width:100%">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Text (volitelný)</label>
+        <textarea class="txt-input" id="bc-body" placeholder="Detailní text zprávy..." style="width:100%"></textarea>
+      </div>
+      <button class="btn btn-gold" onclick="sendBroadcast()" style="width:100%;padding:9px">📢 Odeslat notifikaci</button>
+      <div class="msg-out" id="bc-msg"></div>
+    </div>
+
+    <h2 style="margin-top:20px">Rychlé zprávy</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="quickBc('🔧 Údržba serveru','Server bude za 10 minut restartován kvůli údržbě.')">🔧 Plánovaná údržba</button>
+      <button class="btn btn-sm" onclick="quickBc('🌍 Nový World Event!','Nový komunální event byl spuštěn. Přispívej a získej odměny!')">🌍 Nový event</button>
+      <button class="btn btn-sm" onclick="quickBc('💀 World Boss se vrátil!','Nový World Boss čeká na zdolání. Spolupracujte a získejte odměny!')">💀 Nový boss</button>
+      <button class="btn btn-sm" onclick="quickBc('🎉 Dvojitý XP víkend!','Tento víkend všechny questy dávají dvojitý XP!')">🎉 2x XP event</button>
+    </div>
+  </div>
+
+  <!-- NEWS FEED PANEL -->
+  <div class="panel" id="panel-news">
+    <h2>Správa novinek / patch notes</h2>
+    <div class="card" style="max-width:640px;margin-bottom:20px">
+      <h3 style="margin:0 0 12px;font-size:.9rem;color:#c89010">Přidat zprávu</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Nadpis (max 120 znaků)</label>
+          <input class="txt-input" id="news-title" type="text" placeholder="Název patche / eventy..." maxlength="120" style="width:100%">
+        </div>
+        <div>
+          <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Typ</label>
+          <select class="txt-input" id="news-type" style="width:100%">
+            <option value="info">📢 Novinka</option>
+            <option value="event">🌟 Událost</option>
+            <option value="maintenance">🔧 Údržba</option>
+            <option value="balance">⚖ Balance</option>
+            <option value="hotfix">🐛 Hotfix</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Text zprávy</label>
+        <textarea class="txt-input" id="news-body" rows="3" placeholder="Popis změn, detaily eventu..." style="width:100%;resize:vertical"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Autor (volitelné)</label>
+          <input class="txt-input" id="news-author" type="text" placeholder="Admin / Dev..." style="width:100%">
+        </div>
+        <div>
+          <label style="font-size:.75rem;color:#707090;display:block;margin-bottom:4px">Platnost do (volitelné)</label>
+          <input class="txt-input" id="news-expires" type="datetime-local" style="width:100%">
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="adminCreateNews()" style="width:100%;padding:9px">📰 Publikovat zprávu</button>
+      <div class="msg-out" id="news-create-msg"></div>
+    </div>
+
+    <h2>Publikované zprávy</h2>
+    <div id="news-list"><div style="color:#707090">Načítám...</div></div>
+  </div>
+
+  <!-- ── Balance Alerts ─────────────────────────────────────────────────── -->
+  <div class="panel" id="panel-alerts">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 style="margin:0">⚠️ Balance Alerts</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label style="font-size:.8rem;color:#707090;display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="alerts-show-resolved" onchange="loadAlerts()"> Zobrazit resolved
+        </label>
+        <button class="btn" style="padding:6px 14px;font-size:.8rem" onclick="runBalanceCheck()">🔍 Spustit check nyní</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.5rem;font-weight:700;color:#e74c3c" id="alert-count-critical">–</div>
+        <div style="font-size:.75rem;color:#707090;margin-top:4px">Critical</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.5rem;font-weight:700;color:#f39c12" id="alert-count-warning">–</div>
+        <div style="font-size:.75rem;color:#707090;margin-top:4px">Warning</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.5rem;font-weight:700;color:#27ae60" id="alert-count-resolved">–</div>
+        <div style="font-size:.75rem;color:#707090;margin-top:4px">Resolved</div>
+      </div>
+      <div class="card" style="text-align:center;padding:14px">
+        <div style="font-size:1.5rem;font-weight:700;color:#8888bb" id="alert-count-total">–</div>
+        <div style="font-size:.75rem;color:#707090;margin-top:4px">Celkem</div>
+      </div>
+    </div>
+
+    <div id="alerts-list"><div style="color:#707090">Načítám...</div></div>
+    <div class="msg-out" id="alerts-msg"></div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+const API = window.location.origin;
+let _currentPlayerName = null;
+
+function key() { return document.getElementById('admin-key').value; }
+
+async function adminApi(method, path, body) {
+  const r = await fetch(API + path, {
+    method,
+    headers: {'Content-Type':'application/json','X-Admin-Key':key()},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.detail || 'Chyba');
+  return d;
+}
+
+function switchTab(tab) {
+  const tabs = ['overview','players','economy','content','events','boss','analytics','experiments','crystals-analytics','broadcast','news'];
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', tabs[i] === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function showMsg(id, text, isErr) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.background = isErr ? 'rgba(200,50,50,.12)' : 'rgba(50,200,80,.1)';
+  el.style.color = isErr ? '#d08080' : '#80d080';
+  el.style.border = `1px solid ${isErr ? 'rgba(200,50,50,.3)' : 'rgba(50,200,80,.2)'}`;
+  el.textContent = text;
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function loadAll() {
+  const lbl = document.getElementById('status-lbl');
+  lbl.style.color = '#707090';
+  lbl.textContent = 'Načítám...';
+  try {
+    await Promise.all([loadOverview(), loadEconomy(), loadQuestList(), loadSales(), loadSaleItems()]);
+    lbl.textContent = '✓ Načteno ' + new Date().toLocaleTimeString('cs');
+  } catch(e) {
+    lbl.style.color = '#d08080';
+    lbl.textContent = '✗ ' + e.message;
+  }
+}
+
+/* ── OVERVIEW ── */
+async function loadOverview() {
+  const d = await adminApi('GET', '/admin/stats');
+  const ov = d.overview;
+  document.getElementById('stats-grid').innerHTML = [
+    ['Uživatelé', ov.users],['Postavy', ov.characters],['Cechy', ov.guilds],
+    ['Aktivní questy', ov.active_quests],['Arena zápasy', ov.arena_matches_total],
+    ['Market listingy', ov.market_listings],['Achievementy', ov.achievements_given],
+  ].map(([l,v]) => `<div class="stat-card"><div class="stat-val">${v}</div><div class="stat-lbl">${l}</div></div>`).join('');
+
+  document.getElementById('top-chars-table').innerHTML =
+    '<tr><th>Jméno</th><th>Třída</th><th>Level</th><th>Gold</th><th>ELO</th></tr>'
+    + d.top_characters.map(c => `<tr><td>${c.name}</td><td>${c.cls}</td><td>${c.level}</td><td>${c.gold.toLocaleString('cs')}</td><td>${c.elo}</td></tr>`).join('');
+}
+
+/* ── PLAYERS ── */
+async function lookupPlayer() {
+  const name = document.getElementById('player-name-input').value.trim();
+  if (!name) return;
+  const el = document.getElementById('player-detail');
+  el.innerHTML = '<div style="color:#707090">Načítám...</div>';
+  document.getElementById('player-actions').style.display = 'none';
+  try {
+    const d = await adminApi('GET', `/admin/player/${encodeURIComponent(name)}`);
+    const c = d.character;
+    _currentPlayerName = c.name;
+    document.getElementById('pa-name').textContent = c.name;
+    document.getElementById('player-actions').style.display = 'block';
+
+    el.innerHTML = `
+      <div class="section-chip">Postava</div>
+      <table style="margin-bottom:12px">
+        <tr><td style="color:#707090;width:130px">Jméno</td><td><strong>${c.name}</strong></td><td style="color:#707090;width:130px">Třída</td><td>${c.cls}</td></tr>
+        <tr><td style="color:#707090">Level / XP</td><td>${c.level} / ${c.xp} XP</td><td style="color:#707090">Gold</td><td style="color:#c89010">${c.gold.toLocaleString('cs')} G</td></tr>
+        <tr><td style="color:#707090">HP / MP</td><td>${c.hp_max} / ${c.mp_max}</td><td style="color:#707090">ATK / DEF</td><td>${c.atk} / ${c.def_}</td></tr>
+        <tr><td style="color:#707090">Arena ELO</td><td>${c.arena_rank}</td><td style="color:#707090">Questy hotovo</td><td>${c.quests_completed}</td></tr>
+        <tr><td style="color:#707090">Quest stav</td><td><span class="badge badge-info">${d.quest.status}</span></td><td style="color:#707090">Stat body</td><td>${c.stat_points}</td></tr>
+        <tr><td style="color:#707090">Frakce</td><td>${c.faction||'—'}</td><td style="color:#707090">Arena zápasy</td><td>${d.arena_matches_total}</td></tr>
+      </table>
+      <div class="section-chip">Inventář (posledních 20)</div>
+      <table style="margin-bottom:12px">
+        <tr><th>Item</th><th>Rarity</th><th>Qty</th><th>Nasazeno</th></tr>
+        ${d.inventory.map(i=>`<tr><td>${i.item_name}</td><td style="color:#a090c0">${i.rarity}</td><td>${i.qty}</td><td>${i.equipped?'✓':''}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#707090">Prázdný inventář</td></tr>'}
+      </table>
+      <div class="section-chip">Poslední gold transakce</div>
+      <table>
+        <tr><th>Částka</th><th>Důvod</th><th>Zůstatek</th><th>Čas</th></tr>
+        ${d.recent_gold_transactions.map(t=>`<tr><td style="color:${t.amount>=0?'#80d080':'#d08080'}">${t.amount>=0?'+':''}${t.amount}</td><td>${t.reason}</td><td>${t.balance_after}</td><td style="color:#707090;font-size:.72rem">${t.timestamp?new Date(t.timestamp).toLocaleString('cs'):'-'}</td></tr>`).join('')||'<tr><td colspan="4" style="color:#707090">Žádné transakce</td></tr>'}
+      </table>`;
+  } catch(e) {
+    el.innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+async function paGold() {
+  if (!_currentPlayerName) return;
+  const amount = parseInt(document.getElementById('pa-gold-amount').value);
+  const reason = document.getElementById('pa-gold-reason').value || 'admin_grant';
+  if (!amount || amount === 0) return showMsg('pa-msg','Zadej nenulovou částku.',true);
+  try {
+    const d = await adminApi('POST',`/admin/player/${encodeURIComponent(_currentPlayerName)}/gold`,{amount,reason});
+    showMsg('pa-msg', d.message + ` Zůstatek: ${d.gold_after.toLocaleString('cs')} G`);
+    await lookupPlayer();
+  } catch(e) { showMsg('pa-msg',e.message,true); }
+}
+
+async function paCrystals() {
+  if (!_currentPlayerName) return;
+  const amount = parseInt(document.getElementById('pa-crystals-amount').value);
+  if (!amount || amount <= 0) return showMsg('pa-msg','Zadej kladnou částku.',true);
+  try {
+    const d = await adminApi('POST',`/admin/player/${encodeURIComponent(_currentPlayerName)}/crystals`,{amount});
+    showMsg('pa-msg', d.message);
+  } catch(e) { showMsg('pa-msg',e.message,true); }
+}
+
+async function paResetQuest() {
+  if (!_currentPlayerName) return;
+  if (!confirm(`Resetovat quest hráče ${_currentPlayerName}?`)) return;
+  try {
+    const d = await adminApi('POST',`/admin/player/${encodeURIComponent(_currentPlayerName)}/reset-quest`);
+    showMsg('pa-msg', d.message);
+    await lookupPlayer();
+  } catch(e) { showMsg('pa-msg',e.message,true); }
+}
+
+async function paSetLevel() {
+  if (!_currentPlayerName) return;
+  const level = parseInt(document.getElementById('pa-level').value);
+  const reset_xp = document.getElementById('pa-reset-xp').checked;
+  if (!level || level < 1 || level > 999) return showMsg('pa-msg', 'Zadej level v rozsahu 1–999.', true);
+  if (!confirm(`Nastavit level hráče ${_currentPlayerName} na ${level}?`)) return;
+  try {
+    const d = await adminApi('POST', `/admin/player/${encodeURIComponent(_currentPlayerName)}/set-level`, {level, reset_xp});
+    showMsg('pa-msg', d.message + ` Stat body: ${d.stat_points}`);
+    await lookupPlayer();
+  } catch(e) { showMsg('pa-msg', e.message, true); }
+}
+
+async function paKickGuild() {
+  if (!_currentPlayerName) return;
+  if (!confirm(`Vyhodit hráče ${_currentPlayerName} z cechu?`)) return;
+  try {
+    const d = await adminApi('POST',`/admin/player/${encodeURIComponent(_currentPlayerName)}/kick-guild`);
+    showMsg('pa-msg', d.message);
+    await lookupPlayer();
+  } catch(e) { showMsg('pa-msg',e.message,true); }
+}
+
+/* ── ECONOMY ── */
+async function loadEconomy() {
+  const d = await adminApi('GET', '/admin/economy');
+  document.getElementById('economy-overview').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val" style="color:#c89010">${d.total_gold_in_circulation.toLocaleString('cs')}</div><div class="stat-lbl">Gold v oběhu</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:#70b0d0">${d.total_transaction_volume.toLocaleString('cs')}</div><div class="stat-lbl">Objem transakcí</div></div>
+    </div>`;
+  document.getElementById('top-gold-table').innerHTML =
+    '<tr><th>#</th><th>Jméno</th><th>Třída</th><th>Level</th><th>Gold</th></tr>'
+    + d.top_gold_holders.map((c,i)=>`<tr><td style="color:#707090">${i+1}</td><td>${c.name}</td><td>${c.cls}</td><td>${c.level}</td><td style="color:#c89010">${c.gold.toLocaleString('cs')}</td></tr>`).join('');
+  document.getElementById('per-level-table').innerHTML =
+    '<tr><th>Level</th><th>Průměr gold</th><th>Hráčů</th></tr>'
+    + d.gold_per_level.map(r=>`<tr><td>${r.level}</td><td style="color:#c89010">${r.avg_gold.toLocaleString('cs')}</td><td style="color:#707090">${r.players}</td></tr>`).join('');
+  document.getElementById('tx-table').innerHTML =
+    '<tr><th>Důvod</th><th>Počet</th><th>Celkem</th></tr>'
+    + d.transactions_by_reason.map(r=>`<tr><td>${r.reason}</td><td style="color:#707090">${r.count}</td><td style="color:${r.total>=0?'#80d080':'#d08080'}">${r.total>=0?'+':''}${(r.total||0).toLocaleString('cs')}</td></tr>`).join('');
+}
+
+/* ── CONTENT ── */
+async function loadContent() {
+  await Promise.all([loadQuestList(), loadSales(), loadSaleItems()]);
+}
+
+async function loadSaleItems() {
+  // Naplň select Crystal shop položkami přes admin endpoint
+  const sel = document.getElementById('sale-item');
+  if (!sel || sel.options.length > 0) return;
+  try {
+    const d = await adminApi('GET', '/admin/crystal-shop-items');
+    if (d && d.items) {
+      sel.innerHTML = d.items.map(i => `<option value="${i.key}">${i.emoji} ${i.name} (${i.cost} 💎)</option>`).join('');
+    }
+  } catch(_) {}
+}
+
+async function loadQuestList() {
+  const d = await adminApi('GET', '/admin/quests');
+  document.getElementById('quest-list-wrap').innerHTML = `
+    <div style="color:#707090;font-size:.8rem;margin-bottom:10px">${d.disabled_count} deaktivováno z ${d.quests.length} celkem</div>
+    <table>
+      <tr><th>ID</th><th>Ikona</th><th>Název</th><th>Obtíž</th><th>Min.lv</th><th>Stav</th><th>Akce</th></tr>
+      ${d.quests.map(q=>`<tr>
+        <td style="color:#707090">${q.id}</td><td>${q.icon}</td><td>${q.name}</td>
+        <td style="color:#a090c0">${q.difficulty}</td><td style="color:#707090">${q.min_level}</td>
+        <td><span class="badge ${q.disabled?'badge-d':'badge-e'}">${q.disabled?'OFF':'ON'}</span></td>
+        <td>${q.disabled
+          ?`<button class="btn btn-green btn-sm" onclick="toggleQuest(${q.id},true)">Aktivovat</button>`
+          :`<button class="btn btn-red btn-sm" onclick="toggleQuest(${q.id},false)">Deaktivovat</button>`
+        }</td></tr>`).join('')}
+    </table>`;
+}
+
+async function createQuest() {
+  const name = document.getElementById('nq-name').value.trim();
+  if (!name) return showMsg('nq-msg', 'Zadej název questu.', true);
+  const body = {
+    name,
+    description:      document.getElementById('nq-desc').value.trim(),
+    difficulty:       document.getElementById('nq-diff').value,
+    duration_minutes: parseInt(document.getElementById('nq-dur').value) || 10,
+    min_level:        parseInt(document.getElementById('nq-minlv').value) || 1,
+    reward_xp:        parseInt(document.getElementById('nq-xp').value) || 0,
+    reward_gold_min:  parseInt(document.getElementById('nq-gmin').value) || 0,
+    reward_gold_max:  parseInt(document.getElementById('nq-gmax').value) || 0,
+    icon:             document.getElementById('nq-icon').value.trim() || '⚔️',
+  };
+  try {
+    const d = await adminApi('POST', '/admin/quest/create', body);
+    showMsg('nq-msg', d.message);
+    document.getElementById('nq-name').value = '';
+    document.getElementById('nq-desc').value = '';
+    await loadQuestList();
+  } catch(e) { showMsg('nq-msg', e.message, true); }
+}
+
+async function reloadConfig() {
+  try {
+    const d = await adminApi('POST', '/admin/config/reload');
+    alert(`✓ ${d.message} (questů: ${d.quest_count})`);
+    await loadQuestList();
+  } catch(e) { alert('✗ ' + e.message); }
+}
+
+async function loadSales() {
+  const wrap = document.getElementById('sales-list');
+  if (!wrap) return;
+  try {
+    const d = await adminApi('GET', '/admin/crystal-sales');
+    const now = Date.now();
+    if (!d.sales.length) {
+      wrap.innerHTML = '<div style="color:#707090;font-size:.8rem">Žádné slevy.</div>';
+      return;
+    }
+    wrap.innerHTML = `<table>
+      <tr><th>Položka</th><th>Orig.</th><th>Sleva</th><th>%</th><th>Stav</th><th>Konec</th><th></th></tr>
+      ${d.sales.map(s => {
+        const active = s.is_active;
+        const ends = new Date(s.ends_at).toLocaleString('cs');
+        return `<tr>
+          <td>${s.item_key}${s.label ? ` <span style="color:#707090;font-size:.68rem">${s.label}</span>` : ''}</td>
+          <td style="color:#707090">${s.original_cost} 💎</td>
+          <td style="color:#80d080">${s.sale_cost} 💎</td>
+          <td style="color:#c89010">-${s.discount_pct}%</td>
+          <td><span class="badge ${active ? 'badge-e' : 'badge-info'}">${active ? 'AKTIVNÍ' : 'Plánovaná'}</span></td>
+          <td style="color:#707090;font-size:.72rem">${ends}</td>
+          <td><button class="btn btn-red btn-sm" onclick="cancelSale(${s.id})">✕</button></td>
+        </tr>`;
+      }).join('')}
+    </table>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+async function createSale() {
+  const item_key = document.getElementById('sale-item').value;
+  const sale_cost = parseInt(document.getElementById('sale-cost').value);
+  if (!item_key) return showMsg('sale-msg', 'Zvol položku.', true);
+  if (!sale_cost || sale_cost <= 0) return showMsg('sale-msg', 'Zadej slevovou cenu.', true);
+  const body = {
+    item_key,
+    sale_cost,
+    starts_in_hours: parseInt(document.getElementById('sale-start').value) || 0,
+    duration_hours:  parseInt(document.getElementById('sale-dur').value) || 24,
+    label:           document.getElementById('sale-label').value.trim() || null,
+  };
+  try {
+    const d = await adminApi('POST', '/admin/crystal-sale', body);
+    showMsg('sale-msg', d.message);
+    document.getElementById('sale-cost').value = '';
+    document.getElementById('sale-label').value = '';
+    await loadSales();
+  } catch(e) { showMsg('sale-msg', e.message, true); }
+}
+
+async function cancelSale(saleId) {
+  if (!confirm(`Zrušit slevu #${saleId}?`)) return;
+  try {
+    const d = await adminApi('DELETE', `/admin/crystal-sale/${saleId}`);
+    await loadSales();
+  } catch(e) { alert('✗ ' + e.message); }
+}
+
+async function toggleQuest(questId, enable) {
+  try {
+    await adminApi('POST', enable?`/admin/quest/enable/${questId}`:`/admin/quest/disable/${questId}`);
+    await loadQuestList();
+  } catch(e) { alert('Chyba: ' + e.message); }
+}
+
+/* ── WORLD EVENTS ── */
+async function loadAdminEvent() {
+  try {
+    const d = await adminApi('GET', '/admin/world-event');
+
+    // Naplň select definicí
+    const sel = document.getElementById('we-def-select');
+    sel.innerHTML = d.definitions.map((def,i)=>`<option value="${i}">${def.name} (${def.event_type}, cíl: ${def.goal.toLocaleString('cs')})</option>`).join('');
+
+    // Aktuální event
+    const cur = document.getElementById('we-admin-current');
+    if (!d.event) {
+      cur.innerHTML = '<div class="err">Žádný aktivní event.</div>';
+    } else {
+      const ev = d.event;
+      const pct = ev.progress_pct;
+      cur.innerHTML = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div>
+              <div style="font-size:1rem;color:#c89010;font-weight:700">${ev.name}</div>
+              <div style="font-size:.75rem;color:#707090;margin-top:2px">${ev.event_type_label} · cíl: ${ev.goal.toLocaleString('cs')}</div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge ${ev.is_completed?'badge-e':'badge-info'}">${ev.is_completed?'DOKONČENO':'AKTIVNÍ'}</span>
+              <div style="font-size:.72rem;color:#707090;margin-top:4px">Přispěvatelů: ${d.contributors}</div>
+            </div>
+          </div>
+          <div style="font-size:.8rem;color:#a0a0c0;margin-bottom:8px">${ev.description||''}</div>
+          <div style="font-size:.75rem;color:#707090;margin-bottom:4px">Progress: ${ev.current_progress.toLocaleString('cs')} / ${ev.goal.toLocaleString('cs')} (${pct}%)</div>
+          <div class="we-prog-bar"><div class="we-prog-fill" style="width:${pct}%"></div></div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:.75rem;color:#707090">
+            <span>Odměna: ${ev.reward_gold} G · ${ev.reward_crystals} 💎${ev.reward_title?' · "'+ev.reward_title+'"':''}</span>
+            <span style="margin-left:auto">Zbývá: ${_formatTime(ev.remaining_seconds)}</span>
+          </div>
+        </div>`;
+    }
+
+    // Top přispěvatelé
+    document.getElementById('we-top-table').innerHTML =
+      '<tr><th>#</th><th>Hráč</th><th>Příspěvek</th></tr>'
+      + (d.top_contributors.length
+        ? d.top_contributors.map((c,i)=>`<tr><td style="color:#707090">${i+1}</td><td>${c.name}</td><td style="color:#c89010">${c.contribution.toLocaleString('cs')}</td></tr>`).join('')
+        : '<tr><td colspan="3" style="color:#707090">Žádní přispěvatelé.</td></tr>');
+
+    // Historie
+    document.getElementById('we-hist-table').innerHTML =
+      '<tr><th>Název</th><th>Typ</th><th>Progress</th><th>Stav</th></tr>'
+      + d.history.map(ev=>`<tr>
+        <td>${ev.name}</td>
+        <td style="color:#707090">${ev.event_type}</td>
+        <td>${ev.current_progress.toLocaleString('cs')} / ${ev.goal.toLocaleString('cs')}</td>
+        <td><span class="badge ${ev.is_completed?'badge-e':'badge-info'}">${ev.is_completed?'✓':'🔥'}</span></td>
+      </tr>`).join('');
+  } catch(e) {
+    document.getElementById('we-admin-current').innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+async function weComplete() {
+  if (!confirm('Force-complete aktuální World Event?')) return;
+  try {
+    const d = await adminApi('POST', '/admin/world-event/complete');
+    showMsg('we-msg', d.message);
+    await loadAdminEvent();
+  } catch(e) { showMsg('we-msg', e.message, true); }
+}
+
+async function weNewEvent() {
+  const idx      = parseInt(document.getElementById('we-def-select').value);
+  const duration = parseInt(document.getElementById('we-duration').value) || 7;
+  if (!confirm('Deaktivovat stávající event a spustit nový?')) return;
+  try {
+    const d = await adminApi('POST', '/admin/world-event/new', {definition_index: idx, duration_days: duration});
+    showMsg('we-msg', d.message);
+    await loadAdminEvent();
+  } catch(e) { showMsg('we-msg', e.message, true); }
+}
+
+async function weScheduleCustom() {
+  const name = document.getElementById('wec-name').value.trim();
+  if (!name) return showMsg('wec-msg', 'Zadej název eventu.', true);
+  const goal = parseInt(document.getElementById('wec-goal').value);
+  if (!goal || goal <= 0) return showMsg('wec-msg', 'Zadej kladný cíl.', true);
+  const starts_in_hours = parseInt(document.getElementById('wec-start').value) || 0;
+  if (starts_in_hours === 0 && !confirm('Event začne IHNED (deaktivuje stávající). Pokračovat?')) return;
+  const body = {
+    name,
+    description:     document.getElementById('wec-desc').value.trim(),
+    event_type:      document.getElementById('wec-type').value,
+    goal,
+    reward_gold:     parseInt(document.getElementById('wec-gold').value) || 0,
+    reward_crystals: parseInt(document.getElementById('wec-crystals').value) || 0,
+    reward_title:    document.getElementById('wec-title').value.trim() || null,
+    starts_in_hours,
+    duration_days:   parseInt(document.getElementById('wec-dur').value) || 7,
+  };
+  try {
+    const d = await adminApi('POST', '/admin/world-event/schedule', body);
+    showMsg('wec-msg', d.message);
+    document.getElementById('wec-name').value = '';
+    await loadAdminEvent();
+  } catch(e) { showMsg('wec-msg', e.message, true); }
+}
+
+/* ── BOSS ── */
+async function loadAdminBoss() {
+  try {
+    const d = await adminApi('GET', '/admin/boss');
+
+    // Naplň boss select
+    const sel = document.getElementById('boss-key-select');
+    sel.innerHTML = d.boss_definitions.map(b=>`<option value="${b.key}">${b.emoji} ${b.name} (min lv ${b.min_level}, HP base ${b.hp_base.toLocaleString('cs')})</option>`).join('');
+
+    // Aktivní boss
+    const cur = document.getElementById('boss-admin-current');
+    if (!d.active_boss) {
+      cur.innerHTML = '<div class="err">Žádný aktivní boss.</div>';
+    } else {
+      const b = d.active_boss;
+      const hpPct = Math.max(0, Math.round(b.hp_current / b.hp_max * 100));
+      cur.innerHTML = `
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <span style="font-size:2.5rem">${b.emoji||'💀'}</span>
+            <div>
+              <div style="font-size:1rem;color:#d06060;font-weight:700">${b.name}</div>
+              <div style="font-size:.75rem;color:#707090">${b.boss_key}</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:.8rem;color:#d08080">${b.hp_current.toLocaleString('cs')} / ${b.hp_max.toLocaleString('cs')} HP</div>
+              <div style="font-size:.7rem;color:#707090">${hpPct}% HP zbývá</div>
+            </div>
+          </div>
+          <div class="boss-hp-bar"><div class="boss-hp-fill" style="width:${hpPct}%"></div></div>
+          <div style="font-size:.72rem;color:#707090;margin-top:6px">Fáze ${b.current_phase||0} · Participantů: ${d.participants.length}</div>
+        </div>`;
+    }
+
+    // Participanti
+    document.getElementById('boss-parts-table').innerHTML =
+      '<tr><th>#</th><th>Hráč</th><th>Damage</th><th>Útoků</th><th>%</th></tr>'
+      + (d.participants.length
+        ? d.participants.map((p,i)=>`<tr>
+            <td style="color:#707090">${i+1}</td>
+            <td>${p.name} <span style="color:#707090;font-size:.7rem">${p.cls}</span></td>
+            <td style="color:#d08080">${p.damage.toLocaleString('cs')}</td>
+            <td style="color:#707090">${p.attacks}</td>
+            <td>${p.pct}%</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" style="color:#707090">Žádní participanti.</td></tr>');
+
+    // Nedávní mrtví bossové
+    document.getElementById('boss-recent-table').innerHTML =
+      '<tr><th>Jméno</th><th>HP max</th><th>Status</th></tr>'
+      + (d.recent_bosses.length
+        ? d.recent_bosses.map(b=>`<tr>
+            <td>${b.emoji||''} ${b.name}</td>
+            <td style="color:#707090">${b.hp_max.toLocaleString('cs')}</td>
+            <td><span class="badge badge-d">Zabit</span></td>
+          </tr>`).join('')
+        : '<tr><td colspan="3" style="color:#707090">Žádná historie.</td></tr>');
+  } catch(e) {
+    document.getElementById('boss-admin-current').innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+async function bossSpawn() {
+  const boss_key     = document.getElementById('boss-key-select').value;
+  const player_count = parseInt(document.getElementById('boss-player-count').value) || 10;
+  if (!confirm(`Spawnovvat bosse "${boss_key}"? Stávající boss bude zabit.`)) return;
+  try {
+    const d = await adminApi('POST', '/admin/boss/spawn', {boss_key, player_count});
+    showMsg('boss-msg', `Boss "${boss_key}" spawnut. HP: ${d.boss?.hp_max?.toLocaleString('cs') || '?'}`);
+    await loadAdminBoss();
+  } catch(e) { showMsg('boss-msg', e.message, true); }
+}
+
+/* ── ANALYTICS ── */
+let _analyticsLoaded = false;
+async function loadAnalytics() {
+  if (_analyticsLoaded) return;
+  try {
+    const d = await adminApi('GET', '/admin/analytics');
+    _analyticsLoaded = true;
+    const r = d.retention, e = d.engagement, c = d.combat, ec = d.economy;
+
+    // Stat karty
+    const arenaWeek = c.arena_matches_by_day.reduce((s,x)=>s+x.count,0);
+    document.getElementById('an-stat-grid').innerHTML = [
+      ['Churn hráči',        `${r.churn_candidates} (${r.churn_rate_pct}%)`, '#d08080'],
+      ['Avg questy/hráče',   e.avg_quests_per_player,                        '#c89010'],
+      ['Arena (7 dní)',       arenaWeek,                                       '#70b0d0'],
+      ['Tříd ve hře',        e.class_distribution.length,                    '#80d080'],
+    ].map(([l,v,col]) => `<div class="stat-card"><div class="stat-val" style="color:${col}">${v}</div><div class="stat-lbl">${l}</div></div>`).join('');
+
+    // Registrace po dnech — mini bar chart
+    const maxReg = Math.max(1, ...r.registrations_by_day.map(x=>x.count));
+    document.getElementById('an-reg-chart').innerHTML = r.registrations_by_day.length
+      ? r.registrations_by_day.map(x => _miniBar(x.day.slice(5), x.count, maxReg, '#70b0d0')).join('')
+      : '<div style="color:#707090;font-size:.78rem">Žádné registrace v posledních 14 dnech.</div>';
+
+    // Level distribuce
+    const maxLv = Math.max(1, ...Object.values(r.level_distribution));
+    document.getElementById('an-level-chart').innerHTML =
+      Object.entries(r.level_distribution).map(([k,v]) => _miniBar(k, v, maxLv, '#c89010')).join('');
+
+    // Distribuce tříd
+    const maxCls = Math.max(1, ...e.class_distribution.map(x=>x.count));
+    document.getElementById('an-cls-chart').innerHTML = e.class_distribution.length
+      ? e.class_distribution.map(x => _miniBar(x.cls, x.count, maxCls, '#80d080')).join('')
+      : '<div style="color:#707090;font-size:.78rem">Žádné postavy.</div>';
+
+    // Arena aktivita
+    const maxArena = Math.max(1, ...c.arena_matches_by_day.map(x=>x.count));
+    document.getElementById('an-arena-chart').innerHTML = c.arena_matches_by_day.length
+      ? c.arena_matches_by_day.map(x => _miniBar(x.day.slice(5), x.count, maxArena, '#a080d0')).join('')
+      : '<div style="color:#707090;font-size:.78rem">Žádné zápasy v posledních 7 dnech.</div>';
+
+    // Win rate tabulka
+    document.getElementById('an-winrate-table').innerHTML =
+      '<tr><th>Třída</th><th>Výhry</th><th>Zápasy</th><th>Win %</th></tr>'
+      + (c.class_win_rates.length
+        ? c.class_win_rates.map(x => {
+            const pct = x.win_pct;
+            const col = pct >= 55 ? '#80d080' : pct >= 45 ? '#c8c8d8' : '#d08080';
+            return `<tr><td>${x.cls}</td><td style="color:#80d080">${x.wins}</td><td style="color:#707090">${x.total}</td><td style="color:${col}">${pct}%</td></tr>`;
+          }).join('')
+        : '<tr><td colspan="4" style="color:#707090">Žádné arena zápasy.</td></tr>');
+
+    // Gold flow tabulka
+    document.getElementById('an-gold-table').innerHTML =
+      '<tr><th>Den</th><th>Příjmy</th><th>Výdaje</th><th>Net</th><th>Tx</th></tr>'
+      + (ec.gold_flow_by_day.length
+        ? ec.gold_flow_by_day.map(x => `<tr>
+            <td style="color:#707090">${x.day.slice(5)}</td>
+            <td style="color:#80d080">+${x.income.toLocaleString('cs')}</td>
+            <td style="color:#d08080">${x.spending.toLocaleString('cs')}</td>
+            <td style="color:${x.net>=0?'#80d080':'#d08080'}">${x.net>=0?'+':''}${x.net.toLocaleString('cs')}</td>
+            <td style="color:#707090">${x.tx_count}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" style="color:#707090">Žádné transakce v posledních 7 dnech.</td></tr>');
+
+    // Quest completers tabulka
+    document.getElementById('an-quest-table').innerHTML =
+      '<tr><th>#</th><th>Hráč</th><th>Třída</th><th>Lv</th><th>Questy</th></tr>'
+      + (e.top_quest_completers.length
+        ? e.top_quest_completers.map((x,i) => `<tr>
+            <td style="color:#707090">${i+1}</td>
+            <td>${x.name}</td>
+            <td style="color:#a090c0">${x.cls}</td>
+            <td style="color:#707090">${x.level}</td>
+            <td style="color:#c89010">${x.completed}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" style="color:#707090">Žádné dokončené questy.</td></tr>');
+
+  } catch(e) {
+    document.getElementById('an-stat-grid').innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+function _miniBar(label, value, maxValue, color) {
+  const pct = maxValue > 0 ? Math.round(value / maxValue * 100) : 0;
+  return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0">
+    <div style="font-size:.7rem;color:#707090;min-width:44px;text-align:right">${label}</div>
+    <div style="flex:1;background:rgba(255,255,255,.06);height:13px;border-radius:4px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${color};border-radius:4px;opacity:.8"></div>
+    </div>
+    <div style="font-size:.7rem;color:${color};min-width:28px;text-align:right">${value}</div>
+  </div>`;
+}
+
+/* ── ADVANCED ANALYTICS ── */
+let _advLoaded = false;
+
+async function loadAdvancedAnalytics(force = false) {
+  if (_advLoaded && !force) return;
+  const el = document.getElementById('an-adv-content');
+  if (!el) return;
+  el.innerHTML = '<div style="color:#707090">Načítám advanced analytics...</div>';
+  try {
+    const d = await adminApi('GET', '/admin/analytics/advanced');
+    _advLoaded = true;
+
+    const f = d.funnel;
+    const total = f.total || 1;
+    const funnelSteps = [
+      { label: 'Hráči celkem (registrace)', value: f.total, pct: 100 },
+      { label: 'První quest dokončen', value: f.first_quest, pct: Math.round(f.first_quest / total * 100) },
+      { label: 'První arena zápas', value: f.first_arena, pct: Math.round(f.first_arena / total * 100) },
+      { label: 'Přidal se do guildy', value: f.joined_guild, pct: Math.round(f.joined_guild / total * 100) },
+      { label: 'Dosáhl level 20+', value: f.level_20, pct: Math.round(f.level_20 / total * 100) },
+    ];
+
+    const funnelHtml = funnelSteps.map((s, i) => {
+      const dropOff = i > 0 ? funnelSteps[i - 1].pct - s.pct : 0;
+      const col = s.pct >= 70 ? '#80d080' : s.pct >= 40 ? '#c89010' : '#d08080';
+      return `<div style="margin-bottom:11px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+          <span style="font-size:.76rem;color:#c8c8d8">${s.label}</span>
+          <span style="font-size:.8rem;color:${col};font-weight:600">${s.value.toLocaleString('cs')} (${s.pct}%)</span>
+        </div>
+        <div style="background:rgba(255,255,255,.06);height:14px;border-radius:4px;overflow:hidden">
+          <div style="width:${s.pct}%;height:100%;background:${col};opacity:.8;border-radius:4px"></div>
+        </div>
+        ${i > 0 && dropOff > 0 ? `<div style="font-size:.68rem;color:#d08080;margin-top:2px;text-align:right">↓ odchází ${dropOff}% hráčů v tomto kroku</div>` : ''}
+      </div>`;
+    }).join('');
+
+    const eh = d.economy_health;
+    const ehItems = [
+      ['Velocity/den (7d)', `${eh.avg_daily_velocity.toLocaleString('cs')} G`, '#c89010'],
+      ['Sink/source ratio', eh.sink_source_ratio.toFixed(3),
+        eh.sink_source_ratio >= 0.7 ? '#80d080' : eh.sink_source_ratio >= 0.4 ? '#c89010' : '#d08080'],
+      ['Trend (7d)', eh.trend === 'inflating' ? '📈 Inflace' : eh.trend === 'deflating' ? '📉 Deflace' : '⚖️ Stabilní',
+        eh.trend === 'balanced' ? '#80d080' : eh.trend === 'deflating' ? '#80b0d0' : '#d08080'],
+      ['Gini koeficient', eh.gini_coefficient.toFixed(3), '#a080d0'],
+      ['Příjmy 7d', `+${eh.income_7d.toLocaleString('cs')} G`, '#80d080'],
+      ['Výdaje 7d', `-${eh.spending_7d.toLocaleString('cs')} G`, '#d08080'],
+    ];
+
+    const ehHtml = ehItems.map(([l, v, c]) =>
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="font-size:.76rem;color:#707090">${l}</span>
+        <span style="font-size:.88rem;font-weight:600;color:${c}">${v}</span>
+      </div>`
+    ).join('') +
+      `<div style="font-size:.67rem;color:#404060;margin-top:8px;line-height:1.6">
+        Sink/source ideál: 0.70–0.90 (70–90% goldu se cirkuluje zpět).<br>
+        Gini: 0 = dokonalá rovnoměrnost, 1 = extrémní koncentrace.
+      </div>`;
+
+    const maxDau = Math.max(1, ...d.daily_active_users.map(x => x.dau));
+    const dauHtml = d.daily_active_users.length
+      ? d.daily_active_users.map(x => _miniBar(x.day.slice(5), x.dau, maxDau, '#70b0d0')).join('')
+      : '<div style="color:#707090;font-size:.78rem">Žádná aktivita za posledních 14 dní.</div>';
+
+    el.innerHTML = `
+      <div class="two-col">
+        <div>
+          <h2>Funnel — kde se hráči ztrácejí</h2>
+          <div class="card" style="padding:14px">${funnelHtml}</div>
+          <h2>Denní aktivní uživatelé / DAU (14 dní)</h2>
+          <div class="card" style="padding:10px 14px">${dauHtml}</div>
+        </div>
+        <div>
+          <h2>Economy health</h2>
+          <div class="card" style="padding:12px 14px">${ehHtml}</div>
+          <h2>Class vs Class matchupy</h2>
+          <div class="card" style="padding:0">${_renderMatchupMatrix(d.combat_matchups)}</div>
+        </div>
+      </div>`;
+  } catch (e) {
+    document.getElementById('an-adv-content').innerHTML = `<div class="err">✗ ${e.message}</div>`;
+  }
+}
+
+function _renderMatchupMatrix(matchups) {
+  if (!matchups.length) return '<div style="color:#707090;padding:12px;font-size:.78rem">Žádné arena zápasy — matrix nelze sestavit.</div>';
+
+  const classes = [...new Set(matchups.flatMap(m => [m.attacker_cls, m.defender_cls]))].sort();
+  if (!classes.length) return '<div style="color:#707090;padding:12px;font-size:.78rem">Žádná data.</div>';
+
+  const lookup = {};
+  for (const m of matchups) lookup[`${m.attacker_cls}|${m.defender_cls}`] = m;
+
+  function cellStyle(pct) {
+    if (pct === null) return 'background:rgba(255,255,255,.03);color:#404060';
+    const col = pct >= 55 ? '#80d080' : pct >= 45 ? '#c8c8d8' : '#d08080';
+    const bg  = pct >= 55 ? 'rgba(80,200,80,.08)' : pct >= 45 ? 'rgba(255,255,255,.03)' : 'rgba(200,80,80,.08)';
+    return `background:${bg};color:${col}`;
+  }
+
+  const header = `<tr>
+    <th style="text-align:center;color:#505070;font-size:.68rem;padding:8px">Útočník ↓ / Bránící →</th>
+    ${classes.map(c => `<th style="text-align:center">${c}</th>`).join('')}
+  </tr>`;
+
+  const rows = classes.map(att => {
+    const cells = classes.map(def => {
+      if (att === def) return `<td style="text-align:center;background:rgba(255,255,255,.02);color:#303050;padding:8px">—</td>`;
+      const m = lookup[`${att}|${def}`];
+      if (!m || m.total < 3) return `<td style="text-align:center;${cellStyle(null)};padding:8px">n/a</td>`;
+      return `<td style="text-align:center;${cellStyle(m.attacker_win_pct)};padding:8px" title="${m.total} zápasů">
+        <span style="font-weight:600">${m.attacker_win_pct}%</span>
+        <br><span style="font-size:.62rem;opacity:.55">${m.total}×</span>
+      </td>`;
+    }).join('');
+    return `<tr><td style="color:#a090c0;padding:8px 12px;font-size:.78rem;font-weight:600">${att}</td>${cells}</tr>`;
+  }).join('');
+
+  return `<div style="font-size:.68rem;color:#505070;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)">
+    Win % útočníka dané třídy vs. bránící třída (min. 3 zápasy pro validní data).
+  </div><table style="font-size:.78rem">${header}${rows}</table>`;
+}
+
+/* ── BROADCAST ── */
+async function sendBroadcast() {
+  const target = document.getElementById('bc-target').value.trim() || 'all';
+  const title  = document.getElementById('bc-title').value.trim();
+  const body   = document.getElementById('bc-body').value.trim();
+  if (!title) return showMsg('bc-msg', 'Zadej nadpis notifikace.', true);
+  try {
+    const d = await adminApi('POST', '/admin/broadcast', {target, title, body});
+    showMsg('bc-msg', d.message);
+    document.getElementById('bc-title').value = '';
+    document.getElementById('bc-body').value  = '';
+  } catch(e) { showMsg('bc-msg', e.message, true); }
+}
+
+function quickBc(title, body) {
+  document.getElementById('bc-target').value = 'all';
+  document.getElementById('bc-title').value  = title;
+  document.getElementById('bc-body').value   = body;
+  document.getElementById('panel-broadcast').scrollIntoView({behavior:'smooth'});
+}
+
+function _formatTime(secs) {
+  if (!secs || secs <= 0) return 'Vypršel';
+  const d = Math.floor(secs/86400), h = Math.floor((secs%86400)/3600);
+  return d > 0 ? `${d}d ${h}h` : `${h}h`;
+}
+
+/* ── EXPERIMENTS ── */
+let _expParams = {};
+
+async function loadExperiments() {
+  try {
+    const d = await adminApi('GET', '/admin/experiments');
+    _expParams = d.overridable_params || {};
+
+    // Hint s dostupnými parametry
+    const hint = Object.entries(_expParams).map(([k, v]) =>
+      `<span style="color:#9090c0">${k}</span>: default ${v.default} ${v.unit} [${v.range[0]}–${v.range[1]}]`
+    ).join('<br>');
+    const hintEl = document.getElementById('exp-params-hint');
+    if (hintEl) hintEl.innerHTML = '<div style="margin-top:6px;font-size:.68rem;line-height:1.7">' + hint + '</div>';
+
+    // Seznam experimentů
+    const listEl = document.getElementById('exp-list');
+    if (!d.experiments.length) {
+      listEl.innerHTML = '<div style="color:#707090">Žádné experimenty.</div>';
+      return;
+    }
+    listEl.innerHTML = d.experiments.map(e => {
+      const active = e.is_active;
+      const groups = `Skupiny ${e.group_start}–${e.group_end} (${e.groups.length * 10}% hráčů)`;
+      const overStr = Object.entries(e.overrides).map(([k,v]) =>
+        `<span style="color:#9090c0">${k}</span>: <b>${v}</b>`
+      ).join(', ') || '<i style="color:#505070">žádné overrides</i>';
+      return `
+        <div class="card" style="margin-bottom:10px;opacity:${active ? 1 : 0.6}">
+          <div style="display:flex;align-items:flex-start;gap:8px">
+            <div style="flex:1">
+              <div style="font-weight:700;color:${active ? '#80d080' : '#d08080'};font-size:.88rem">
+                ${active ? '🟢' : '🔴'} #${e.id} — ${e.name}
+              </div>
+              <div style="font-size:.72rem;color:#707090;margin-top:2px">${groups}</div>
+              ${e.description ? `<div style="font-size:.72rem;color:#909090;margin-top:2px">${e.description}</div>` : ''}
+              <div style="font-size:.75rem;margin-top:6px">${overStr}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:90px">
+              <button class="btn btn-sm" onclick="toggleExperiment(${e.id})">${active ? '⏸ Pause' : '▶ Spustit'}</button>
+              <button class="btn btn-sm" style="background:rgba(200,50,50,.15);color:#d08080" onclick="deleteExperiment(${e.id},'${e.name.replace(/'/g,"\\'")}')">🗑 Smazat</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    document.getElementById('exp-list').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+async function createExperiment() {
+  const name = document.getElementById('exp-name').value.trim();
+  if (!name) return showMsg('exp-create-msg', 'Zadej název experimentu.', true);
+  const gstart = parseInt(document.getElementById('exp-gstart').value);
+  const gend   = parseInt(document.getElementById('exp-gend').value);
+  if (isNaN(gstart) || isNaN(gend)) return showMsg('exp-create-msg', 'Skupiny musí být čísla 0–9.', true);
+  let overrides = {};
+  const raw = document.getElementById('exp-overrides').value.trim();
+  if (raw) {
+    try { overrides = JSON.parse(raw); }
+    catch { return showMsg('exp-create-msg', 'Override parametry nejsou validní JSON.', true); }
+  }
+  try {
+    const d = await adminApi('POST', '/admin/experiment', {
+      name,
+      description: document.getElementById('exp-desc').value.trim(),
+      group_start: gstart,
+      group_end:   gend,
+      overrides,
+    });
+    showMsg('exp-create-msg', d.message);
+    document.getElementById('exp-name').value = '';
+    document.getElementById('exp-overrides').value = '';
+    await loadExperiments();
+  } catch(e) { showMsg('exp-create-msg', e.message, true); }
+}
+
+async function toggleExperiment(id) {
+  try {
+    const d = await adminApi('POST', `/admin/experiment/${id}/toggle`);
+    showMsg('exp-create-msg', d.message);
+    await loadExperiments();
+  } catch(e) { showMsg('exp-create-msg', e.message, true); }
+}
+
+async function deleteExperiment(id, name) {
+  if (!confirm(`Smazat experiment "${name}" (ID ${id})?`)) return;
+  try {
+    const d = await adminApi('DELETE', `/admin/experiment/${id}`);
+    showMsg('exp-create-msg', d.message);
+    await loadExperiments();
+  } catch(e) { showMsg('exp-create-msg', e.message, true); }
+}
+
+async function loadExpAnalytics() {
+  const el = document.getElementById('exp-analytics');
+  el.innerHTML = '<div style="color:#707090">Načítám...</div>';
+  try {
+    const d = await adminApi('GET', '/admin/experiments/analytics');
+
+    // Tabulka skupin
+    const rows = d.groups.map(g => {
+      const winPct = g.arena_win_pct !== null ? `${g.arena_win_pct}%` : '—';
+      // Zvýraznění skupin v experimentu
+      const inExp = d.active_experiments.some(e => e.group_start <= g.group && g.group <= e.group_end);
+      const bg = inExp ? 'rgba(120,100,200,.1)' : '';
+      return `<tr style="background:${bg}">
+        <td><b>Skupina ${g.group}</b>${inExp ? ' 🧪' : ''}</td>
+        <td>${g.players}</td>
+        <td>${g.avg_level}</td>
+        <td>${g.avg_gold.toLocaleString('cs')}</td>
+        <td>${winPct}</td>
+        <td>${g.arena_matches}</td>
+        <td>${g.avg_quests_completed}</td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead><tr style="color:#9090c0;border-bottom:1px solid #303050">
+            <th style="text-align:left;padding:6px">Skupina</th>
+            <th style="padding:6px">Hráčů</th>
+            <th style="padding:6px">Avg level</th>
+            <th style="padding:6px">Avg gold</th>
+            <th style="padding:6px">Arena win%</th>
+            <th style="padding:6px">Arena zápasy</th>
+            <th style="padding:6px">Avg questy</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      ${d.active_experiments.length ? `
+        <div style="margin-top:12px;font-size:.75rem;color:#9090c0">
+          🧪 Skupiny v experimentu jsou zvýrazněny. Aktivní: ${d.active_experiments.map(e=>e.name).join(', ')}
+        </div>` : '<div style="margin-top:8px;font-size:.75rem;color:#505070">Žádný aktivní experiment — všechny skupiny používají default hodnoty.</div>'}
+    `;
+  } catch(e) { el.innerHTML = `<div class="err">${e.message}</div>`; }
+}
+
+// ── CRYSTAL ANALYTICS ──────────────────────────────────────────────────────
+let _crystalAnalyticsLoaded = false;
+async function loadCrystalAnalytics() {
+  if (_crystalAnalyticsLoaded) return;
+  const el = document.getElementById('crystal-analytics-content');
+  if (!el) return;
+  try {
+    const d = await adm('GET', '/admin/crystals/analytics');
+    _crystalAnalyticsLoaded = true;
+    const s = d.summary;
+
+    // Mini bar chart helper
+    const maxDaily = Math.max(...(d.daily_14d || []).map(x => x.earned), 1);
+    const dailyBars = (d.daily_14d || []).map(x => {
+      const pct = Math.round((x.earned / maxDaily) * 100);
+      return `<div title="${x.day}: ${x.earned} 💎" style="flex:1;height:${pct}%;background:#00e5ff44;border-radius:2px 2px 0 0;min-height:2px"></div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px">
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">Celkem earned</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#00e5ff">💎 ${s.total_earned.toLocaleString('cs')}</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">Celkem spent</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#ff6b6b">💎 ${s.total_spent.toLocaleString('cs')}</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">V oběhu</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#ffd700">💎 ${s.net_circulation.toLocaleString('cs')}</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">Průměr/hráč</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#a78bfa">💎 ${s.avg_crystals_per_player}</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">Hráčů s 0 💎</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#888">${s.players_with_zero}</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <div style="font-size:.72rem;color:#707090;text-transform:uppercase">Transakcí celkem</div>
+          <div style="font-size:1.6rem;font-weight:700;color:#ccc">${s.total_transactions.toLocaleString('cs')}</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+        <!-- Denní earned (14d) -->
+        <div class="card" style="grid-column:span 1">
+          <div style="font-weight:600;margin-bottom:10px">📅 Earned (14 dní)</div>
+          <div style="display:flex;align-items:flex-end;height:60px;gap:2px">
+            ${d.daily_14d.length ? dailyBars : '<span style="color:#555;font-size:.8rem">Žádná data</span>'}
+          </div>
+        </div>
+
+        <!-- Top earneři -->
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:10px">🏆 Top Earneři</div>
+          <table style="width:100%;font-size:.8rem">
+            ${d.top_earners.map((r,i) => `<tr><td>${i+1}. ${r.name}</td><td style="text-align:right;color:#00e5ff">+${r.earned} 💎</td></tr>`).join('') || '<tr><td colspan="2" style="color:#555">—</td></tr>'}
+          </table>
+        </div>
+
+        <!-- Top spenderé -->
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:10px">🛒 Top Spenderé</div>
+          <table style="width:100%;font-size:.8rem">
+            ${d.top_spenders.map((r,i) => `<tr><td>${i+1}. ${r.name}</td><td style="text-align:right;color:#ff6b6b">−${r.spent} 💎</td></tr>`).join('') || '<tr><td colspan="2" style="color:#555">—</td></tr>'}
+          </table>
+        </div>
+      </div>
+
+      <!-- Breakdown zdrojů (30d) -->
+      <div class="card" style="margin-top:16px">
+        <div style="font-weight:600;margin-bottom:10px">📊 Zdroje crystalů (posledních 30 dní)</div>
+        ${d.breakdown_30d.length
+          ? `<table style="width:100%;font-size:.8rem"><tr style="color:#707090"><th style="text-align:left">Zdroj (reason)</th><th>Transakcí</th><th style="text-align:right">Celkem 💎</th></tr>
+             ${d.breakdown_30d.map(r => `<tr><td>${r.reason}</td><td style="text-align:center">${r.count}</td><td style="text-align:right;color:#00e5ff">+${r.total}</td></tr>`).join('')}</table>`
+          : '<div style="color:#555;font-size:.8rem">Žádné transakce za posledních 30 dní.</div>'
+        }
+      </div>`;
+  } catch(e) { el.innerHTML = `<div class="err">${e.message}</div>`; }
+}
+
+// Vstup klávesou Enter
+document.getElementById('admin-key').addEventListener('keydown', e => { if (e.key==='Enter') loadAll(); });
+document.getElementById('player-name-input')?.addEventListener('keydown', e => { if (e.key==='Enter') lookupPlayer(); });
+
+// ── NEWS MANAGEMENT ──────────────────────────────────────────────────────────
+
+const _NEWS_TYPES = {info:'📢 Novinka',event:'🌟 Událost',maintenance:'🔧 Údržba',balance:'⚖ Balance',hotfix:'🐛 Hotfix'};
+
+async function loadAdminNews() {
+  const el = document.getElementById('news-list');
+  if (!el) return;
+  el.innerHTML = '<div style="color:#707090">Načítám...</div>';
+  try {
+    const data = await adminApi('GET', '/admin/news');
+    if (!data.length) { el.innerHTML = '<div style="color:#707090">Žádné zprávy.</div>'; return; }
+    el.innerHTML = `<table>
+      <tr><th>ID</th><th>Typ</th><th>Nadpis</th><th>Publikováno</th><th>Platnost do</th><th>Aktivní</th><th>Akce</th></tr>
+      ${data.map(n => `<tr>
+        <td>${n.id}</td>
+        <td>${_NEWS_TYPES[n.news_type]||n.news_type}</td>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.title}">${n.title}</td>
+        <td>${n.published_at ? new Date(n.published_at).toLocaleString('cs-CZ') : '—'}</td>
+        <td>${n.expires_at ? new Date(n.expires_at).toLocaleString('cs-CZ') : '∞'}</td>
+        <td>${n.is_active ? '✓' : '✗'}</td>
+        <td>
+          <button class="btn btn-sm" onclick="adminToggleNews(${n.id},${!n.is_active})">${n.is_active ? 'Deaktivovat' : 'Aktivovat'}</button>
+          <button class="btn btn-sm btn-danger" onclick="adminDeleteNews(${n.id})" style="margin-left:4px">Smazat</button>
+        </td>
+      </tr>`).join('')}
+    </table>`;
+  } catch (e) { el.innerHTML = `<div style="color:#c84040">${e.message}</div>`; }
+}
+
+async function adminCreateNews() {
+  const title   = document.getElementById('news-title').value.trim();
+  const body    = document.getElementById('news-body').value.trim();
+  const type    = document.getElementById('news-type').value;
+  const author  = document.getElementById('news-author').value.trim() || null;
+  const expires = document.getElementById('news-expires').value || null;
+  const msg     = document.getElementById('news-create-msg');
+  if (!title || !body) { msg.textContent = 'Vyplň nadpis a text.'; return; }
+  try {
+    await adminApi('POST', '/admin/news', {title, body, news_type:type, author, expires_at: expires ? new Date(expires).toISOString() : null});
+    msg.textContent = '✓ Zpráva publikována';
+    document.getElementById('news-title').value = '';
+    document.getElementById('news-body').value = '';
+    document.getElementById('news-author').value = '';
+    document.getElementById('news-expires').value = '';
+    loadAdminNews();
+  } catch (e) { msg.textContent = '✗ ' + e.message; }
+}
+
+async function adminToggleNews(id, active) {
+  try {
+    await adminApi('PUT', '/admin/news/' + id, {is_active: active});
+    loadAdminNews();
+  } catch (e) { alert('Chyba: ' + e.message); }
+}
+
+async function adminDeleteNews(id) {
+  if (!confirm('Smazat zprávu #' + id + '?')) return;
+  try {
+    await adminApi('DELETE', '/admin/news/' + id);
+    loadAdminNews();
+  } catch (e) { alert('Chyba: ' + e.message); }
+}
+
+loadAll();
+
+// ── Balance Alerts ────────────────────────────────────────────────────────────
+
+const ALERT_TYPE_LABELS = {
+  arena_winrate: '🏟️ Arena Win Rate',
+  gold_monopoly: '💰 Gold Monopoly',
+  gold_farm:     '🚜 Gold Farm',
+  season_skew:   '📊 Season Skew',
+};
+
+async function loadAlerts() {
+  const showResolved = document.getElementById('alerts-show-resolved')?.checked;
+  const list = document.getElementById('alerts-list');
+  list.innerHTML = '<div style="color:#707090">Načítám...</div>';
+  try {
+    const data = await adminApi('GET', '/admin/alerts?include_resolved=' + (showResolved ? 'true' : 'false'));
+    const alerts = data.alerts || [];
+
+    // Počítadla
+    const critical = alerts.filter(a => a.severity === 'critical' && !a.resolved).length;
+    const warning  = alerts.filter(a => a.severity === 'warning'  && !a.resolved).length;
+    const resolved = alerts.filter(a => a.resolved).length;
+    document.getElementById('alert-count-critical').textContent = critical;
+    document.getElementById('alert-count-warning').textContent  = warning;
+    document.getElementById('alert-count-resolved').textContent = resolved;
+    document.getElementById('alert-count-total').textContent    = data.total;
+
+    // Zvýrazni tab pokud jsou unresolved alerty
+    const tabBtn = document.getElementById('tab-alerts');
+    if (tabBtn) tabBtn.style.color = data.unresolved > 0 ? '#e74c3c' : '';
+
+    if (alerts.length === 0) {
+      list.innerHTML = '<div style="color:#27ae60;padding:16px">✓ Žádné aktivní anomálie.</div>';
+      return;
+    }
+
+    list.innerHTML = alerts.map(a => {
+      const typeLabel = ALERT_TYPE_LABELS[a.alert_type] || a.alert_type;
+      const sevColor  = a.severity === 'critical' ? '#e74c3c' : '#f39c12';
+      const resolvedBadge = a.resolved
+        ? `<span style="background:#1a3a1a;color:#27ae60;padding:2px 8px;border-radius:4px;font-size:.7rem">✓ resolved ${a.resolved_at ? new Date(a.resolved_at).toLocaleDateString('cs') : ''}</span>`
+        : `<span style="background:#3a1a1a;color:${sevColor};padding:2px 8px;border-radius:4px;font-size:.7rem;text-transform:uppercase">${a.severity}</span>`;
+      const resolveBtn = !a.resolved
+        ? `<button class="btn" style="padding:4px 10px;font-size:.75rem" onclick="resolveAlert(${a.id})">✓ Resolve</button>`
+        : '';
+      const detectedDate = a.detected_at ? new Date(a.detected_at).toLocaleString('cs') : '?';
+
+      return `<div class="card" style="margin-bottom:10px;border-left:3px solid ${a.resolved ? '#27ae60' : sevColor};opacity:${a.resolved ? 0.65 : 1}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              ${resolvedBadge}
+              <span style="font-size:.75rem;color:#707090">${typeLabel}</span>
+              <span style="font-size:.7rem;color:#505070;margin-left:auto">#${a.id} · ${detectedDate}</span>
+            </div>
+            <div style="font-weight:600;margin-bottom:4px">${a.title}</div>
+            <div style="font-size:.8rem;color:#9090b0">${a.detail}</div>
+          </div>
+          <div>${resolveBtn}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  } catch (e) {
+    list.innerHTML = '<div style="color:#e74c3c">✗ ' + e.message + '</div>';
+  }
+}
+
+async function resolveAlert(id) {
+  const msg = document.getElementById('alerts-msg');
+  try {
+    await adminApi('POST', '/admin/alerts/' + id + '/resolve');
+    msg.textContent = `✓ Alert #${id} označen jako resolved.`;
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+    loadAlerts();
+  } catch (e) { msg.textContent = '✗ ' + e.message; }
+}
+
+async function runBalanceCheck() {
+  const msg = document.getElementById('alerts-msg');
+  msg.textContent = 'Spouštím balance check...';
+  try {
+    const data = await adminApi('POST', '/admin/alerts/run-check');
+    msg.textContent = `✓ Check dokončen. Nové alerty: ${data.count}`;
+    loadAlerts();
+  } catch (e) { msg.textContent = '✗ ' + e.message; }
+}
+</script>
+</body>
+</html>

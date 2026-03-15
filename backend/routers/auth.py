@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func as sqlfunc
 from jose import JWTError, jwt
 import bcrypt
 from pydantic import BaseModel, EmailStr, field_validator
@@ -132,12 +132,51 @@ async def login(
     user.last_login = datetime.now(timezone.utc)
     await db.commit()
 
-    # Má charakter?
+    # Má charakter? + login streak tracking
     from models.character import Character
+    from models.crystal import CrystalTransaction
     ch_result = await db.execute(
         select(Character).where(Character.user_id == user.id)
     )
-    has_char = ch_result.scalar_one_or_none() is not None
+    char = ch_result.scalar_one_or_none()
+    has_char = char is not None
+
+    if char:
+        today = datetime.now(timezone.utc).date()
+        today_str = today.isoformat()
+        yesterday_str = (today - timedelta(days=1)).isoformat()
+        last = char.last_login_date
+
+        if last == today_str:
+            pass  # Již přihlášen dnes — bez změny
+        elif last == yesterday_str:
+            char.login_streak = (char.login_streak or 0) + 1
+            char.last_login_date = today_str
+        else:
+            char.login_streak = 1
+            char.last_login_date = today_str
+
+        # Crystal milestone odměny
+        streak = char.login_streak or 0
+        bonus = 0
+        reason = ""
+        if streak > 0 and streak % 30 == 0:
+            bonus = 50
+            reason = f"login_streak:{streak}"
+        elif streak > 0 and streak % 7 == 0:
+            bonus = 20
+            reason = f"login_streak:{streak}"
+
+        if bonus > 0:
+            char.crystals = (char.crystals or 0) + bonus
+            db.add(CrystalTransaction(
+                character_id=char.id,
+                amount=bonus,
+                reason=reason,
+                balance_after=char.crystals,
+            ))
+
+        await db.commit()
 
     token = create_token(user.id, user.username)
     return TokenResponse(
@@ -150,3 +189,23 @@ async def login(
 @router.get("/me")
 async def me(current_user: User = Depends(get_current_user)):
     return {"id": current_user.id, "username": current_user.username}
+
+@router.post("/heartbeat")
+async def heartbeat(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Aktualizuje last_seen a vrátí počet online hráčů (aktivní za posledních 5 minut)."""
+    now = datetime.now(timezone.utc)
+    current_user.last_seen = now
+    await db.commit()
+
+    cutoff = now - timedelta(minutes=5)
+    result = await db.execute(
+        select(sqlfunc.count(User.id)).where(
+            User.is_active == True,
+            User.last_seen >= cutoff,
+        )
+    )
+    online_count = result.scalar_one()
+    return {"online": online_count}

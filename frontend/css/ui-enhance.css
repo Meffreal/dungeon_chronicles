@@ -1,0 +1,767 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DUNGEON CHRONICLES — UI ENHANCEMENT LAYER  v1.0
+   Cílené přepracování specifických komponent:
+   hub budovy · hlavní obsah · navigace · výsledky soubojů · staty · page hdr
+   Načítat PO textures.css (jako úplně poslední).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ══ 1. HLAVNÍ CONTENT OBLAST — KAMENNÁ DLAŽBA ═══════════════════════════ */
+.main-scroll {
+  background-color: var(--bg2);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.12 0 0 0 0 0.04 0 0 0 0 0.01 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(0deg,
+      transparent 0px, transparent 39px,
+      rgba(74, 74, 94, 0.025) 39px, rgba(74, 74, 94, 0.025) 40px
+    ),
+    repeating-linear-gradient(90deg,
+      transparent 0px, transparent 79px,
+      rgba(74, 74, 94, 0.02) 79px, rgba(74, 74, 94, 0.02) 80px
+    );
+  background-size: 200px 200px, 80px 40px, 80px 40px;
+}
+
+/* ══ 2. HUB BUDOVY — MONUMENTÁLNÍ LOKACE ═════════════════════════════════ */
+/* Kompletní přepracování hub-building karet */
+.hub-building {
+  background:
+    radial-gradient(ellipse at 35% 15%, rgba(var(--hub-rgb, 192, 57, 43), 0.10) 0%, transparent 55%),
+    linear-gradient(160deg, #1a1a2e, #0d0d14 50%, #050508);
+  border: 1px solid rgba(var(--hub-rgb, 201, 168, 76), 0.2);
+  border-radius: 2px;
+  padding: 0;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Svislý barevný accent na levém okraji */
+.hub-building::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg,
+    rgba(var(--hub-rgb, 192, 57, 43), 0.8) 0%,
+    rgba(var(--hub-rgb, 192, 57, 43), 0.3) 60%,
+    transparent 100%
+  );
+  box-shadow: 2px 0 12px rgba(var(--hub-rgb, 192, 57, 43), 0.3);
+  z-index: 1;
+}
+
+/* Svítící linka nahoře */
+.hub-building::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--hub-rgb, 192, 57, 43), 0.7) 30%,
+    rgba(var(--hub-rgb, 192, 57, 43), 0.9) 50%,
+    rgba(var(--hub-rgb, 192, 57, 43), 0.7) 70%,
+    transparent
+  );
+  box-shadow: 0 0 8px rgba(var(--hub-rgb, 192, 57, 43), 0.5);
+}
+
+.hub-building:hover {
+  transform: translateY(-3px) scale(1.01);
+  border-color: rgba(var(--hub-rgb, 192, 57, 43), 0.65);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(var(--hub-rgb, 192, 57, 43), 0.2),
+    0 0 40px rgba(var(--hub-rgb, 192, 57, 43), 0.08),
+    inset 0 0 40px rgba(var(--hub-rgb, 192, 57, 43), 0.03);
+}
+
+/* Art panel — atmosferický placeholder s pulse */
+.hub-b-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 12px 0;
+}
+
+.hub-b-art {
+  width: 72px; height: 72px;
+  flex-shrink: 0;
+  border-radius: 2px;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(var(--hub-rgb, 192, 57, 43), 0.18) 0%, transparent 65%),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(var(--hub-rgb, 192, 57, 43), 0.06));
+  border: 1px solid rgba(var(--hub-rgb, 192, 57, 43), 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animovaná šikmá záře v art panelu */
+.hub-b-art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 60%
+  );
+  background-size: 200% 200%;
+  animation: art-sweep 4s ease-in-out infinite;
+}
+
+/* Mřížka v art panelu pro "okno" efekt */
+.hub-b-art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 12px 12px;
+}
+
+@keyframes art-sweep {
+  0%, 100% { opacity: 0.5; background-position: -100% -100%; }
+  50% { opacity: 1; background-position: 200% 200%; }
+}
+
+.hub-b-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+  padding: 8px 12px 3px;
+  text-shadow: 0 0 12px rgba(var(--hub-rgb, 192, 57, 43), 0.3), 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.hub-b-sub {
+  font-size: 0.72rem;
+  color: var(--text3);
+  font-style: italic;
+  padding: 0 12px;
+  min-height: 1em;
+}
+
+/* CTA button — dramatický vstup */
+.hub-b-btn {
+  margin-top: auto;
+  padding: 8px 12px;
+  border: none;
+  border-top: 1px solid rgba(var(--hub-rgb, 192, 57, 43), 0.2);
+  border-radius: 0;
+  background: rgba(var(--hub-rgb, 192, 57, 43), 0.08);
+  color: var(--text2);
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hub-b-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  transition: left 0.4s ease;
+}
+
+.hub-b-btn:hover:not(:disabled) {
+  background: rgba(var(--hub-rgb, 192, 57, 43), 0.2);
+  color: var(--text);
+  box-shadow: inset 0 0 20px rgba(var(--hub-rgb, 192, 57, 43), 0.06);
+}
+
+.hub-b-btn:hover:not(:disabled)::before {
+  left: 150%;
+}
+
+.hub-b-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Badge redesign */
+.hub-b-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 1px;
+  padding: 2px 7px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+/* ══ 3. HUB HEADER — ASHENVEIL BRÁNA ═════════════════════════════════════ */
+.hub-header {
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px !important;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.hub-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(-30deg,
+      transparent 0px, transparent 14px,
+      rgba(255,255,255,0.008) 14px, rgba(255,255,255,0.008) 15px
+    );
+  pointer-events: none;
+}
+
+.hub-city-name {
+  font-family: 'Cinzel Decorative', cursive !important;
+  font-size: 1.15rem !important;
+  font-weight: 900 !important;
+  text-shadow:
+    0 0 20px rgba(212, 160, 48, 0.4),
+    0 0 40px rgba(192, 57, 43, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  letter-spacing: 2px;
+}
+
+/* ══ 4. NAV GROUP HEADERS — RUNIC SEKCE ══════════════════════════════════ */
+.nav-group-header {
+  padding: 6px 11px 5px;
+  background: none;
+  border-left: 2px solid transparent;
+  color: var(--text3);
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  position: relative;
+}
+
+/* Separační linka pod group headerem */
+.nav-group {
+  border-bottom: 1px solid rgba(192, 57, 43, 0.08);
+}
+
+/* Aktivní group header — zlato akcentovaný */
+.nav-group-header.open {
+  color: var(--gold2);
+  text-shadow: 0 0 8px rgba(212, 160, 48, 0.3);
+}
+
+.nav-group-header.open::before {
+  border-left-color: var(--gold2);
+  box-shadow: 2px 0 8px rgba(212, 160, 48, 0.2);
+}
+
+/* ── Hub: group divider ornament ── */
+.nav-group::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(74, 74, 94, 0.8) 0%,
+    rgba(74, 74, 94, 0.4) 50%,
+    rgba(74, 74, 94, 0.4) 100%
+  );
+  margin: 0 8px;
+}
+
+/* ══ 5. AKTIVNÍ NAV TLAČÍTKO — OHNIVÝ AKCENT ════════════════════════════ */
+.nav-btn.active {
+  background:
+    linear-gradient(90deg,
+      rgba(192, 57, 43, 0.18) 0%,
+      rgba(192, 57, 43, 0.08) 100%
+    );
+  border-left-color: var(--accent);
+  color: var(--accent2);
+  box-shadow:
+    inset 2px 0 16px rgba(192, 57, 43, 0.15),
+    inset 0 0 30px rgba(192, 57, 43, 0.04);
+  text-shadow: 0 0 10px rgba(230, 126, 34, 0.3), 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* ══ 6. PAGE HEADER — CINEMATICKÝ NÁZEV STRÁNKY ═════════════════════════ */
+.page-hdr {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 18px !important;
+  margin-bottom: 20px !important;
+}
+
+/* Šikmá záře nad názvem */
+.page-hdr::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -20%; right: -20%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--ph-rgb, 192, 57, 43), 0.5) 30%,
+    rgba(var(--ph-rgb, 192, 57, 43), 0.8) 50%,
+    rgba(var(--ph-rgb, 192, 57, 43), 0.5) 70%,
+    transparent
+  );
+  box-shadow: 0 0 12px rgba(var(--ph-rgb, 192, 57, 43), 0.4);
+}
+
+/* Hloubkový gradient dole */
+.page-hdr::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg,
+      transparent 0px, transparent 59px,
+      rgba(var(--ph-rgb, 192, 57, 43), 0.015) 59px,
+      rgba(var(--ph-rgb, 192, 57, 43), 0.015) 60px
+    );
+  pointer-events: none;
+}
+
+/* Název stránky — zlaté engraving */
+.page-hdr-title, .ph-title, [class*="page-hdr"] > h1,
+[class*="page-hdr"] > .ph-title {
+  text-shadow:
+    0 0 16px rgba(var(--ph-rgb, 192, 57, 43), 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* ══ 7. STAT CELLS — KAMENNÉ INKRUSTY ═══════════════════════════════════ */
+.ov-stat-cell {
+  background:
+    linear-gradient(135deg, rgba(192, 57, 43, 0.04), rgba(0, 0, 0, 0.25));
+  border: 1px solid var(--border2);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 1px 0 rgba(255, 255, 255, 0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Šikmá záře při hoveru */
+.ov-stat-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 50%
+  );
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ov-stat-cell:hover {
+  border-color: var(--border2);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(192, 57, 43, 0.1);
+}
+
+.ov-stat-cell:hover::before {
+  opacity: 1;
+}
+
+.ov-stat-ico {
+  font-size: 1.1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.ov-stat-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* ══ 8. STAT ŘÁDKY V LEVÉM PANELU — TMAVÉ INKRUSTY ══════════════════════ */
+.stat-row {
+  transition: background 0.15s ease;
+  padding: 3px 0;
+  border-radius: 2px;
+}
+
+.stat-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.stat-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.stat-val.sv-good  { text-shadow: 0 0 8px rgba(42, 184, 112, 0.4), 0 1px 2px rgba(0,0,0,0.6); }
+.stat-val.sv-great { text-shadow: 0 0 8px rgba(212, 160, 48, 0.45), 0 1px 2px rgba(0,0,0,0.6); }
+.stat-val.sv-bad   { text-shadow: 0 0 8px rgba(232, 64, 64, 0.5), 0 1px 2px rgba(0,0,0,0.6); }
+
+/* ══ 9. ARENA VÝSLEDKOVÁ KARTA — DRAMATICKÁ ══════════════════════════════ */
+.arena-result-card {
+  overflow: hidden;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
+  animation: result-entrance 0.4s cubic-bezier(0.2, 0, 0.1, 1) both;
+}
+
+@keyframes result-entrance {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* WIN — zelené žhavení */
+.arena-result-card.win {
+  border-color: rgba(40, 168, 72, 0.6);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(32, 168, 64, 0.12), transparent 60%),
+    linear-gradient(160deg, rgba(32, 168, 64, 0.07), rgba(0, 0, 0, 0.05));
+  box-shadow:
+    0 0 0 1px rgba(40, 168, 72, 0.3),
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(32, 168, 64, 0.08);
+}
+
+/* LOSS — červené žhavení */
+.arena-result-card.loss {
+  border-color: rgba(192, 57, 43, 0.5);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(192, 57, 43, 0.10), transparent 60%),
+    linear-gradient(160deg, rgba(184, 32, 48, 0.06), rgba(0, 0, 0, 0.05));
+  box-shadow:
+    0 0 0 1px rgba(192, 57, 43, 0.25),
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(192, 57, 43, 0.06);
+}
+
+/* Win/loss outcome text */
+.arc-outcome.win {
+  color: #60d080;
+  text-shadow:
+    0 0 20px rgba(32, 168, 64, 0.7),
+    0 0 40px rgba(32, 168, 64, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  letter-spacing: 4px;
+}
+
+.arc-outcome.loss {
+  color: #f06878;
+  text-shadow:
+    0 0 16px rgba(192, 57, 43, 0.7),
+    0 0 32px rgba(192, 57, 43, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  letter-spacing: 4px;
+}
+
+/* ══ 10. OPPONENT KARTY V ARÉNĚ — CHALLENGERS ════════════════════════════ */
+.opponent-card {
+  background:
+    radial-gradient(ellipse at 80% 50%, rgba(192, 57, 43, 0.04), transparent 60%),
+    linear-gradient(135deg, #1a1a2e, #0d0d14);
+  border-radius: 4px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.opponent-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.opponent-card:hover::before {
+  opacity: 1;
+}
+
+.opponent-card:hover {
+  border-color: rgba(192, 57, 43, 0.4);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(192, 57, 43, 0.15),
+    0 0 20px rgba(192, 57, 43, 0.05);
+}
+
+/* Attack button — hrozivý */
+.attack-btn {
+  background: linear-gradient(135deg, #6a1010, var(--accent));
+  border: 1px solid var(--accent);
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 160, 80, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.attack-btn:hover:not(:disabled) {
+  box-shadow:
+    0 0 18px rgba(184, 32, 48, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 160, 80, 0.15);
+}
+
+/* ══ 11. SHOP CARDS — RELIKVIE A ARTEFAKTY ══════════════════════════════ */
+/* Přidáme hloubku k existujícím .shop-card */
+.shop-card {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--rgb, 0,0,0), 0.09), transparent 55%),
+    linear-gradient(160deg, #1a1a2e, #0d0d14);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.shop-card:hover:not(.shop-card-broke) {
+  transform: translateY(-4px);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(var(--rgb, 192, 57, 43), 0.4),
+    0 0 20px rgba(var(--rgb, 192, 57, 43), 0.12);
+}
+
+/* ══ 12. COMBAT LOG — HLAS BITVY ═════════════════════════════════════════ */
+.blog {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E"),
+    rgba(0, 0, 0, 0.5);
+  background-size: 100px 100px, 100%;
+  border: 1px solid var(--border);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.5),
+    inset 0 0 20px rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+/* Výsledky boje — barevné tokeny */
+.bwin  { color: #68e888; text-shadow: 0 0 8px rgba(80, 220, 100, 0.5); }
+.blose { color: #f09080; text-shadow: 0 0 8px rgba(240, 80, 60, 0.4); }
+.bcrit { color: #f8d060; text-shadow: 0 0 10px rgba(248, 200, 50, 0.6); }
+
+/* ══ 13. QUEST BANNER — AKTIVNÍ MISE ═════════════════════════════════════ */
+/* Vylepšení existujícího .aq-banner */
+.aq-banner {
+  box-shadow:
+    0 0 0 1px rgba(100, 60, 200, 0.25),
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(80, 20, 180, 0.06),
+    inset 0 0 60px rgba(0, 0, 0, 0.3);
+}
+
+.aq-timer {
+  text-shadow:
+    0 0 20px rgba(240, 200, 74, 0.5),
+    0 0 40px rgba(212, 160, 48, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* ══ 14. NPC KARTY V HUBU — POSTAVY SVĚTA ════════════════════════════════ */
+.hub-npc {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(192, 57, 43, 0.04), transparent 60%),
+    linear-gradient(135deg, #1a1a2e, #0d0d14);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hub-npc::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 2px;
+  background: linear-gradient(180deg,
+    rgba(192, 57, 43, 0.0) 0%,
+    rgba(192, 57, 43, 0.5) 50%,
+    rgba(192, 57, 43, 0.0) 100%
+  );
+  transition: opacity 0.25s;
+  opacity: 0;
+}
+
+.hub-npc:hover {
+  border-color: rgba(192, 57, 43, 0.35);
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(192, 57, 43, 0.06);
+}
+
+.hub-npc:hover::before {
+  opacity: 1;
+}
+
+/* Dialogová bublina — jako pergamen */
+.hub-npc-speech {
+  position: relative;
+  font-size: 0.78rem;
+  color: var(--text2);
+  font-style: italic;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid rgba(192, 57, 43, 0.25);
+  border-radius: 0 2px 2px 0;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+
+/* ══ 15. PORTRAIT FRAME V LEVÉM PANELU ═══════════════════════════════════ */
+.portrait-wrap {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(192, 57, 43, 0.06), transparent 70%),
+    rgba(5, 5, 8, 0.6);
+}
+
+.portrait-name {
+  text-shadow:
+    0 0 14px rgba(212, 160, 48, 0.4),
+    0 0 28px rgba(192, 57, 43, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.portrait-level {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(192, 57, 43, 0.1), transparent);
+  border-top: 1px solid rgba(192, 57, 43, 0.25);
+}
+
+.portrait-level-num {
+  text-shadow: 0 0 10px rgba(230, 126, 34, 0.5), 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ══ 16. INVENTORY GRID ITEMS — KLENOTY ════════════════════════════════ */
+.inv-card {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(var(--rgb, 0,0,0), 0.05), transparent 60%),
+    linear-gradient(160deg, #1a1a2e, #050508);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.inv-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(var(--rgb, 0,0,0), 0.2);
+}
+
+/* ══ 17. EQUIPMENT SLOTY — RUNICKÁ BRNĚNÍ ════════════════════════════════ */
+.eq-slot {
+  background:
+    linear-gradient(135deg, rgba(0,0,0,0.2), rgba(var(--slot-rc, 0,0,0), 0.03));
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.eq-slot:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(107, 45, 18, 0.4);
+}
+
+/* ══ 18. DUNGEON / BOSS — HRŮZOSTRAŠNÝ VSTUP ════════════════════════════ */
+/* Speciální danger-red glow pro dungeon sekce */
+[id*="page-dungeons"] .page-hdr,
+[id*="page-boss"] .page-hdr {
+  --ph-rgb: 184, 32, 48;
+}
+
+/* ══ 19. SEASON PASS — MYSTICKÁ FIALOVÁ ═════════════════════════════════ */
+.season-banner {
+  box-shadow:
+    0 0 0 1px rgba(163, 53, 238, 0.3),
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(163, 53, 238, 0.06),
+    inset 0 1px 0 rgba(163, 53, 238, 0.08);
+}
+
+/* ══ 20. TABULKY (MARKET, LEADERBOARD) — GRIMOÁROVÝ REGISTR ════════════ */
+.mkt-table th {
+  background: rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.mkt-table tr:hover td {
+  background: rgba(192, 57, 43, 0.03);
+}
+
+/* ══ 21. NOTIFIKAČNÍ KARTY — ZPRÁVY Z PODSVĚTÍ ══════════════════════════ */
+.notif-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.notif-card:hover {
+  transform: translateX(2px);
+  border-color: var(--border2);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+.notif-card.unread {
+  box-shadow:
+    inset 3px 0 10px rgba(212, 160, 48, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ══ 22. PAGE TRANSITIONS — DUNGEON VCHOD ════════════════════════════════ */
+@keyframes pg-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(1px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.page.page-entering {
+  animation: pg-enter 0.25s cubic-bezier(0.2, 0, 0.1, 1) both;
+}
+
+/* ══ 23. TOOLTIP-LIKE CHIP BADGES ════════════════════════════════════════ */
+.aq-chip {
+  backdrop-filter: blur(4px);
+  transition: background 0.15s, border-color 0.15s;
+}
+.aq-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ══ 24. HUB MAPA — KOMPLETNÍ GRID ══════════════════════════════════════ */
+.hub-map {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Budovy s border-radius pro rohové elementy */
+.hub-map .hub-building:nth-child(1) { border-radius: 6px 2px 2px 2px; }
+.hub-map .hub-building:nth-child(3) { border-radius: 2px 6px 2px 2px; }
+.hub-map .hub-building:nth-child(4) { border-radius: 2px 2px 2px 6px; }
+.hub-map .hub-building:nth-child(6) { border-radius: 2px 2px 6px 2px; }
+
+/* ══ EOF — DUNGEON CHRONICLES UI ENHANCEMENT ═════════════════════════════ */

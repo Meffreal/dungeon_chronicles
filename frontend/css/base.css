@@ -1,9 +1,9 @@
 /* ── PROMĚNNÉ & RESET ─────────────────────────────────────────────────────── */
 :root {
-  --bg:#0a0503;       --bg2:#120806;   --bg3:#1c0e08;
-  --border:#3d1a0a;   --border2:#6b2d12;
+  --bg:#050508;       --bg2:#0d0d14;   --bg3:#1a1a2e;
+  --border:rgba(201,168,76,0.18);   --border2:rgba(201,168,76,0.40);
   --text2:#a08878; --text3:#6a5040;
-  --green:#2ab870;    --green2:#50d070; --blue:#8b4010; --purple:#8030c0; --purple2:#b070f0;
+  --green:#2ab870;    --green2:#50d070; --blue:#2050c8; --purple:#8030c0; --purple2:#b070f0;
   --cls-warrior:#c8965a; --cls-mage:#5090d0; --cls-ranger:#4aad6a;
   /* ── Typography scale ──────────────────────────────────────────────────── */
   --fs-2xs:0.65rem;

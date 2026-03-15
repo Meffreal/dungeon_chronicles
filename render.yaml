@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: dungeon-chronicles
+    runtime: python
+    region: frankfurt  # nejblíže EU; změň na oregon pro US
+    plan: free
+
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true          # Render vygeneruje náhodný bezpečný string
+
+      - key: ADMIN_KEY
+        sync: false                  # Vyplň ručně v Render dashboardu
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: dungeon-chronicles-db
+          property: connectionString  # Render doplní postgresql+asyncpg:// URL automaticky
+
+      # Redis — volitelné; bez něj běží in-memory fallback (single instance = OK pro free tier)
+      # - key: REDIS_URL
+      #   fromService:
+      #     type: redis
+      #     name: dungeon-chronicles-redis
+      #     property: connectionString
+
+      # ALLOWED_ORIGINS není v config.py/Settings — CORSMiddleware má hardcoded allow_origins=["*"]
+      # Pro produkci: refaktoruj CORSMiddleware v main.py a tuto proměnnou odkomentuj
+      # - key: ALLOWED_ORIGINS
+      #   value: https://dungeon-chronicles.onrender.com
+
+databases:
+  - name: dungeon-chronicles-db
+    plan: free
+    databaseName: dungeon_chronicles
+    region: frankfurt

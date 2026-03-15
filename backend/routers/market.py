@@ -1,7 +1,7 @@
 """
 routers/market.py — Hráčský trh (tržiště)
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
@@ -12,9 +12,11 @@ from database import get_db
 from models.user import User
 from models.character import Character
 from models.item import Item, InventoryItem
-from models.market import MarketListing, MARKET_FEE, LISTING_HOURS
+from models.market import MarketListing, MARKET_FEE, LISTING_FEE_PCT, LISTING_FEE_MIN, LISTING_HOURS
+from models.economy import log_gold, GoldReason
 from game.achievements import check_and_award
 from routers.auth import get_current_user
+from routers.soulforger import on_forged_item_sold
 
 router = APIRouter(prefix="/market", tags=["market"])
 
@@ -43,7 +45,7 @@ def _fix_dt(dt: datetime) -> datetime:
     return dt.replace(tzinfo=None) if dt.tzinfo else dt
 
 def _is_expired(listing: MarketListing) -> bool:
-    return datetime.utcnow() > _fix_dt(listing.expires_at)
+    return datetime.now(timezone.utc).replace(tzinfo=None) > _fix_dt(listing.expires_at)
 
 # ── Endpointy ─────────────────────────────────────────────────────────────────
 
@@ -168,6 +170,17 @@ async def list_item(
     if active_count >= 5:
         raise HTTPException(400, "Maximálně 5 aktivních nabídek najednou.")
 
+    # Listing fee — odečte se ihned při listování (i pokud se neprodá)
+    listing_fee = max(LISTING_FEE_MIN, int(req.price * LISTING_FEE_PCT))
+    if char.gold < listing_fee:
+        raise HTTPException(
+            400,
+            f"Nedostatek goldu na poplatek za listování ({listing_fee} G). Máš {char.gold} G.",
+        )
+    char.gold -= listing_fee
+    await log_gold(db, char, -listing_fee, GoldReason.MARKET_BUY,
+                   {"listing_fee": True, "item_id": inv_item.item_id, "price": req.price})
+
     # Odeber z inventáře
     if inv_item.quantity <= req.quantity:
         await db.delete(inv_item)
@@ -175,7 +188,7 @@ async def list_item(
         inv_item.quantity -= req.quantity
 
     # Vytvoř listing (naive UTC pro SQLite)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     listing = MarketListing(
         seller_id=char.id,
         item_id=inv_item.item_id,
@@ -190,8 +203,12 @@ async def list_item(
     await db.refresh(listing)
 
     return {
-        "message": f"'{inv_item.item.name}' vystaveno za {req.price} G/ks na {LISTING_HOURS}h.",
-        "listing": listing.to_dict(),
+        "message": (
+            f"'{inv_item.item.name}' vystaveno za {req.price} G/ks na {LISTING_HOURS}h. "
+            f"Poplatek za listování: {listing_fee} G."
+        ),
+        "listing":      listing.to_dict(),
+        "listing_fee":  listing_fee,
     }
 
 
@@ -225,6 +242,8 @@ async def buy_item(
 
     # Transakce
     char.gold -= total_price
+    await log_gold(db, char, -total_price, GoldReason.MARKET_BUY,
+                   {"listing_id": listing.id, "item_id": listing.item_id, "price": total_price})
 
     # Prodávajícímu připsat gold minus poplatek
     fee = int(total_price * MARKET_FEE)
@@ -236,6 +255,9 @@ async def buy_item(
     seller = seller_res.scalar_one_or_none()
     if seller:
         seller.gold += seller_gold
+        await log_gold(db, seller, seller_gold, GoldReason.MARKET_SELL,
+                       {"listing_id": listing.id, "item_id": listing.item_id,
+                        "gross": total_price, "fee": fee})
 
     # Přidej item kupujícímu do inventáře
     existing_res = await db.execute(
@@ -260,6 +282,10 @@ async def buy_item(
     listing.buyer_id = char.id
 
     await check_and_award(char, db)
+
+    # ── Profesní hook: Dušekoval dostane retroaktivní XP pokud byl item forged ──
+    await on_forged_item_sold(listing.item_id, db)
+
     await db.commit()
 
     item_name = listing.item.name if listing.item else "?"

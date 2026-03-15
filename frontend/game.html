@@ -7,12 +7,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="/static/css/design-system.css?v=1">
-<link rel="stylesheet" href="/static/css/base.css?v=3">
-<link rel="stylesheet" href="/static/css/layout.css?v=4">
-<link rel="stylesheet" href="/static/css/components.css?v=4">
-<link rel="stylesheet" href="/static/css/theme.css?v=8">
-<link rel="stylesheet" href="/static/css/textures.css?v=2">
-<link rel="stylesheet" href="/static/css/ui-enhance.css?v=1">
+<link rel="stylesheet" href="/static/css/assets.css?v=1">
+<link rel="stylesheet" href="/static/css/base.css?v=4">
+<link rel="stylesheet" href="/static/css/layout.css?v=5">
+<link rel="stylesheet" href="/static/css/components.css?v=6">
+<link rel="stylesheet" href="/static/css/quest.css?v=1">
+<link rel="stylesheet" href="/static/css/combat.css?v=1">
+<link rel="stylesheet" href="/static/css/inventory.css?v=1">
+<link rel="stylesheet" href="/static/css/animations.css?v=1">
+<link rel="stylesheet" href="/static/css/theme.css?v=16">
+<link rel="stylesheet" href="/static/css/textures.css?v=4">
+<link rel="stylesheet" href="/static/css/ui-enhance.css?v=3">
 </head>
 <body>
 
@@ -130,6 +135,7 @@
           <button class="nav-btn" id="nav-faction" onclick="showPage('faction')"><span class="ni">⚜</span> Frakce</button>
           <button class="nav-btn" id="nav-market"  onclick="showPage('market')"> <span class="ni">🛒</span> Tržiště</button>
           <button class="nav-btn" id="nav-shop"    onclick="showPage('shop')">   <span class="ni">🏪</span> Obchod</button>
+          <button class="nav-btn" id="nav-hall"    onclick="showPage('hall');loadHall()"><span class="ni">🏛</span> Hall of the Fallen</button>
         </div>
       </div>
 
@@ -155,6 +161,7 @@
         </button>
         <div class="nav-group-body" id="ngbody-cosmetics">
           <button class="nav-btn" id="nav-crystals" onclick="showPage('crystals');loadCrystals()"><span class="ni">💎</span> Crystaly</button>
+          <button class="nav-btn" id="nav-bloodline" onclick="showPage('bloodline');loadBloodline()"><span class="ni">🩸</span> Krevní linie</button>
           <button class="nav-btn" id="nav-support" onclick="showPage('support');loadSupport()"><span class="ni">💚</span> Podpora hry</button>
         </div>
       </div>
@@ -169,7 +176,10 @@
     <div class="main-scroll">
 
       <!-- HUB — MĚSTO ASHENVEIL -->
-      <div class="page active" id="page-overview">
+      <div class="page active" id="page-overview" style="position:relative">
+
+        <!-- Ambient particles overlay -->
+        <div class="hub-particles" aria-hidden="true"></div>
 
         <!-- Panorama: gothic skyline + city identity -->
         <div class="hub-panorama hub-header" id="hub-panorama">
@@ -248,17 +258,20 @@
           <div id="dash-pending-actions" class="hub-pending-inline"></div>
         </div>
 
-        <!-- News feed / patch notes -->
-        <div id="hub-news-feed" style="display:none"></div>
-
-        <!-- STATUS STRIP (mobile priorita) -->
-        <div id="hub-summary-strip" class="hub-summary-strip"></div>
+        <!-- District navigation cards (Obsidian Codex) -->
+        <div id="hub-districts"></div>
 
         <!-- Next action widget -->
         <div id="hub-next-action"></div>
 
-        <!-- 2.5D Gothic City Street -->
-        <div class="hub-street">
+        <!-- STATUS STRIP -->
+        <div id="hub-summary-strip" class="hub-summary-strip"></div>
+
+        <!-- News feed / patch notes -->
+        <div id="hub-news-feed" style="display:none"></div>
+
+        <!-- 2.5D Gothic City Street — skrytá, nahrazena district cards výše -->
+        <div class="hub-street" style="display:none">
           <div class="hub-street-label">Ulice Ashenveilu</div>
           <div class="hub-buildings-row">
 
@@ -315,52 +328,6 @@
           </div><!-- /hub-buildings-row -->
           <div class="hub-street-ground"></div>
         </div><!-- /hub-street -->
-
-        <!-- NPC strip -->
-        <div class="hub-npcs">
-          <div class="hub-npcs-title">Obyvatelé města</div>
-          <div class="hub-npcs-row">
-
-            <div class="hub-npc" data-npc="aldric" onclick="showPage('quests')">
-              <div class="hub-npc-portrait"></div>
-              <div class="hub-npc-body">
-                <div class="hub-npc-name">Aldric Starý</div>
-                <div class="hub-npc-role">Správce questů</div>
-                <div class="hub-npc-speech" id="hub-npc-speech-aldric">Mám pro tebe důležitý úkol, hrdino...</div>
-              </div>
-              <button class="hub-npc-btn" onclick="event.stopPropagation();showPage('quests')">📜 Questy</button>
-            </div>
-
-            <div class="hub-npc" data-npc="brutus" onclick="showPage('arena')">
-              <div class="hub-npc-portrait"></div>
-              <div class="hub-npc-body">
-                <div class="hub-npc-name">Kapitán Brutus</div>
-                <div class="hub-npc-role">Velitel arény</div>
-                <div class="hub-npc-speech" id="hub-npc-speech-brutus">Výzva tě čeká na pískovišti krve!</div>
-              </div>
-              <button class="hub-npc-btn" onclick="event.stopPropagation();showPage('arena')">🏟 Aréna</button>
-            </div>
-
-            <div class="hub-npc" data-npc="orin" onclick="showPage('shop')">
-              <div class="hub-npc-portrait"></div>
-              <div class="hub-npc-body">
-                <div class="hub-npc-name">Orin Obchodník</div>
-                <div class="hub-npc-role">Potulný kupec</div>
-                <div class="hub-npc-speech" id="hub-npc-speech-orin">Čerstvé zboží právě přišlo, příteli!</div>
-              </div>
-              <button class="hub-npc-btn" onclick="event.stopPropagation();showPage('shop')">🛒 Obchod</button>
-            </div>
-
-          </div>
-        </div><!-- /hub-npcs -->
-
-        <!-- Nedávná aktivita -->
-        <div class="hub-activity-panel">
-          <div class="hub-activity-title">📜 Nedávná aktivita</div>
-          <div id="dash-recent-activity" class="hub-activity-list">
-            <div class="dash-activity-empty">Zatím žádná aktivita...</div>
-          </div>
-        </div>
 
         <!-- State compat elementy (skryté) -->
         <span id="ov-name"  style="display:none">—</span>
@@ -630,6 +597,9 @@
           <div class="page-hdr-sub">PvP souboje s ostatními hrdiny</div>
         </div>
 
+        <!-- B.6 — Arena safety label -->
+        <div class="arena-safety-badge">⚔️ Boj bez sázky o život — ELO &amp; gold only</div>
+
         <!-- Season banner -->
         <div id="season-banner"></div>
 
@@ -857,9 +827,57 @@
         </div>
       </div>
 
+      <!-- BLOODLINE — Krevní linie -->
+      <div class="page" id="page-bloodline">
+        <div class="page-hdr">
+          <div class="page-hdr-title">🩸 Krevní linie</div>
+          <div class="page-hdr-sub">Meta-progrese přes všechny runy</div>
+        </div>
+        <div id="bloodline-root">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
+        </div>
+      </div>
+
+      <!-- HALL OF THE FALLEN -->
+      <div class="page" id="page-hall">
+        <div class="page-hdr">
+          <div class="page-hdr-title">🏛 Hall of the Fallen</div>
+          <div class="page-hdr-sub">Památník padlých hrdinů</div>
+        </div>
+        <div class="hall-tabs">
+          <button class="hall-tab hall-tab--active" id="hall-tab-fallen" onclick="switchHallTab('fallen')">⚔ Padlí hrdinové</button>
+          <button class="hall-tab" id="hall-tab-ladder" onclick="switchHallTab('ladder')">🏆 Living Ladder</button>
+        </div>
+        <div id="hall-root">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
+</div>
+
+<!-- DEATH SCREEN — B.5 (fullscreen, outside main layout) -->
+<div id="page-death" class="page--death">
+  <div class="death-screen">
+    <div class="death-vignette"></div>
+    <div class="death-content">
+      <div class="death-skull">☠</div>
+      <h1 class="death-title">PADL</h1>
+      <div class="death-epitaph">
+        <p class="death-hero-name" id="death-hero-name">Hrdina</p>
+        <p class="death-hero-info" id="death-hero-info">Level 1 Warrior · přežil 0 dní</p>
+        <p class="death-killed-by" id="death-killed-by">Zabit: Neznámý nepřítel</p>
+      </div>
+      <div class="death-divider">— ✦ —</div>
+      <div class="death-actions">
+        <button class="btn btn--ghost" onclick="showPage('hall-of-fallen')">📜 Hall of the Fallen</button>
+        <button class="btn btn--secondary" onclick="showPage('legacy-item')">⚔️ Vybrat Legacy Item</button>
+        <button class="btn btn--primary" id="death-new-run-btn">☩ Nový Run</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL — Quest Preview (NPC encounter) -->
@@ -883,6 +901,11 @@
     <div class="faction-section-lbl">Zvolte frakci</div>
     <div class="faction-grid" id="faction-grid-modal"></div>
     <div class="fmsg" id="c-msg"></div>
+    <div class="hc-warning">
+      <span class="hc-warning__icon">☠</span>
+      <p class="hc-warning__text">Tato postava zemře jednou. <strong>Navždy.</strong></p>
+      <p class="hc-warning__sub">Dungeon Chronicles je Hardcore-only. Smrt v dungeonu je permanentní.</p>
+    </div>
     <button class="btn btn-gold btn-full" id="c-btn" onclick="createChar()">⚔ Vstoupit do dungeonu</button>
   </div>
 </div>
@@ -972,6 +995,32 @@
 <script src="/static/js/profile.js" defer></script>
 <script src="/static/js/account.js" defer></script>
 <script src="/static/js/support.js" defer></script>
+<script src="/static/js/bloodline.js" defer></script>
+<script src="/static/js/hall.js" defer></script>
 <script src="/static/js/main.js?v=2" defer></script>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mob-nav" id="mob-nav" aria-label="Hlavní navigace">
+  <button class="mob-nav-btn" data-page="overview" onclick="showPage('overview')">
+    <span class="mob-nav-icon">🏰</span>
+    <span class="mob-nav-label">Hub</span>
+  </button>
+  <button class="mob-nav-btn" data-page="quests" onclick="showPage('quests')">
+    <span class="mob-nav-icon">📜</span>
+    <span class="mob-nav-label">Úkoly</span>
+  </button>
+  <button class="mob-nav-btn" data-page="dungeon" onclick="showPage('dungeon')">
+    <span class="mob-nav-icon">⚔️</span>
+    <span class="mob-nav-label">Gauntlet</span>
+  </button>
+  <button class="mob-nav-btn" data-page="character" onclick="showPage('character')">
+    <span class="mob-nav-icon">📖</span>
+    <span class="mob-nav-label">Kodex</span>
+  </button>
+  <button class="mob-nav-btn" data-page="profile" onclick="showPage('profile')">
+    <span class="mob-nav-icon">👤</span>
+    <span class="mob-nav-label">Profil</span>
+  </button>
+</nav>
 </body>
 </html>

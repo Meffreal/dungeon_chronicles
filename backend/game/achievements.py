@@ -1,11 +1,14 @@
 """
-game/achievements.py — Kontrola a udělování achievementů
+game/achievements.py — Kontrola a udělování achievementů + chain systém
 """
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
 from models.character import Character
-from models.achievement import PlayerAchievement, ACHIEVEMENT_DEFINITIONS
+from models.achievement import (
+    PlayerAchievement, ACHIEVEMENT_DEFINITIONS,
+    PlayerChainCompletion, CHAIN_DEFINITIONS,
+)
 from models.notification import Notification, NotifType
 from models.item import InventoryItem, Item
 from models.market import MarketListing
@@ -72,7 +75,7 @@ async def check_and_award(char: Character, db: AsyncSession) -> list[dict]:
     newly_awarded = []
 
     for defn in ACHIEVEMENT_DEFINITIONS:
-        ach_id, name, desc, icon, category, points, ctype, cvalue = defn
+        ach_id, name, desc, icon, category, points, title, ctype, cvalue = defn
 
         if ach_id in unlocked_ids:
             continue  # již odemčeno
@@ -116,9 +119,72 @@ async def check_and_award(char: Character, db: AsyncSession) -> list[dict]:
             newly_awarded.append({
                 "id": ach_id, "name": name, "desc": desc,
                 "icon": icon, "category": category, "points": points,
+                "title": title,
             })
 
     if newly_awarded:
         await db.flush()  # ulož bez commitu — volající provede commit
 
-    return newly_awarded
+    # ── Zkontroluj chain dokončení ─────────────────────────────────────────
+    # Sestavíme aktuální sadu odemčených IDs (původní + nové)
+    current_unlocked = unlocked_ids | {a["id"] for a in newly_awarded}
+    chain_completions = await _check_chain_completions(char, current_unlocked, db)
+
+    # Vrátíme achievement + chain výsledky — chainy mají is_chain=True
+    return newly_awarded + chain_completions
+
+
+async def _check_chain_completions(
+    char: Character,
+    all_unlocked_ids: set[int],
+    db: AsyncSession,
+) -> list[dict]:
+    """
+    Zkontroluje chainy a udělí completion reward (krystaly + titul) za nově
+    dokončené chainy. Vrátí seznam nově dokončených chainů.
+    """
+    res = await db.execute(
+        select(PlayerChainCompletion.chain_id)
+        .where(PlayerChainCompletion.character_id == char.id)
+    )
+    completed_chain_ids = {row[0] for row in res.all()}
+
+    newly_completed = []
+    for chain in CHAIN_DEFINITIONS:
+        cid = chain["id"]
+        if cid in completed_chain_ids:
+            continue
+        if not all(step_id in all_unlocked_ids for step_id in chain["steps"]):
+            continue
+
+        # Chain je dokončen — ulož + odměna
+        cc = PlayerChainCompletion(character_id=char.id, chain_id=cid)
+        db.add(cc)
+
+        char.crystals = (char.crystals or 0) + chain["reward_crystals"]
+
+        notif = Notification(
+            character_id=char.id,
+            type=NotifType.SYSTEM,
+            title=f"Chain dokončen: {chain['name']}",
+            body=(
+                f"{chain['icon']} Získal jsi {chain['reward_crystals']} 💎 "
+                f"a titul [{chain['reward_title']}]!"
+            ),
+        )
+        db.add(notif)
+
+        newly_completed.append({
+            "is_chain":       True,
+            "id":             cid,
+            "name":           chain["name"],
+            "icon":           chain["icon"],
+            "desc":           chain["desc"],
+            "reward_crystals": chain["reward_crystals"],
+            "reward_title":   chain["reward_title"],
+        })
+
+    if newly_completed:
+        await db.flush()
+
+    return newly_completed

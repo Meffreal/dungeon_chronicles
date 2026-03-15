@@ -1,0 +1,132 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OBSIDIAN CODEX — SVG Asset Library
+   Inline SVG jako CSS custom properties & utility classes
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── COMBAT ICONS (viewBox 24×24, stroke-based) ─────────────────────────── */
+
+  --icon-sword: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9a84c' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2.5 L21.5 9.5 L9 22 L7 22 L2 17 L2 15 Z'/%3E%3Cpath d='M7 15 L9 17'/%3E%3Cpath d='M14.5 2.5 L11 6'/%3E%3Cpath d='M5 12 L12 5'/%3E%3C/svg%3E");
+
+  --icon-sword-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 2.5 L21.5 9.5 L9 22 L7 22 L2 17 L2 15 Z'/%3E%3Cpath d='M7 15 L9 17'/%3E%3Cpath d='M14.5 2.5 L11 6'/%3E%3Cpath d='M5 12 L12 5'/%3E%3C/svg%3E");
+
+  --icon-shield: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a90d9' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2 L20 6 L20 12 C20 16.4 16.5 20.2 12 22 C7.5 20.2 4 16.4 4 12 L4 6 Z'/%3E%3C/svg%3E");
+
+  --icon-skull: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b1a1a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 22 L9 19 L15 19 L15 22'/%3E%3Cpath d='M12 2 C7 2 4 5.5 4 9.5 C4 12 5 14 7 15.5 L7 19 L17 19 L17 15.5 C19 14 20 12 20 9.5 C20 5.5 17 2 12 2 Z'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%238b1a1a' stroke='none'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%238b1a1a' stroke='none'/%3E%3C/svg%3E");
+
+  --icon-skull-crimson: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c0392b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 22 L9 19 L15 19 L15 22'/%3E%3Cpath d='M12 2 C7 2 4 5.5 4 9.5 C4 12 5 14 7 15.5 L7 19 L17 19 L17 15.5 C19 14 20 14 20 9.5 C20 5.5 17 2 12 2 Z'/%3E%3Ccircle cx='9' cy='10' r='1.5' fill='%23c0392b' stroke='none'/%3E%3Ccircle cx='15' cy='10' r='1.5' fill='%23c0392b' stroke='none'/%3E%3C/svg%3E");
+
+  --icon-gold: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f4d03f' stroke-width='1.5'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7 L12 9 M12 15 L12 17 M9 9.5 C9 9.5 9 8 12 8 C15 8 15 9.5 15 9.5 C15 11.5 9 11.5 9 13.5 C9 14.5 9 16 12 16 C15 16 15 14.5 15 14.5' stroke-linecap='round'/%3E%3C/svg%3E");
+
+  /* ── RUNE STAT ICONS ────────────────────────────────────────────────────── */
+
+  --rune-atk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpolygon points='8,1 10,6 15,6 11,9.5 12.5,15 8,12 3.5,15 5,9.5 1,6 6,6' stroke='%23c0392b' stroke-width='1' fill='rgba(192,57,43,0.2)'/%3E%3C/svg%3E");
+
+  --rune-def: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M8 1 L14 4 L14 9 C14 12.3 11.3 14.8 8 16 C4.7 14.8 2 12.3 2 9 L2 4 Z' stroke='%234a90d9' stroke-width='1' fill='rgba(74,144,217,0.2)'/%3E%3C/svg%3E");
+
+  --rune-spd: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M12 3 L4 8 L8 8 L4 13 L14 7 L10 7 Z' stroke='%2327ae60' stroke-width='1' fill='rgba(39,174,96,0.2)' stroke-linejoin='round'/%3E%3C/svg%3E");
+
+  --rune-hp: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M8 13.5 C8 13.5 2 9.5 2 5.5 C2 3.5 3.5 2 5.5 2 C6.8 2 8 2.8 8 2.8 C8 2.8 9.2 2 10.5 2 C12.5 2 14 3.5 14 5.5 C14 9.5 8 13.5 8 13.5 Z' stroke='%23c0392b' stroke-width='1' fill='rgba(192,57,43,0.25)'/%3E%3C/svg%3E");
+
+  --rune-mp: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M8 2 L9.5 6 L14 6 L10.5 8.5 L12 13 L8 10.5 L4 13 L5.5 8.5 L2 6 L6.5 6 Z' stroke='%234a90d9' stroke-width='1' fill='rgba(74,144,217,0.2)'/%3E%3C/svg%3E");
+
+  --rune-luck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none'%3E%3Ccircle cx='8' cy='8' r='5' stroke='%23f4d03f' stroke-width='1' fill='rgba(244,208,63,0.15)'/%3E%3Ccircle cx='8' cy='8' r='2' stroke='%23c9a84c' stroke-width='1' fill='rgba(201,168,76,0.3)'/%3E%3Cpath d='M8 2 L8 3.5 M8 12.5 L8 14 M2 8 L3.5 8 M12.5 8 L14 8' stroke='%23f4d03f' stroke-width='1'/%3E%3C/svg%3E");
+
+  /* ── ORNAMENT — horizontální divider s runami ────────────────────────────── */
+
+  --ornament-divider: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 12' preserveAspectRatio='xMidYMid meet'%3E%3Cline x1='0' y1='6' x2='120' y2='6' stroke='rgba(201,168,76,0.3)' stroke-width='1'/%3E%3Cline x1='180' y1='6' x2='300' y2='6' stroke='rgba(201,168,76,0.3)' stroke-width='1'/%3E%3Cpolygon points='150,2 155,6 150,10 145,6' fill='none' stroke='%23c9a84c' stroke-width='1'/%3E%3Ccircle cx='130' cy='6' r='2' fill='rgba(201,168,76,0.4)' stroke='none'/%3E%3Ccircle cx='170' cy='6' r='2' fill='rgba(201,168,76,0.4)' stroke='none'/%3E%3Cpath d='M136 6 L144 6' stroke='rgba(201,168,76,0.5)' stroke-width='1'/%3E%3Cpath d='M156 6 L164 6' stroke='rgba(201,168,76,0.5)' stroke-width='1'/%3E%3C/svg%3E");
+
+  /* ── ORNAMENT — rohový ornament ─────────────────────────────────────────── */
+
+  --ornament-corner-tl: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M2 18 L2 2 L18 2' fill='none' stroke='%23c9a84c' stroke-width='1' opacity='0.6'/%3E%3Cpath d='M2 2 L8 8' stroke='%23c9a84c' stroke-width='1' opacity='0.4'/%3E%3Ccircle cx='2' cy='2' r='2' fill='%23c9a84c' opacity='0.5'/%3E%3C/svg%3E");
+
+  --ornament-corner-tr: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M30 18 L30 2 L14 2' fill='none' stroke='%23c9a84c' stroke-width='1' opacity='0.6'/%3E%3Cpath d='M30 2 L24 8' stroke='%23c9a84c' stroke-width='1' opacity='0.4'/%3E%3Ccircle cx='30' cy='2' r='2' fill='%23c9a84c' opacity='0.5'/%3E%3C/svg%3E");
+
+  /* ── WAX SEALS — rarity systém ──────────────────────────────────────────── */
+
+  /* common — bílá / šedá */
+  --seal-common: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='rgba(180,180,200,0.15)' stroke='rgba(180,180,200,0.5)' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='rgba(180,180,200,0.3)' stroke-width='1'/%3E%3Cpath d='M16 9 L17.5 13.5 L22 13.5 L18.5 16.5 L19.5 21 L16 18.5 L12.5 21 L13.5 16.5 L10 13.5 L14.5 13.5 Z' fill='rgba(180,180,200,0.4)' stroke='rgba(180,180,200,0.6)' stroke-width='0.5'/%3E%3C/svg%3E");
+
+  /* uncommon — modrá */
+  --seal-uncommon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='rgba(74,144,217,0.15)' stroke='rgba(74,144,217,0.6)' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='rgba(74,144,217,0.3)' stroke-width='1'/%3E%3Cpath d='M16 9 L17.5 13.5 L22 13.5 L18.5 16.5 L19.5 21 L16 18.5 L12.5 21 L13.5 16.5 L10 13.5 L14.5 13.5 Z' fill='rgba(74,144,217,0.35)' stroke='rgba(74,144,217,0.7)' stroke-width='0.5'/%3E%3C/svg%3E");
+
+  /* rare — zlatá */
+  --seal-rare: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='rgba(201,168,76,0.15)' stroke='rgba(201,168,76,0.7)' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='rgba(201,168,76,0.4)' stroke-width='1'/%3E%3Cpath d='M16 8 L17.8 13 L23 13 L19 16 L20.5 21.5 L16 18.5 L11.5 21.5 L13 16 L9 13 L14.2 13 Z' fill='rgba(201,168,76,0.4)' stroke='rgba(201,168,76,0.8)' stroke-width='0.5'/%3E%3C/svg%3E");
+
+  /* epic — fialová */
+  --seal-epic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='rgba(142,68,173,0.2)' stroke='rgba(155,89,182,0.8)' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='rgba(142,68,173,0.4)' stroke-width='1'/%3E%3Cpath d='M16 7 L18 12.5 L24 12.5 L19.5 16 L21 22 L16 18.5 L11 22 L12.5 16 L8 12.5 L14 12.5 Z' fill='rgba(142,68,173,0.45)' stroke='rgba(155,89,182,0.9)' stroke-width='0.5'/%3E%3C/svg%3E");
+
+  /* legendary — červená / crimson */
+  --seal-legendary: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='rgba(139,26,26,0.25)' stroke='rgba(192,57,43,0.9)' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='rgba(192,57,43,0.5)' stroke-width='1'/%3E%3Cpath d='M16 6 L18.5 12 L25 12 L20 15.5 L22 22 L16 18 L10 22 L12 15.5 L7 12 L13.5 12 Z' fill='rgba(192,57,43,0.5)' stroke='rgba(230,57,43,1)' stroke-width='0.5'/%3E%3C/svg%3E");
+
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITY CLASSES — ikony jako inline-block prvky
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.oc-icon {
+  display: inline-block;
+  width:  16px;
+  height: 16px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.oc-icon-lg { width: 24px; height: 24px; }
+.oc-icon-xl { width: 32px; height: 32px; }
+
+.oc-icon-sword   { background-image: var(--icon-sword); }
+.oc-icon-shield  { background-image: var(--icon-shield); }
+.oc-icon-skull   { background-image: var(--icon-skull); }
+.oc-icon-gold    { background-image: var(--icon-gold); }
+.oc-icon-atk     { background-image: var(--rune-atk); }
+.oc-icon-def     { background-image: var(--rune-def); }
+.oc-icon-spd     { background-image: var(--rune-spd); }
+.oc-icon-hp      { background-image: var(--rune-hp); }
+.oc-icon-mp      { background-image: var(--rune-mp); }
+.oc-icon-luck    { background-image: var(--rune-luck); }
+
+/* ── Horizontální ornamentální divider ──────────────────────────────────── */
+.oc-divider {
+  display: block;
+  width: 100%;
+  height: 12px;
+  background-image: var(--ornament-divider);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  margin: var(--space-3) 0;
+  opacity: 0.8;
+}
+
+/* ── Wax seal badges ────────────────────────────────────────────────────── */
+.oc-seal {
+  display: inline-block;
+  width:  28px;
+  height: 28px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+}
+.oc-seal-common    { background-image: var(--seal-common); }
+.oc-seal-uncommon  { background-image: var(--seal-uncommon); }
+.oc-seal-rare      { background-image: var(--seal-rare); }
+.oc-seal-epic      { background-image: var(--seal-epic); }
+.oc-seal-legendary { background-image: var(--seal-legendary); }
+
+/* ── Rohové ornamenty (position:absolute na parent) ─────────────────────── */
+.oc-corner-tl,
+.oc-corner-tr {
+  position: absolute;
+  width:  28px;
+  height: 28px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.oc-corner-tl { top: 0; left: 0;  background-image: var(--ornament-corner-tl); }
+.oc-corner-tr { top: 0; right: 0; background-image: var(--ornament-corner-tr); }

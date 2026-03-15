@@ -7,15 +7,21 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database import init_db, AsyncSessionLocal
+from core.logging import get_logger
+
+log = get_logger(__name__)
+
 # Všechny modely musí být importovány aby SQLAlchemy vyřešilo relationships
-from models.user         import User           # noqa: F401
+from models.user         import User             # noqa: F401
 from models.item         import Item, Rarity, ItemType, InventoryItem  # noqa: F401
-from models.guild        import Guild          # noqa: F401
-from models.character    import Character      # noqa: F401
-from models.quest        import Quest          # noqa: F401
-from models.market       import MarketListing  # noqa: F401
-from models.notification import Notification   # noqa: F401
-from models.arena        import ArenaMatch     # noqa: F401
+from models.guild        import Guild            # noqa: F401
+from models.character    import Character        # noqa: F401
+from models.quest        import Quest            # noqa: F401
+from models.market       import MarketListing    # noqa: F401
+from models.notification import Notification     # noqa: F401
+from models.arena        import ArenaMatch       # noqa: F401
+from models.faction      import FactionReputation  # noqa: F401
+from models.achievement  import PlayerAchievement  # noqa: F401
 
 SEED_ITEMS = [
     # ── WEAPONS ──────────────────────────────────────────────────────────────
@@ -106,20 +112,76 @@ SEED_ITEMS = [
     ("Amulet bouře",     "amulet", "epic",      "Přívěsek nabíjený bleskem.",        "⛈️", 12, 6, 8,15,20, 4,4,6,3,4,13, 520),
 
     # ── POTIONS / SCROLLS / ELIXIRS ──────────────────────────────────────────
-    # Použití: atk/def/spd/hp pole se ignorují, bonus_mp = XP získané při použití,
-    # bonus_str/dex/int/end/luck = trvalý stat bonus při použití
-    ("Lektvar síly",          "potion","common",   "Vypij a získej +1 Sílu natrvalo.",         "🧪",  0,0,0,0,  0, 1,0,0,0,0, 1, 20),
-    ("Lektvar obratnosti",    "potion","common",   "Vypij a získej +1 Obratnost natrvalo.",    "🧪",  0,0,0,0,  0, 0,1,0,0,0, 1, 20),
-    ("Lektvar magie",         "potion","common",   "Vypij a získej +1 Inteligenci natrvalo.",  "🔮",  0,0,0,0,  0, 0,0,1,0,0, 1, 20),
-    ("Lektvar výdrže",        "potion","common",   "Vypij a získej +1 Výdrž natrvalo.",        "🧪",  0,0,0,0,  0, 0,0,0,1,0, 1, 20),
-    ("Lektvar štěstí",        "potion","uncommon", "Vypij a získej +1 Štěstí natrvalo.",       "🍀",  0,0,0,0,  0, 0,0,0,0,1, 1, 40),
-    ("Svitek zkušeností",     "potion","uncommon", "Okamžitě ti přidá 200 XP.",                "📜",  0,0,0,0,200, 0,0,0,0,0, 1, 50),
-    ("Velký svitek zkušeností","potion","rare",    "Okamžitě ti přidá 500 XP.",                "📜",  0,0,0,0,500, 0,0,0,0,0, 5,130),
-    ("Elixír hrdinství",      "potion","rare",     "Trvalý +2 Sílu a +1 Výdrž.",               "⚗️", 0,0,0,0,  0, 2,0,0,1,0, 5,120),
-    ("Elixír moudrosti",      "potion","rare",     "Trvalý +2 Inteligenci a +1 Štěstí.",       "⚗️", 0,0,0,0,  0, 0,0,2,0,1, 5,120),
-    ("Elixír titána",         "potion","epic",     "Trvalý +2 ke všem primárním statům.",      "🧬",  0,0,0,0,  0, 2,2,2,2,2,10,450),
-    ("Božský nektar",         "potion","legendary","Trvalý +5 ke všem primárním statům.",      "✨",  0,0,0,0,  0, 5,5,5,5,5,15,2000),
+    # bonus_mp = XP okamžitě při použití (svitky)
+    # bonus_str/dex/int/end/luck = dočasný buff (common=1d, uncommon=2d, rare=3d, epic/leg=3d)
+    ("Lektvar síly",          "potion","common",   "+1 Síla po dobu 1 dne.",                   "🧪",  0,0,0,0,  0, 1,0,0,0,0, 1, 20),
+    ("Lektvar obratnosti",    "potion","common",   "+1 Obratnost po dobu 1 dne.",              "🧪",  0,0,0,0,  0, 0,1,0,0,0, 1, 20),
+    ("Lektvar magie",         "potion","common",   "+1 Inteligence po dobu 1 dne.",            "🔮",  0,0,0,0,  0, 0,0,1,0,0, 1, 20),
+    ("Lektvar výdrže",        "potion","common",   "+1 Výdrž po dobu 1 dne.",                  "🧪",  0,0,0,0,  0, 0,0,0,1,0, 1, 20),
+    ("Lektvar štěstí",        "potion","uncommon", "+1 Štěstí po dobu 2 dnů.",                 "🍀",  0,0,0,0,  0, 0,0,0,0,1, 1, 40),
+    ("Svitek zkušeností",     "potion","uncommon", "Okamžitě přidá 80 XP.",                    "📜",  0,0,0,0, 80, 0,0,0,0,0, 1, 50),
+    ("Velký svitek zkušeností","potion","rare",    "Okamžitě přidá 220 XP.",                   "📜",  0,0,0,0,220, 0,0,0,0,0, 5,130),
+    ("Elixír hrdinství",      "potion","rare",     "+2 Síla, +1 Výdrž po dobu 3 dnů.",         "⚗️", 0,0,0,0,  0, 2,0,0,1,0, 5,120),
+    ("Elixír moudrosti",      "potion","rare",     "+2 Inteligence, +1 Štěstí po 3 dny.",      "⚗️", 0,0,0,0,  0, 0,0,2,0,1, 5,120),
+    ("Elixír titána",         "potion","epic",     "+2 ke všem primárním statům na 3 dny.",    "🧬",  0,0,0,0,  0, 2,2,2,2,2,10,450),
+    ("Božský nektar",         "potion","legendary","+5 ke všem primárním statům na 3 dny.",   "✨",  0,0,0,0,  0, 5,5,5,5,5,15,2000),
 ]
+
+# ── SETOVÉ ITEMY ─────────────────────────────────────────────────────────────
+# Formát: (name, itype, desc, icon, atk, def_, spd, hp, mp,
+#           s_str, s_dex, s_int, s_end, s_luck, min_lv, sell, set_id, set_name)
+# rarity je vždy "set"
+
+SEED_SET_ITEMS = [
+    # ── WARRIOR SET — "Sada Titanovy Krve" (set_id=1) ─────────────────────────
+    ("Titanův Bijec",         "weapon", "Mohutný kladivo zkovaný z titanovy krve. Ničivá síla každého úderů.",
+     "⚒️",  60, 5, 3, 30, 0,  8, 0, 0, 4, 0,  20, 3500, 1, "Sada Titanovy Krve"),
+    ("Přilba Titanovy Krve",  "helmet", "Těžká přilba nesoucí znamení titána. Chrání hlavu i duši.",
+     "⛑️",   0,30, 0, 60, 0,  4, 0, 0, 8, 0,  20, 2800, 1, "Sada Titanovy Krve"),
+    ("Kyrys Titanovy Krve",   "armor",  "Neprorazitelný kyrys z kovu titána. Chrání jako hora.",
+     "🏔️",   0,50, 0,100, 0,  5, 0, 0,10, 0,  20, 4000, 1, "Sada Titanovy Krve"),
+    ("Pěsti Titana",          "gloves", "Rukavice zesílené titanovou magií. Každý úder otřásá zemí.",
+     "💪",  15,10, 0,  0, 0,  6, 0, 0, 3, 0,  20, 2500, 1, "Sada Titanovy Krve"),
+    ("Boty Titana",           "boots",  "Masivní boty z titanovy kůže. Pevný krok nepřítele zastraší.",
+     "👢",   0,15, 8,  0, 0,  2, 0, 0, 4, 0,  20, 2200, 1, "Sada Titanovy Krve"),
+    ("Pečeť Titána",          "ring",   "Prsten nesoucí pečeť titána. Zesiluje každý útok nositele.",
+     "💍",  12, 0, 0,  0, 0,  5, 0, 0, 3, 0,  20, 2000, 1, "Sada Titanovy Krve"),
+    ("Duše Titána",           "amulet", "Amulet obsahující duši dávného titána. Přetéká surovou mocí.",
+     "🔮",   8, 0, 0, 80, 0,  4, 0, 0, 6, 0,  20, 2300, 1, "Sada Titanovy Krve"),
+
+    # ── MAGE SET — "Sada Arkanního Mistra" (set_id=2) ─────────────────────────
+    ("Žezlo Arkanního Mistra",    "weapon", "Starověké žezlo naplněné arkánnou mocí. Kouzla z něj vylétají jako blesky.",
+     "⚡",  40, 0, 5,  0,50,  0, 0,12, 0, 0,  20, 3500, 2, "Sada Arkanního Mistra"),
+    ("Koruna Arkanních Mistrů",   "helmet", "Koruna zasvěcená prastaré magii. Mysl nositele je jasná jako křišťál.",
+     "👑",   0,15, 0,  0,40,  0, 0,10, 0, 4,  20, 2800, 2, "Sada Arkanního Mistra"),
+    ("Roucho Arkanního Mistra",   "armor",  "Roucho tkaná z čisté arkánné energie. Lehké, ale magicky odolné.",
+     "✨",   0,25, 0, 20,80,  0, 0,12, 0, 0,  20, 4000, 2, "Sada Arkanního Mistra"),
+    ("Rukavice Arkanního Mistra", "gloves", "Rukavice zesilující magické schopnosti. Kouzla proudí snáze.",
+     "🌟",  10, 0, 3,  0,20,  0, 0, 8, 0, 0,  20, 2500, 2, "Sada Arkanního Mistra"),
+    ("Sandály Arkanního Mistra",  "boots",  "Lehké sandály umožňující rychlé přesunování i v boji.",
+     "💫",   0,10,12,  0,15,  0, 0, 5, 0, 0,  20, 2200, 2, "Sada Arkanního Mistra"),
+    ("Prsten Arkanního Mistra",   "ring",   "Prsten zesilující každé kouzlo. Nositel cítí moc v každém prstu.",
+     "💜",  15, 0, 0,  0,25,  0, 0, 8, 0, 0,  20, 2000, 2, "Sada Arkanního Mistra"),
+    ("Přívěsek Arkanního Mistra", "amulet", "Přívěsek plný arkánné energie. Každé kouzlo je s ním destruktivnější.",
+     "🌐",  12, 0, 0,  0,100, 0, 0,10, 0, 5,  20, 2300, 2, "Sada Arkanního Mistra"),
+
+    # ── RANGER SET — "Sada Zákeřného Lovce" (set_id=3) ────────────────────────
+    ("Luk Zákeřného Lovce",        "weapon", "Luk ze dřeva černého stromu. Šípy z něj nikdy neminout.",
+     "🏹",  50, 0, 8,  0, 0,  0,10, 0, 0, 6,  20, 3500, 3, "Sada Zákeřného Lovce"),
+    ("Kukla Zákeřného Lovce",      "helmet", "Temná kukla skrývající identitu lovce. Zvyšuje přesnost.",
+     "🎭",   0,20, 5,  0, 0,  0, 8, 0, 0, 4,  20, 2800, 3, "Sada Zákeřného Lovce"),
+    ("Plášť Zákeřného Lovce",      "armor",  "Plášť splývající se stíny. Lovec se v něm stává přízrakem.",
+     "🌑",   0,30,10, 30, 0,  0, 6, 0, 0, 0,  20, 4000, 3, "Sada Zákeřného Lovce"),
+    ("Rukavice Zákeřného Lovce",   "gloves", "Rukavice ze zákeřné kůže. Každý šíp je vystřelen s přesností.",
+     "🍃",  12, 0, 4,  0, 0,  0, 8, 0, 0, 4,  20, 2500, 3, "Sada Zákeřného Lovce"),
+    ("Boty Zákeřného Lovce",       "boots",  "Boty lovce pohybujícího se jako duch. Rychlost nad vše.",
+     "💨",   0,12,20,  0, 0,  0,10, 0, 0, 3,  20, 2200, 3, "Sada Zákeřného Lovce"),
+    ("Prsten Zákeřného Lovce",     "ring",   "Prsten nabitý loveckou magií. Šance na kritický zásah roste.",
+     "🍀",  10, 0, 3,  0, 0,  0, 6, 0, 0, 8,  20, 2000, 3, "Sada Zákeřného Lovce"),
+    ("Amulet Zákeřného Lovce",     "amulet", "Amulet zákeřného lovce. Každý kus sady zesiluje smrtonosnost.",
+     "🌿",  15, 0, 0, 25, 0,  0, 8, 0, 0,10,  20, 2300, 3, "Sada Zákeřného Lovce"),
+]
+
 
 async def seed():
     await init_db()
@@ -131,6 +193,8 @@ async def seed():
         existing_names = {row[0] for row in existing_res.all()}
 
         count = 0
+
+        # ── Normální itemy ────────────────────────────────────────────────────
         for row in SEED_ITEMS:
             (name, itype, rarity, desc, icon,
              atk, def_, spd, hp, mp,
@@ -152,11 +216,34 @@ async def seed():
             db.add(item)
             count += 1
 
+        # ── Setové itemy ──────────────────────────────────────────────────────
+        for row in SEED_SET_ITEMS:
+            (name, itype, desc, icon,
+             atk, def_, spd, hp, mp,
+             s_str, s_dex, s_int, s_end, s_luck,
+             min_lv, sell, set_id, set_name) = row
+
+            if name in existing_names:
+                continue
+
+            item = Item(
+                name=name, item_type=itype, rarity="set",
+                description=desc, icon=icon,
+                bonus_atk=atk,  bonus_def=def_, bonus_spd=spd,
+                bonus_hp=hp,    bonus_mp=mp,
+                bonus_str=s_str, bonus_dex=s_dex, bonus_int=s_int,
+                bonus_end=s_end, bonus_luck=s_luck,
+                min_level=min_lv, sell_price=sell,
+                set_id=set_id, set_name=set_name,
+            )
+            db.add(item)
+            count += 1
+
         if count > 0:
             await db.commit()
-            print(f"[OK] Seed dokoncen - {count} novych itemu pridano.")
+            log.info("Seed completed", extra={"data": {"items_added": count}})
         else:
-            print("[OK] Seed preskocen - vsechny itemy jiz existuji.")
+            log.info("Seed skipped", extra={"data": {"reason": "all items already exist"}})
 
 if __name__ == "__main__":
     asyncio.run(seed())

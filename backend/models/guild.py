@@ -1,20 +1,17 @@
 """
-models/guild.py — Cechy + Guild Dungeon
+models/guild.py — Cechy + Guild Dungeon + Guild Weekly Quest
 """
-from datetime import datetime
+import random
+from datetime import datetime, timedelta
 from sqlalchemy import String, Integer, Text, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from database import Base
 
-# ── Dungeon bossi ──────────────────────────────────────────────────────────────
-GUILD_BOSSES = [
-    {"name": "Goblinský král",    "emoji": "👺", "hp_base": 3000,  "xp_reward": 150,  "gold_reward": 250},
-    {"name": "Kamenný golem",     "emoji": "🗿", "hp_base": 6000,  "xp_reward": 280,  "gold_reward": 450},
-    {"name": "Temný nekromancer", "emoji": "💀", "hp_base": 10000, "xp_reward": 450,  "gold_reward": 750},
-    {"name": "Ohnivý drak",       "emoji": "🐉", "hp_base": 16000, "xp_reward": 700,  "gold_reward": 1200},
-    {"name": "Stínový démon",     "emoji": "👾", "hp_base": 24000, "xp_reward": 1000, "gold_reward": 1800},
-]
+# ── Dungeon bossi — načteni z config/guild_bosses.json ────────────────────────
+# Přidat nového bosse = přidat řádek do backend/config/guild_bosses.json
+from game.config_loader import load_guild_bosses as _lgb
+GUILD_BOSSES = _lgb()
 
 class Guild(Base):
     __tablename__ = "guilds"
@@ -33,15 +30,21 @@ class Guild(Base):
     leader  = relationship("Character", foreign_keys=[leader_id])
 
     def to_dict(self, member_count: int = 0) -> dict:
+        from game.guild_xp import xp_to_next, get_perks
+        perks = get_perks(self.level)
         return {
             "id":           self.id,
             "name":         self.name,
             "description":  self.description,
             "level":        self.level,
             "xp":           self.xp,
+            "xp_to_next":   xp_to_next(self.level),
+            "rank_name":    perks["name"],
+            "rank_emoji":   perks["emoji"],
             "gold":         self.gold,
             "emblem":       self.emblem,
             "member_count": member_count,
+            "member_cap":   perks["member_cap"],
             "created_at":   str(self.created_at),
         }
 
@@ -121,4 +124,93 @@ class GuildMessage(Base):
             "author_cls":   self.character.cls if self.character else "",
             "text":         self.text,
             "created_at":   self.created_at.isoformat(),
+        }
+
+
+# ── Guild Weekly Quest ─────────────────────────────────────────────────────────
+
+WEEKLY_QUEST_POOL = [
+    {
+        "goal_type":   "kills",
+        "goal_target": 100,
+        "reward_gold": 800,
+        "label":       "Zabijte celkem 100 nepřátel",
+        "emoji":       "⚔",
+        "desc":        "Dokončujte questy a dungeony — každý vítězný boj se počítá.",
+    },
+    {
+        "goal_type":   "quests",
+        "goal_target": 30,
+        "reward_gold": 1200,
+        "label":       "Dokončete celkem 30 questů",
+        "emoji":       "📜",
+        "desc":        "Plňte questy — každý úspěšně odevzdaný quest se počítá.",
+    },
+    {
+        "goal_type":   "dungeons",
+        "goal_target": 5,
+        "reward_gold": 2000,
+        "label":       "Projděte 5 dungeonů do konce",
+        "emoji":       "🏰",
+        "desc":        "Projděte celý dungeon (všechny stagy) — každé dokončení se počítá.",
+    },
+]
+
+
+def _week_start_for(dt: datetime) -> datetime:
+    """Vrátí datum pondělí (00:00) pro daný datetime (UTC)."""
+    return (dt - timedelta(days=dt.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+class GuildWeeklyQuest(Base):
+    __tablename__ = "guild_weekly_quests"
+
+    id:           Mapped[int]           = mapped_column(primary_key=True)
+    guild_id:     Mapped[int]           = mapped_column(Integer, ForeignKey("guilds.id"))
+    week_start:   Mapped[datetime]      = mapped_column(DateTime)
+    goal_type:    Mapped[str]           = mapped_column(String(32))   # kills / quests / dungeons
+    goal_target:  Mapped[int]           = mapped_column(Integer)
+    progress:     Mapped[int]           = mapped_column(Integer, default=0)
+    is_completed: Mapped[bool]          = mapped_column(Boolean, default=False)
+    reward_gold:  Mapped[int]           = mapped_column(Integer)
+    completed_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+
+    contribs = relationship("GuildWeeklyContrib", back_populates="weekly_quest")
+
+    def to_dict(self) -> dict:
+        pool_entry = next((p for p in WEEKLY_QUEST_POOL if p["goal_type"] == self.goal_type), {})
+        return {
+            "id":           self.id,
+            "guild_id":     self.guild_id,
+            "week_start":   self.week_start.isoformat(),
+            "goal_type":    self.goal_type,
+            "goal_target":  self.goal_target,
+            "progress":     self.progress,
+            "is_completed": self.is_completed,
+            "reward_gold":  self.reward_gold,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "label":        pool_entry.get("label", self.goal_type),
+            "emoji":        pool_entry.get("emoji", "📋"),
+            "desc":         pool_entry.get("desc", ""),
+            "progress_pct": min(100, round(self.progress / max(1, self.goal_target) * 100)),
+        }
+
+
+class GuildWeeklyContrib(Base):
+    __tablename__ = "guild_weekly_contribs"
+
+    id:           Mapped[int] = mapped_column(primary_key=True)
+    quest_id:     Mapped[int] = mapped_column(Integer, ForeignKey("guild_weekly_quests.id"))
+    character_id: Mapped[int] = mapped_column(Integer, ForeignKey("characters.id"))
+    contribution: Mapped[int] = mapped_column(Integer, default=0)
+
+    weekly_quest = relationship("GuildWeeklyQuest", back_populates="contribs")
+    character    = relationship("Character")
+
+    def to_dict(self) -> dict:
+        return {
+            "character_id": self.character_id,
+            "name":         self.character.name if self.character else "?",
+            "cls":          self.character.cls  if self.character else "",
+            "contribution": self.contribution,
         }

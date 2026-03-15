@@ -1,0 +1,443 @@
+/*
+ * animations.css — Dungeon Chronicles: Obsidian Codex
+ * Task A.10 — HC Gauntlet redesign
+ * All animations: GPU-only (transform, opacity, filter)
+ * Dependencies: design-system.css (vars), base.css (toast-in already defined)
+ */
+
+/* ============================================================
+   1. PAGE LOAD — STAGGERED REVEAL
+   ============================================================ */
+
+@keyframes oc-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.oc-reveal {
+  opacity: 0;
+  animation: oc-reveal 0.5s ease forwards;
+}
+
+/* Stagger delays: logo (0s), topbar (0.1s), sidebar (0.2s), content (0.3s) */
+.oc-reveal--delay-1 { animation-delay: 0.1s; }
+.oc-reveal--delay-2 { animation-delay: 0.2s; }
+.oc-reveal--delay-3 { animation-delay: 0.3s; }
+.oc-reveal--delay-4 { animation-delay: 0.4s; }
+.oc-reveal--delay-5 { animation-delay: 0.5s; }
+
+
+/* ============================================================
+   2. LOGO SVG — RUNE INSCRIPTION
+   ============================================================ */
+
+@keyframes oc-logo-draw {
+  from { stroke-dashoffset: 1000; }
+  to   { stroke-dashoffset: 0; }
+}
+
+@keyframes oc-logo-glow-in {
+  from {
+    opacity: 0;
+    filter: drop-shadow(0 0 0px var(--clr-gold, #c8911e));
+  }
+  to {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px var(--clr-gold-bright, #f5c842))
+            drop-shadow(0 0 20px var(--clr-gold, #c8911e));
+  }
+}
+
+.oc-logo-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: oc-logo-draw 2s ease forwards;
+}
+
+.oc-logo-glow {
+  opacity: 0;
+  animation: oc-logo-glow-in 0.8s ease forwards;
+  animation-delay: 1.8s; /* fires after draw completes */
+}
+
+
+/* ============================================================
+   3. LEVEL UP — GOLDEN BURST FROM CENTER
+   ============================================================ */
+
+@keyframes oc-levelup-burst {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.2);
+    filter: brightness(2);
+  }
+  60% {
+    opacity: 0.6;
+    transform: scale(1.1);
+    filter: brightness(1.4);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+    filter: brightness(1);
+  }
+}
+
+@keyframes oc-levelup-text {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  80% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes oc-levelup-overlay-fade {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.oc-levelup-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 190;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(200, 145, 30, 0.55) 0%,
+    rgba(200, 145, 30, 0.12) 45%,
+    transparent 70%
+  );
+  animation: oc-levelup-overlay-fade 2.5s ease forwards;
+}
+
+.oc-levelup-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(245, 200, 66, 0.3) 0%,
+    transparent 60%
+  );
+  animation: oc-levelup-burst 2.5s ease forwards;
+}
+
+.oc-levelup-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-family: var(--font-display, 'Cinzel Decorative', serif);
+  font-size: clamp(1.6rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--clr-gold-bright, #f5c842);
+  text-shadow:
+    0 0 12px var(--clr-gold, #c8911e),
+    0 0 32px var(--clr-gold, #c8911e),
+    0 2px 4px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  animation: oc-levelup-text 2.5s ease forwards;
+}
+
+
+/* ============================================================
+   4. GOLD GAIN — FLOATING +N TEXT
+   ============================================================ */
+
+@keyframes oc-gold-fly {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-28px) scaleY(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px) scaleY(0.95);
+  }
+}
+
+.oc-gold-gain {
+  position: absolute;
+  pointer-events: none;
+  z-index: 180;
+  font-family: var(--font-heading, 'Cinzel', serif);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--clr-gold-bright, #f5c842);
+  text-shadow: 0 0 6px var(--clr-gold, #c8911e);
+  white-space: nowrap;
+  animation: oc-gold-fly 1.2s ease forwards;
+  /* JS sets top/left + randomises left ±10px before attaching */
+}
+
+
+/* ============================================================
+   5. ITEM DROP — CARD FALLS FROM TOP
+   ============================================================ */
+
+@keyframes oc-item-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-60px) rotate(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.oc-item-drop {
+  animation: oc-item-drop 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+
+/* ============================================================
+   6. QUEST COMPLETE — WAX SEAL STAMP
+   ============================================================ */
+
+@keyframes oc-seal-stamp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2) rotate(-15deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.92) rotate(3deg);
+  }
+  75% {
+    transform: translate(-50%, -50%) scale(1.04) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+/* Applied to quest card to trigger the seal overlay */
+.qv2--sealing {
+  position: relative;
+  overflow: hidden;
+}
+
+.oc-seal-complete {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* transform set by animation */
+  z-index: 10;
+  pointer-events: none;
+  font-family: var(--font-display, 'Cinzel Decorative', serif);
+  font-size: 1.6rem;
+  color: var(--clr-gold-bright, #f5c842);
+  text-shadow:
+    0 0 8px var(--clr-gold, #c8911e),
+    0 0 20px rgba(200, 145, 30, 0.6);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+  /* Unicode wax seal glyph */
+  content: '✦';
+  animation: oc-seal-stamp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
+/* ============================================================
+   7. MODAL ENTRANCE — SPRING SLIDE
+   ============================================================ */
+
+@keyframes oc-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.oc-modal-enter {
+  animation: oc-modal-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+
+/* ============================================================
+   8. TOAST ENTRANCE
+   Note: @keyframes toast-in is defined in base.css (translateX 15px → 0).
+   Expanded variant below for right-edge slide-in used by OC toasts.
+   ============================================================ */
+
+@keyframes oc-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Optional override: apply on .toast.oc for full-width edge entry */
+.toast.oc {
+  animation: oc-toast-in 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+
+/* ============================================================
+   9. BUTTON RIPPLE EFFECT
+   ============================================================ */
+
+@keyframes oc-ripple {
+  from {
+    opacity: 0.3;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+
+/* Buttons need position: relative for ripple containment */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.oc-ripple {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  /* width, height, top, left set by JS from click coordinates */
+  background: rgba(245, 200, 66, 0.45);
+  animation: oc-ripple 0.6s ease forwards;
+}
+
+
+/* ============================================================
+   10. STAT BAR FILL ON PAGE LOAD
+   ============================================================ */
+
+@keyframes oc-bar-reveal {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.oc-bar-animated {
+  transform-origin: left center;
+  animation: oc-bar-reveal 0.8s ease forwards;
+}
+
+/* Stagger delays for multiple bars */
+.oc-bar-animated:nth-child(1) { animation-delay: 0.0s; }
+.oc-bar-animated:nth-child(2) { animation-delay: 0.1s; }
+.oc-bar-animated:nth-child(3) { animation-delay: 0.2s; }
+.oc-bar-animated:nth-child(4) { animation-delay: 0.3s; }
+.oc-bar-animated:nth-child(5) { animation-delay: 0.4s; }
+
+/* Explicit delay utilities for JS-driven stagger */
+.oc-bar-animated--d1 { animation-delay: 0.1s; }
+.oc-bar-animated--d2 { animation-delay: 0.2s; }
+.oc-bar-animated--d3 { animation-delay: 0.3s; }
+.oc-bar-animated--d4 { animation-delay: 0.4s; }
+.oc-bar-animated--d5 { animation-delay: 0.5s; }
+
+
+/* ============================================================
+   11. PARCHMENT / PAPER UNFOLD FOR MODALS
+   ============================================================ */
+
+@keyframes oc-unfold {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.oc-unfold {
+  transform-origin: top center;
+  animation: oc-unfold 0.4s ease forwards;
+}
+
+
+/* ============================================================
+   12. NOTIFICATION PULSE ON NAV ICONS
+   ============================================================ */
+
+@keyframes oc-notify-pulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px var(--clr-gold, #c8911e));
+  }
+  45% {
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 6px var(--clr-gold-bright, #f5c842))
+            drop-shadow(0 0 12px var(--clr-gold, #c8911e));
+  }
+  65% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 4px var(--clr-gold, #c8911e));
+  }
+}
+
+.oc-has-notification {
+  animation: oc-notify-pulse 2s ease-in-out infinite;
+}
+
+
+/* ============================================================
+   REDUCED MOTION — respect system preference
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .oc-reveal,
+  .oc-logo-path,
+  .oc-logo-glow,
+  .oc-levelup-overlay,
+  .oc-levelup-overlay::before,
+  .oc-levelup-text,
+  .oc-gold-gain,
+  .oc-item-drop,
+  .oc-seal-complete,
+  .oc-modal-enter,
+  .toast.oc,
+  .oc-ripple,
+  .oc-bar-animated,
+  .oc-unfold,
+  .oc-has-notification {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}

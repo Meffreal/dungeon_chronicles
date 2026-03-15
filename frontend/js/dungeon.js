@@ -491,6 +491,17 @@ function _showStageReplay(result, stageNum) {
   setTimeout(async () => {
     if (result.dungeon_completed) {
       renderDungeonReady(result.run);
+    } else if (!result.player_won && result.permadeath) {
+      // HC permadeath — zobraz death screen
+      if (typeof showDeathScreen === 'function') {
+        showDeathScreen({
+          name:        result.hero_name,
+          level:       result.hero_level,
+          cls:         result.hero_cls,
+          killed_by:   result.killed_by,
+          days_survived: result.days_survived,
+        });
+      }
     } else if (!result.player_won) {
       toast(`💀 Poražen v ${stageName}. Dungeon selhal.`, 'e', 5000);
       await loadDungeonData();

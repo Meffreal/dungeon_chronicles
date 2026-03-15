@@ -1,13 +1,15 @@
 """
 models/market.py — Hráčský trh
 """
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Integer, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from database import Base
 
-MARKET_FEE = 0.05        # 5% poplatek při prodeji
+MARKET_FEE = 0.05        # 5% poplatek ze zisku při prodeji
+LISTING_FEE_PCT = 0.05   # 5% listing fee z ceny (odečte se hned při listování)
+LISTING_FEE_MIN = 50     # minimální listing fee v goldu
 LISTING_HOURS = 48       # listing expiruje po 48h
 
 class MarketListing(Base):
@@ -29,17 +31,21 @@ class MarketListing(Base):
 
     @classmethod
     def create(cls, seller_id: int, item_id: int, quantity: int, price: int):
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         return cls(
             seller_id=seller_id,
             item_id=item_id,
             quantity=quantity,
             price=price,
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=LISTING_HOURS),
+            expires_at=now + timedelta(hours=LISTING_HOURS),
         )
 
     @property
     def is_expired(self) -> bool:
-        return datetime.now(timezone.utc) > self.expires_at
+        if self.expires_at is None:
+            return False
+        exp = self.expires_at.replace(tzinfo=None) if self.expires_at.tzinfo else self.expires_at
+        return datetime.now(timezone.utc).replace(tzinfo=None) > exp
 
     def to_dict(self) -> dict:
         return {

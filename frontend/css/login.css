@@ -1,0 +1,255 @@
+:root {
+  --bg:       #020408;
+  --bg2:      #06101e;
+  --bg3:      #0c1a2e;
+  --border:   #1a3550;
+  --border2:  #2a5a80;
+  --accent:   #1e7fb8;
+  --accent2:  #38d4c4;
+  --gold:     #d4a030;
+  --gold2:    #f0c84a;
+  --text:     #c8d8e8;
+  --text2:    #7a9bb8;
+  --common:   #9d9d9d;
+  --uncommon: #1eff00;
+  --rare:     #0070dd;
+  --epic:     #a335ee;
+  --legend:   #ff8000;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IM Fell English', serif;
+  font-size: 18px;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Animované pozadí */
+.bg-canvas {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(30,127,184,0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 40%, rgba(56,212,196,0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 100%, rgba(212,160,48,0.08) 0%, transparent 60%);
+  animation: bgpulse 8s ease-in-out infinite alternate;
+}
+@keyframes bgpulse {
+  from { opacity: 0.7; }
+  to   { opacity: 1; }
+}
+
+/* Plovoucí runy v pozadí */
+.rune {
+  position: fixed; font-size: 2rem; opacity: 0.04;
+  color: var(--accent2); pointer-events: none; z-index: 0;
+  animation: runefloat linear infinite;
+}
+@keyframes runefloat {
+  from { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.06; }
+  90%  { opacity: 0.06; }
+  to   { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+}
+
+/* Hlavní kontejner */
+.container {
+  position: relative; z-index: 1;
+  width: min(480px, 94vw);
+  display: flex; flex-direction: column; gap: 0;
+}
+
+/* Logo */
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+  animation: fadein 1.2s ease;
+}
+.logo h1 {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--gold2) 0%, var(--accent) 50%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  letter-spacing: 2px;
+  line-height: 1.15;
+}
+.logo .subtitle {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  color: var(--text2);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.logo .ornament {
+  display: flex; align-items: center; gap: 12px;
+  justify-content: center; margin: 14px 0 0;
+}
+.logo .ornament::before,
+.logo .ornament::after {
+  content: '';
+  height: 1px; flex: 1;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.logo .ornament span { color: var(--accent); font-size: 1.1rem; }
+
+/* Panel */
+.panel {
+  background: linear-gradient(160deg, #06101e 0%, #0c1a2e 100%);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow:
+    0 0 40px rgba(30,127,184,0.15),
+    0 0 80px rgba(56,212,196,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  animation: fadein 1s ease 0.3s both;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+.panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent), transparent);
+  box-shadow: 0 0 8px rgba(56,212,196,0.4);
+}
+
+/* Taby */
+.tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.tab-btn {
+  flex: 1; padding: 10px;
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--text2); cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: 0.9rem;
+  letter-spacing: 2px; text-transform: uppercase;
+  transition: all 0.25s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-content { display: none; }
+.tab-content.active { display: flex; flex-direction: column; gap: 18px; }
+
+/* Form prvky */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--text2);
+}
+.field input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 16px;
+  color: var(--text);
+  font-family: 'IM Fell English', serif;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(30,127,184,0.3);
+}
+.field input::placeholder { color: var(--text2); opacity: 0.5; }
+
+/* Tlačítko */
+.btn {
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #1a6fa8 0%, #1e7fb8 100%);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem; letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 0 16px rgba(30,127,184,0.5); }
+.btn:hover::after { opacity: 1; }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-gold {
+  background: linear-gradient(135deg, #8b6914 0%, #d4a030 50%, #8b6914 100%);
+  border-color: var(--gold2);
+}
+.btn-gold:hover { box-shadow: 0 0 16px rgba(212,160,48,0.5); }
+
+/* Zprávy */
+.message {
+  padding: 10px 14px; border-radius: 4px;
+  font-size: 0.92rem; display: none;
+}
+.message.error { background: rgba(232,64,64,0.15); border: 1px solid #e84040; color: #ff8888; display: block; }
+.message.success { background: rgba(42,184,112,0.12); border: 1px solid var(--green); color: #88ff99; display: block; }
+
+/* Separator */
+.sep {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text2); font-size: 0.8rem;
+}
+.sep::before, .sep::after {
+  content: ''; flex: 1; height: 1px;
+  background: var(--border);
+}
+
+/* Animace */
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading overlay */
+.loading {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  transition: opacity 0.5s;
+}
+.loading.hidden { opacity: 0; pointer-events: none; }
+.loading-title {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 1.8rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold2), var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.loading-bar {
+  width: 200px; height: 3px;
+  background: var(--border);
+  border-radius: 2px; overflow: hidden;
+}
+.loading-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  animation: loadfill 1.5s ease forwards;
+}
+@keyframes loadfill { from { width: 0; } to { width: 100%; } }

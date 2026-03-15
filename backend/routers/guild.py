@@ -2,21 +2,62 @@
 routers/guild.py — Guild (cech) systém
 """
 import random
-from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel
+from jose import JWTError, jwt
 
-from database import get_db
+from database import get_db, AsyncSessionLocal
+from config import settings
 from models.user import User
 from models.character import Character
-from models.guild import Guild, GuildMessage, GuildDungeon, GuildDungeonContrib, GUILD_BOSSES
+from models.guild import (
+    Guild, GuildMessage, GuildDungeon, GuildDungeonContrib, GUILD_BOSSES,
+    GuildWeeklyQuest, GuildWeeklyContrib, WEEKLY_QUEST_POOL, _week_start_for,
+)
+from models.economy import log_gold, GoldReason
 from models.notification import Notification, NotifType
 from game.achievements import check_and_award
+from game.guild_xp import award_guild_xp, get_perks, GUILD_LV10_TITLE
 from routers.auth import get_current_user
 from routers.character import char_dict_with_equipment
+
+
+# ── WebSocket Connection Manager ──────────────────────────────────────────────
+
+class GuildConnectionManager:
+    """Sleduje aktivní WS spojení per guild_id."""
+
+    def __init__(self):
+        self._connections: Dict[int, List[WebSocket]] = {}
+
+    async def connect(self, guild_id: int, ws: WebSocket) -> None:
+        await ws.accept()
+        self._connections.setdefault(guild_id, []).append(ws)
+
+    def disconnect(self, guild_id: int, ws: WebSocket) -> None:
+        if guild_id in self._connections:
+            try:
+                self._connections[guild_id].remove(ws)
+            except ValueError:
+                pass
+
+    async def broadcast(self, guild_id: int, data: dict) -> None:
+        dead: List[WebSocket] = []
+        for ws in list(self._connections.get(guild_id, [])):
+            try:
+                await ws.send_json(data)
+            except Exception:
+                dead.append(ws)
+        for ws in dead:
+            self.disconnect(guild_id, ws)
+
+
+guild_manager = GuildConnectionManager()
 
 router = APIRouter(prefix="/guild", tags=["guild"])
 
@@ -106,6 +147,8 @@ async def create_guild(
 
     char.guild_id = guild.id
     char.gold    -= GUILD_CREATE_COST
+    await log_gold(db, char, -GUILD_CREATE_COST, GoldReason.GUILD_CREATE,
+                   {"guild_name": guild.name})
 
     new_achievements = await check_and_award(char, db)
     await db.commit()
@@ -132,8 +175,9 @@ async def join_guild(
         raise HTTPException(404, "Cech nenalezen.")
 
     cnt = await _member_count(guild_id, db)
-    if cnt >= GUILD_MAX_MEMBERS:
-        raise HTTPException(400, f"Cech je plný (max {GUILD_MAX_MEMBERS} členů).")
+    member_cap = get_perks(guild.level)["member_cap"]
+    if cnt >= member_cap:
+        raise HTTPException(400, f"Cech je plný (max {member_cap} členů).")
 
     char.guild_id = guild.id
     new_achievements = await check_and_award(char, db)
@@ -370,7 +414,7 @@ async def get_dungeon(
 
     cooldown_remaining = 0.0
     if my_contrib and my_contrib.last_attack_at:
-        elapsed = (datetime.utcnow() - my_contrib.last_attack_at).total_seconds() / 60
+        elapsed = (datetime.now(timezone.utc).replace(tzinfo=None) - my_contrib.last_attack_at).total_seconds() / 60
         cooldown_remaining = max(0.0, DUNGEON_COOLDOWN_MIN - elapsed)
 
     return {
@@ -411,7 +455,7 @@ async def dungeon_attack(
     )
     contrib = contrib_res.scalar_one_or_none()
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     if contrib and contrib.last_attack_at:
         elapsed = (now - contrib.last_attack_at).total_seconds() / 60
         if elapsed < DUNGEON_COOLDOWN_MIN:
@@ -459,6 +503,8 @@ async def dungeon_attack(
             xp   = int(boss["xp_reward"]   * ratio * guild.level)
             c_char.gold += gold
             c_char.xp   += xp
+            await log_gold(db, c_char, gold, GoldReason.GUILD_BOSS_REWARD,
+                           {"boss": dungeon.boss_name, "contribution_pct": round(ratio * 100)})
             db.add(Notification(
                 character_id=c_char.id,
                 type=NotifType.SYSTEM,
@@ -469,10 +515,21 @@ async def dungeon_attack(
                 reward_gold, reward_xp = gold, xp
 
         # Guild dostane XP a může level up
-        guild.xp += 100
-        if guild.xp >= guild.level * 500:
-            guild.xp    = 0
-            guild.level += 1
+        guild_leveled_up = award_guild_xp(guild, 100)
+        if guild_leveled_up:
+            perks = get_perks(guild.level)
+            for c in all_contribs:
+                cr2 = await db.execute(select(Character).where(Character.id == c.character_id))
+                c2 = cr2.scalar_one_or_none()
+                if not c2:
+                    continue
+                title_note = f' Titul: „{GUILD_LV10_TITLE}"' if guild.level == 10 else ""
+                db.add(Notification(
+                    character_id=c2.id,
+                    type=NotifType.SYSTEM,
+                    title=f"⚜ Cech postoupil na Level {guild.level}!",
+                    body=f"{perks['emoji']} Cech je nyní {perks['name']}. Odemčeno: {perks['unlock']}{title_note}",
+                ))
 
     await db.commit()
     await db.refresh(char)
@@ -501,12 +558,16 @@ async def get_chat(
     if char.guild_id is None:
         raise HTTPException(400, "Nejsi v žádném cechu.")
 
+    g_res = await db.execute(select(Guild).where(Guild.id == char.guild_id))
+    g = g_res.scalar_one_or_none()
+    chat_limit = get_perks(g.level)["chat_history"] if g else CHAT_HISTORY
+
     result = await db.execute(
         select(GuildMessage)
         .options(selectinload(GuildMessage.character))
         .where(GuildMessage.guild_id == char.guild_id)
         .order_by(GuildMessage.created_at.desc())
-        .limit(CHAT_HISTORY)
+        .limit(chat_limit)
     )
     messages = result.scalars().all()
 
@@ -541,4 +602,263 @@ async def send_chat(
     await db.commit()
     await db.refresh(msg)
 
+    # Broadcastuj přes WS všem připojeným členům guildy
+    await guild_manager.broadcast(char.guild_id, {
+        "type": "message",
+        "message": msg.to_dict(),
+    })
+
     return {"message": msg.to_dict()}
+
+
+# ── WebSocket: Guild Chat ──────────────────────────────────────────────────────
+
+@router.websocket("/ws/{guild_id}")
+async def guild_websocket(
+    guild_id: int,
+    ws: WebSocket,
+    token: str = Query(default=None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    WebSocket endpoint pro guild chat.
+    Připojení: ws://host/guild/ws/{guild_id}?token=JWT
+    Zprávy: {"type": "message", "text": "..."}
+    Server broadcastuje: {"type": "message", "message": {...}} | {"type": "history", "messages": [...]}
+    """
+    # 1. Autentizace přes token v query parametru
+    if not token:
+        await ws.close(code=4001, reason="Missing token")
+        return
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        user_id = int(payload.get("sub"))
+    except (JWTError, TypeError, ValueError):
+        await ws.close(code=4001, reason="Invalid token")
+        return
+
+    user_res = await db.execute(select(User).where(User.id == user_id))
+    user = user_res.scalar_one_or_none()
+    if not user or not user.is_active:
+        await ws.close(code=4001, reason="User not found")
+        return
+
+    char_res = await db.execute(select(Character).where(Character.user_id == user_id))
+    char = char_res.scalar_one_or_none()
+    if not char or char.guild_id != guild_id:
+        await ws.close(code=4003, reason="Not in this guild")
+        return
+
+    # 2. Přijmout spojení a poslat historii
+    await guild_manager.connect(guild_id, ws)
+
+    hist_res = await db.execute(
+        select(GuildMessage)
+        .options(selectinload(GuildMessage.character))
+        .where(GuildMessage.guild_id == guild_id)
+        .order_by(GuildMessage.created_at.desc())
+        .limit(CHAT_HISTORY)
+    )
+    messages = hist_res.scalars().all()
+    await ws.send_json({
+        "type": "history",
+        "messages": [m.to_dict() for m in reversed(messages)],
+    })
+
+    # 3. Smyčka příjmu zpráv
+    try:
+        while True:
+            data = await ws.receive_json()
+            if data.get("type") != "message":
+                continue
+            text = str(data.get("text", "")).strip()
+            if not text or len(text) > CHAT_MAX_LEN:
+                continue
+
+            # Ulož zprávu (nová session pro každou zprávu)
+            async with AsyncSessionLocal() as msg_db:
+                # Refresh character v nové session
+                char_r = await msg_db.execute(select(Character).where(Character.id == char.id))
+                char_fresh = char_r.scalar_one_or_none()
+                if not char_fresh:
+                    continue
+                new_msg = GuildMessage(
+                    guild_id=guild_id,
+                    character_id=char.id,
+                    text=text,
+                )
+                new_msg.character = char_fresh
+                msg_db.add(new_msg)
+                await msg_db.commit()
+                await msg_db.refresh(new_msg)
+                msg_dict = new_msg.to_dict()
+
+            await guild_manager.broadcast(guild_id, {
+                "type": "message",
+                "message": msg_dict,
+            })
+
+    except WebSocketDisconnect:
+        guild_manager.disconnect(guild_id, ws)
+    except Exception:
+        guild_manager.disconnect(guild_id, ws)
+
+
+# ── Guild Weekly Quest ─────────────────────────────────────────────────────────
+
+async def _get_or_create_weekly(guild_id: int, db: AsyncSession) -> GuildWeeklyQuest:
+    """Vrátí weekly quest pro aktuální týden; pokud neexistuje, vytvoří náhodný."""
+    now        = datetime.now(timezone.utc).replace(tzinfo=None)
+    week_start = _week_start_for(now)
+
+    res = await db.execute(
+        select(GuildWeeklyQuest).where(
+            GuildWeeklyQuest.guild_id   == guild_id,
+            GuildWeeklyQuest.week_start == week_start,
+        )
+    )
+    wq = res.scalar_one_or_none()
+    if wq is None:
+        pool_entry = random.choice(WEEKLY_QUEST_POOL)
+        wq = GuildWeeklyQuest(
+            guild_id=guild_id,
+            week_start=week_start,
+            goal_type=pool_entry["goal_type"],
+            goal_target=pool_entry["goal_target"],
+            reward_gold=pool_entry["reward_gold"],
+            progress=0,
+            is_completed=False,
+        )
+        db.add(wq)
+        await db.flush()
+    return wq
+
+
+async def increment_guild_weekly(
+    guild_id: int | None,
+    goal_type: str,
+    amount: int,
+    char_id: int,
+    db: AsyncSession,
+) -> bool:
+    """
+    Inkrementuje progress guild weekly questu.
+    Voláno z quest.py, dungeon.py po každém relevantním úspěchu.
+    Vrací True pokud byl quest v tomto volání dokončen.
+    """
+    if not guild_id or amount <= 0:
+        return False
+
+    wq = await _get_or_create_weekly(guild_id, db)
+
+    if wq.is_completed or wq.goal_type != goal_type:
+        return False
+
+    # Přidej příspěvek hráče
+    contrib_res = await db.execute(
+        select(GuildWeeklyContrib).where(
+            GuildWeeklyContrib.quest_id     == wq.id,
+            GuildWeeklyContrib.character_id == char_id,
+        )
+    )
+    contrib = contrib_res.scalar_one_or_none()
+    if contrib is None:
+        contrib = GuildWeeklyContrib(
+            quest_id=wq.id,
+            character_id=char_id,
+            contribution=0,
+        )
+        db.add(contrib)
+    contrib.contribution += amount
+    wq.progress          += amount
+
+    just_completed = False
+
+    if wq.progress >= wq.goal_target:
+        wq.is_completed = True
+        wq.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        just_completed  = True
+
+        # Odměna: flat gold všem přispívajícím členům (s bonusem ze guild perku)
+        await db.flush()
+        all_contribs_res = await db.execute(
+            select(GuildWeeklyContrib).where(GuildWeeklyContrib.quest_id == wq.id)
+        )
+        all_contribs = all_contribs_res.scalars().all()
+
+        from models.character import Character
+        from models.notification import Notification, NotifType
+        from models.economy import log_gold, GoldReason
+
+        # Načti guild pro gold bonus perk + guild XP
+        g_res = await db.execute(select(Guild).where(Guild.id == guild_id))
+        g = g_res.scalar_one_or_none()
+        gold_pct = get_perks(g.level)["weekly_gold_pct"] if g else 0
+        actual_gold = int(wq.reward_gold * (1 + gold_pct / 100))
+
+        # Guild dostane XP za splnění týdenního questu
+        if g:
+            guild_leveled_up = award_guild_xp(g, 75)
+            if guild_leveled_up:
+                perks = get_perks(g.level)
+                for c in all_contribs:
+                    cr2 = await db.execute(select(Character).where(Character.id == c.character_id))
+                    c2 = cr2.scalar_one_or_none()
+                    if c2:
+                        title_note = f' Titul: „{GUILD_LV10_TITLE}"' if g.level == 10 else ""
+                        db.add(Notification(
+                            character_id=c2.id,
+                            type=NotifType.SYSTEM,
+                            title=f"⚜ Cech postoupil na Level {g.level}!",
+                            body=f"{perks['emoji']} Cech je nyní {perks['name']}. Odemčeno: {perks['unlock']}{title_note}",
+                        ))
+
+        bonus_note = f" (+{gold_pct}% guild bonus)" if gold_pct > 0 else ""
+        for c in all_contribs:
+            char_res = await db.execute(select(Character).where(Character.id == c.character_id))
+            c_char   = char_res.scalar_one_or_none()
+            if not c_char:
+                continue
+            c_char.gold += actual_gold
+            await log_gold(db, c_char, actual_gold, GoldReason.GUILD_BOSS_REWARD,
+                           {"source": "weekly_quest", "goal_type": goal_type})
+            db.add(Notification(
+                character_id=c_char.id,
+                type=NotifType.SYSTEM,
+                title="⚜ Guild Weekly Quest splněn!",
+                body=f"Cech splnil týdenní quest! Odměna: +{actual_gold} G{bonus_note}",
+            ))
+
+    return just_completed
+
+
+@router.get("/weekly")
+async def get_weekly_quest(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Vrátí stav guild weekly questu pro aktuální týden."""
+    char = await _get_char(user, db)
+    if char.guild_id is None:
+        raise HTTPException(400, "Nejsi v žádném cechu.")
+
+    wq = await _get_or_create_weekly(char.guild_id, db)
+    await db.commit()
+    await db.refresh(wq)
+
+    # Příspěvky členů
+    contribs_res = await db.execute(
+        select(GuildWeeklyContrib)
+        .options(selectinload(GuildWeeklyContrib.character))
+        .where(GuildWeeklyContrib.quest_id == wq.id)
+        .order_by(GuildWeeklyContrib.contribution.desc())
+    )
+    contribs = contribs_res.scalars().all()
+
+    my_contrib = next((c for c in contribs if c.character_id == char.id), None)
+
+    return {
+        "weekly":       wq.to_dict(),
+        "contributions": [c.to_dict() for c in contribs],
+        "my_contribution": my_contrib.contribution if my_contrib else 0,
+    }

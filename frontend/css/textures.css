@@ -1,0 +1,490 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DUNGEON CHRONICLES — STONE & EMBER TEXTURE LAYER  v1.0
+   Vrstvíme na existující design: zachováváme barvy, přidáváme textury, hloubku
+   a ambientní atmosféru hlubokého dungeonového světa.
+   Načítat JAKO POSLEDNÍ v game.html (po theme.css).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 0. KRITICKÁ OPRAVA — CHYBĚJÍCÍ CSS PROMĚNNÉ ─────────────────────────── */
+/* --panel a --panel2 jsou používány stovkami selektorů ale nikde nedefinovány.
+   Bez definice = background: transparent → scrollovatelné kontejnery zobrazí
+   bílý browser-default v prázdném prostoru. */
+:root {
+  /* Povrchy karet a panelů — Obsidian Codex (cold slate) */
+  --panel:   var(--clr-slate);    /* #1a1a2e */
+  --panel2:  var(--clr-stone);    /* #2d2d3d */
+  --surface2:var(--clr-obsidian); /* #0d0d14 */
+  --surface: var(--clr-obsidian); /* #0d0d14 */
+}
+
+/* ── 1. GLOBÁLNÍ GRAIN — FILMOVÝ ŠUM PŘES CELÝ VIEWPORT ──────────────────── */
+/* Jemná noise textura přidá pocit materiálu — pergamen/kámen/kůže */
+html::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 320px 320px;
+  mix-blend-mode: overlay;
+  opacity: 0.11;
+}
+
+/* ── 2. BODY — KAMENNÁ ZEĎ S ŽHAVÍCÍM PODLAHEM ──────────────────────────── */
+body {
+  background-color: var(--bg);
+  background-image:
+    /* Svislé spáry zdiva — jemné vertikální čáry */
+    repeating-linear-gradient(90deg,
+      transparent 0px, transparent 119px,
+      rgba(74, 74, 94, 0.06) 119px, rgba(74, 74, 94, 0.06) 120px
+    ),
+    /* Vodorovné spáry zdiva */
+    repeating-linear-gradient(0deg,
+      transparent 0px, transparent 59px,
+      rgba(74, 74, 94, 0.04) 59px, rgba(74, 74, 94, 0.04) 60px
+    ),
+    /* Glowing gold floor — jemné zlaté žhavení ze spodku */
+    radial-gradient(ellipse 90% 35% at 50% 115%, rgba(201, 168, 76, 0.07) 0%, transparent 70%),
+    /* Temný strop */
+    radial-gradient(ellipse 100% 28% at 50% -8%, rgba(0, 0, 0, 0.55) 0%, transparent 70%),
+    /* Boční vigneta */
+    radial-gradient(ellipse 30% 100% at 0% 50%, rgba(0, 0, 0, 0.25) 0%, transparent 100%),
+    radial-gradient(ellipse 30% 100% at 100% 50%, rgba(0, 0, 0, 0.2) 0%, transparent 100%);
+}
+
+/* ── 3. LEVÝ PANEL — PERGAMEN & VYČINĚNÁ KŮŽE ───────────────────────────── */
+/* Existující SVG cihly zachováme přes nový background-image stack */
+.lpanel {
+  background-color: var(--bg2);
+  background-image:
+    /* Pergamenová grain textura */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.62' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.26 0 0 0 0 0.1 0 0 0 0 0.03 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E"),
+    /* Kamenné svislé žíhání */
+    repeating-linear-gradient(90deg,
+      transparent 0px, transparent 18px,
+      rgba(74, 74, 94, 0.04) 18px, rgba(74, 74, 94, 0.04) 19px
+    ),
+    /* Existující cihlový SVG pattern (kopírujeme z layout.css, aby vrstvy fungovaly) */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Crect x='.5' y='.5' width='47' height='11' fill='none' stroke='%23d8c8b8' stroke-width='.4' stroke-opacity='.04'/%3E%3Crect x='.5' y='12.5' width='23' height='11' fill='none' stroke='%23d8c8b8' stroke-width='.4' stroke-opacity='.04'/%3E%3Crect x='24.5' y='12.5' width='23' height='11' fill='none' stroke='%23d8c8b8' stroke-width='.4' stroke-opacity='.04'/%3E%3C/svg%3E"),
+    /* Obsidian gradient — jemné přechody od vrchu i spodku */
+    linear-gradient(180deg,
+      #1a1a2e 0%,
+      #0d0d14 30%,
+      #050508 60%,
+      #0d0d14 85%,
+      #1a1a2e 100%
+    );
+  background-size: 180px 180px, 19px 100%, 48px 24px, 100%;
+  border-right: 1px solid var(--border);
+  box-shadow:
+    inset -6px 0 18px rgba(0, 0, 0, 0.35),
+    inset 0 0 50px rgba(201, 168, 76, 0.02),
+    inset 4px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Pravý okraj panelu — tmavý přechod do obsahu */
+.lpanel::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -1px; bottom: 0;
+  width: 12px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.22), transparent);
+}
+/* lpanel musí mít position:relative, aby ::after fungoval */
+.lpanel { position: relative; }
+
+/* ── 4. TOPBAR — KOVANÁ OCELOVÁ DESKA ────────────────────────────────────── */
+/* Přidáme jen box-shadow a text-shadow — existing background ponecháme */
+.topbar {
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(74, 74, 94, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+
+/* Logo — zlatý žhavý text */
+.tb-logo {
+  text-shadow:
+    0 0 16px rgba(230, 126, 34, 0.6),
+    0 0 32px rgba(192, 57, 43, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Jméno hráče — rytý nápis */
+.tb-name {
+  text-shadow:
+    0 0 10px rgba(240, 200, 74, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ── 5. MODAL — STARÁ GRIMOÁROVÁ KNIHA ────────────────────────────────────── */
+/* Přidáme ::after pro levý kožený hřbet (::before je obsazeno accent linkou) */
+.modal::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  pointer-events: none;
+  border-radius: 8px 0 0 8px;
+  background: linear-gradient(180deg,
+    var(--border2) 0%,
+    rgba(74, 74, 94, 0.6) 40%,
+    var(--border2) 80%,
+    rgba(74, 74, 94, 0.4) 100%
+  );
+  box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Modální obsah — zrnitá pergamenová textura */
+.modal {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.52' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.18 0 0 0 0 0.06 0 0 0 0 0.02 0 0 0 0.11 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23t)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 12% 88%, rgba(74, 74, 94, 0.25) 0%, transparent 48%),
+    radial-gradient(ellipse at 88% 12%, rgba(74, 74, 94, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 0%, rgba(201, 168, 76, 0.06) 0%, transparent 40%),
+    linear-gradient(160deg, #0d0d14, #1a1a2e);
+  background-size: 200px 200px, 100%, 100%, 100%, 100%;
+  box-shadow:
+    0 0 0 1px var(--border2),
+    0 0 0 3px rgba(74, 74, 94, 0.6),
+    0 24px 80px rgba(0, 0, 0, 0.85),
+    0 0 60px rgba(192, 57, 43, 0.07),
+    inset 0 0 100px rgba(0, 0, 0, 0.25);
+}
+
+/* ── 6. TLAČÍTKA — KOVANÝ KOV SE SVĚTELNÝM PŘEBLESKEM ───────────────────── */
+/* Metal sheen sweep při hoveru */
+.btn {
+  position: relative;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.07) 50%,
+    transparent 100%
+  );
+  transition: left 0.45s ease;
+  pointer-events: none;
+}
+
+.btn:hover:not(:disabled)::after {
+  left: 160%;
+}
+
+.btn-gold {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* ── 7. SECTION HEADERS — RYTÁ RUNA ─────────────────────────────────────── */
+/* Zlatý glow pod textem, lehčí engraving efekt */
+.sec-hdr {
+  text-shadow:
+    0 0 8px rgba(192, 57, 43, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* ── 8. PROGRESS BARY — INKRUSTOVANÉ DRAHOKAMY ──────────────────────────── */
+/* HP bar — rubínové segmenty */
+.bar-hp,
+[class*="hp-bar"] {
+  position: relative;
+}
+.bar-hp > div,
+[class*="hp-fill"] {
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0%, transparent 93%,
+      rgba(0, 0, 0, 0.18) 93%, rgba(0, 0, 0, 0.18) 100%
+    ),
+    linear-gradient(180deg,
+      rgba(255, 100, 80, 0.28) 0%,
+      transparent 55%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 120, 100, 0.35),
+    0 0 8px rgba(192, 40, 40, 0.45);
+}
+
+/* MP bar — safírové segmenty */
+.bar-mp > div,
+[class*="mp-fill"] {
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0%, transparent 93%,
+      rgba(0, 0, 0, 0.18) 93%, rgba(0, 0, 0, 0.18) 100%
+    ),
+    linear-gradient(180deg, rgba(80, 130, 255, 0.28) 0%, transparent 55%);
+  box-shadow:
+    inset 0 1px 0 rgba(100, 150, 255, 0.3),
+    0 0 6px rgba(32, 80, 200, 0.4);
+}
+
+/* XP bar — smaragdové segmenty */
+.xp-strip-fill {
+  background-image:
+    repeating-linear-gradient(90deg,
+      transparent 0%, transparent 95%,
+      rgba(0, 0, 0, 0.2) 95%, rgba(0, 0, 0, 0.2) 100%
+    ),
+    linear-gradient(90deg, #7a4a00, #c8860a 50%, #f0b040);
+  box-shadow: 0 0 8px rgba(200, 134, 10, 0.65);
+}
+
+/* Obecný bar — top highlight pro skleněný efekt */
+[class*="-bar"],
+[class*="bar-"] {
+  overflow: hidden;
+}
+[class*="-bar"]::after,
+[class*="bar-"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* ── 9. SCROLLBAR — TMAVÉ ŽELEZO ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track {
+  background: rgba(5, 5, 8, 0.8);
+  border-left: 1px solid rgba(74, 74, 94, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--border2) 0%, var(--border) 100%);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--accent) 0%, var(--border2) 100%);
+  box-shadow: 0 0 6px rgba(192, 57, 43, 0.5);
+}
+::-webkit-scrollbar-corner { background: var(--bg2); }
+
+/* ── 10. KARTY — DLAŽEBNÍ KÁMEN S HLOUBKOVÝM STÍNEM ─────────────────────── */
+/* Rarity glow při hoveru přes specifické selektory */
+[class*="card"] {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+[class*="card"]:hover {
+  transform: translateY(-2px);
+}
+
+/* Item rarity hover glows */
+[class*="common"]:hover   { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 10px rgba(157,157,157,0.25) !important; }
+[class*="uncommon"]:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 12px rgba(30,255,0,0.28) !important; }
+[class*="rare"]:hover     { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 14px rgba(0,112,221,0.38) !important; }
+[class*="epic"]:hover     { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 14px rgba(163,53,238,0.38) !important; }
+[class*="legend"]:hover   { box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 18px rgba(255,128,0,0.45) !important; }
+
+/* ── 11. ZLATÝ TEXT — ŽHAVÝ RYTÝ NÁPIS ──────────────────────────────────── */
+.c-gold,
+.tb-gold,
+[class*="gold"] > span,
+.gold-val {
+  text-shadow:
+    0 0 12px rgba(212, 160, 48, 0.45),
+    0 0 24px rgba(212, 160, 48, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* ── 12. INPUT FIELDS — KAMENNÁ PROLÁKLINA ────────────────────────────────── */
+.fld input,
+.fld select,
+.fld textarea {
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px var(--border);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.fld input:focus,
+.fld select:focus {
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(192, 57, 43, 0.35),
+    0 0 14px rgba(192, 57, 43, 0.12);
+}
+
+/* ── 13. TOAST NOTIFIKACE — ALCHYMISTICKÁ LAHVIČKA ──────────────────────── */
+.toast {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, #0d0d14, #1a1a2e);
+  background-size: 120px 120px, 100%;
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(192, 57, 43, 0.15);
+}
+
+/* ── 14. ANIMACE ─────────────────────────────────────────────────────────── */
+
+/* Žhavý pulz pro aktivní/highlighted elementy */
+@keyframes ember-pulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(192, 57, 43, 0.3), 0 0 12px rgba(192, 57, 43, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(192, 57, 43, 0.55), 0 0 24px rgba(230, 126, 34, 0.18);
+  }
+}
+
+/* Runic glow pro specialní elementy */
+@keyframes rune-glow {
+  0%, 100% { text-shadow: 0 0 6px rgba(192, 57, 43, 0.4); }
+  50% { text-shadow: 0 0 14px rgba(192, 57, 43, 0.8), 0 0 28px rgba(230, 126, 34, 0.3); }
+}
+
+/* Zlato shimmer pro prémiové texty */
+@keyframes gold-engrave {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── 15. QUEST BOARD AKTIVNÍ KARTA — ŽHAVÉ ZVÝRAZNĚNÍ ───────────────────── */
+.qv2--active {
+  background-image:
+    repeating-linear-gradient(-45deg,
+      transparent 0px, transparent 9px,
+      rgba(192, 57, 43, 0.025) 9px, rgba(192, 57, 43, 0.025) 10px
+    ) !important;
+  box-shadow:
+    inset 3px 0 14px rgba(192, 57, 43, 0.12),
+    0 2px 10px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(192, 57, 43, 0.2) !important;
+  animation: ember-pulse 3s ease-in-out infinite;
+}
+
+/* ── 16. EQUIPMENT PANEL — SP-SEKCE ─────────────────────────────────────── */
+/* Šrafura přes equipment slot pozice */
+[class*="sp-slot"]:empty::before,
+[class*="eq-slot"]:empty::before {
+  content: '✦';
+  font-size: 0.5rem;
+  color: var(--border);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* ── 17. AVATAR FRAME — TOČIVÁ RUNA ─────────────────────────────────────── */
+/* Přidáváme subtilní rotující gradient rámec k existujícímu .tb-avatar */
+.tb-avatar {
+  position: relative;
+  transition: box-shadow 0.35s ease, transform 0.2s ease;
+}
+.tb-avatar:hover {
+  transform: scale(1.08);
+}
+
+/* ── 18. DUNGEON ENTRANCE BUTTON SPECIAL ─────────────────────────────────── */
+/* Dungeon start / boss fight tlačítka si zaslouží více */
+button[onclick*="startDungeon"],
+button[onclick*="startBoss"],
+.btn-dng-enter {
+  animation: ember-pulse 2.8s ease-in-out infinite;
+}
+
+/* ── 19. UTILITY TŘÍDY PRO RUNIC DIVIDER ─────────────────────────────────── */
+/* Použití: <div class="rune-divider"><span>⟨ ✦ ⟩</span></div> */
+.rune-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  opacity: 0.45;
+}
+.rune-divider::before,
+.rune-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border2), transparent);
+}
+.rune-divider span {
+  font-family: 'Cinzel', serif;
+  font-size: 0.55rem;
+  letter-spacing: 6px;
+  color: var(--gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── 20. CONTENT PANE — OKRAJ & PŘECHODOVÉ STÍNY ────────────────────────── */
+/* Levý okraj content area — přechod od lpanel */
+.content-pane {
+  position: relative;
+}
+.content-pane::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.18), transparent);
+  z-index: 1;
+}
+
+/* ── 21. PORTRAIT WRAP — MYSTICKÝ PORTÁL ─────────────────────────────────── */
+/* Pokud portrait-wrap existuje — přidáme glow */
+.portrait-wrap {
+  filter: drop-shadow(0 0 6px rgba(192, 57, 43, 0.25));
+  transition: filter 0.3s ease;
+}
+.portrait-wrap:hover {
+  filter: drop-shadow(0 0 12px rgba(192, 57, 43, 0.45));
+}
+
+/* ── 22. LEVEL BADGE — PLAMEN TITULU ────────────────────────────────────── */
+.tb-lvl {
+  text-shadow:
+    0 0 8px rgba(230, 126, 34, 0.7),
+    0 1px 2px rgba(0, 0, 0, 0.9);
+  box-shadow:
+    0 0 10px rgba(192, 57, 43, 0.5),
+    0 0 20px rgba(192, 57, 43, 0.15),
+    inset 0 1px 0 rgba(255, 180, 80, 0.12);
+}
+
+/* ── 23. ONLINE INDIKÁTOR — DÝCHAJÍCÍ KRYSTAL ───────────────────────────── */
+/* Existující animace zachováme, jen přidáme glow na text */
+.tb-online-count {
+  text-shadow: 0 0 8px rgba(34, 221, 102, 0.5);
+}
+
+/* ── 24. FACTION / CLASS CARDS — HLOUBKOVÉ VRSTVY ────────────────────────── */
+.faction-card,
+.cls-card {
+  background-image:
+    repeating-linear-gradient(-55deg,
+      transparent 0px, transparent 5px,
+      rgba(255, 255, 255, 0.007) 5px, rgba(255, 255, 255, 0.007) 6px
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.faction-card:hover,
+.cls-card:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(192, 57, 43, 0.15);
+}
+
+/* ── EOF — DUNGEON CHRONICLES TEXTURE LAYER ──────────────────────────────── */

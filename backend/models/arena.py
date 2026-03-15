@@ -1,7 +1,7 @@
 """
 models/arena.py — Historie aréna zápasů + Sezóny
 """
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Integer, ForeignKey, Boolean, Text, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
@@ -17,11 +17,30 @@ SEASON_REWARDS = [
     (26, 999,  100),   # účast (alespoň 1 zápas)
 ]
 
+# Exkluzivní kosmetické odměny (titul + portrait frame) podle finálního pořadí
+# (rank_low, rank_high, title, frame_key)
+SEASON_COSMETIC_REWARDS = [
+    (1,   1,  "Arena Grand Champion", "season-champion"),    # animovaný zlatý frame
+    (2,   3,  "Arena Champion",       "season-challenger"),  # animovaný stříbrný frame
+    (4,  10,  "Arena Veteran",        "season-veteran"),     # bronzový glow frame
+    (11, 25,  "Arena Contender",      None),                 # jen titul, bez frame
+    (26, 999, None,                   None),                 # jen gold, bez kosmetik
+]
+
+
 def get_season_reward(rank: int) -> int:
     for low, high, gold in SEASON_REWARDS:
         if low <= rank <= high:
             return gold
     return 0
+
+
+def get_season_cosmetics(rank: int) -> tuple[str | None, str | None]:
+    """Vrátí (title, frame_key) pro daný finální rank. None = žádná odměna."""
+    for low, high, title, frame in SEASON_COSMETIC_REWARDS:
+        if low <= rank <= high:
+            return title, frame
+    return None, None
 
 
 class Season(Base):
@@ -32,21 +51,23 @@ class Season(Base):
     start_at:   Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     end_at:     Mapped[datetime] = mapped_column(DateTime)
     is_active:  Mapped[bool]     = mapped_column(Boolean, default=True)
+    theme_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    theme_lore: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     results = relationship("SeasonResult", back_populates="season")
 
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() >= self.end_at
+        return datetime.now(timezone.utc).replace(tzinfo=None) >= self.end_at
 
     @property
     def days_remaining(self) -> int:
-        delta = self.end_at - datetime.utcnow()
+        delta = self.end_at - datetime.now(timezone.utc).replace(tzinfo=None)
         return max(0, delta.days)
 
     @property
     def hours_remaining(self) -> int:
-        delta = self.end_at - datetime.utcnow()
+        delta = self.end_at - datetime.now(timezone.utc).replace(tzinfo=None)
         total_seconds = max(0, int(delta.total_seconds()))
         return total_seconds // 3600
 
@@ -60,19 +81,26 @@ class Season(Base):
             "is_expired":     self.is_expired,
             "days_remaining": self.days_remaining,
             "hours_remaining": self.hours_remaining,
+            "theme_name":     self.theme_name,
+            "theme_lore":     self.theme_lore,
         }
 
 
 class SeasonResult(Base):
     __tablename__ = "season_results"
 
-    id:             Mapped[int]  = mapped_column(primary_key=True)
-    season_id:      Mapped[int]  = mapped_column(Integer, ForeignKey("seasons.id"))
-    character_id:   Mapped[int]  = mapped_column(Integer, ForeignKey("characters.id"))
-    final_rank:     Mapped[int]  = mapped_column(Integer)
-    final_elo:      Mapped[int]  = mapped_column(Integer)
-    reward_gold:    Mapped[int]  = mapped_column(Integer, default=0)
-    reward_claimed: Mapped[bool] = mapped_column(Boolean, default=False)
+    id:             Mapped[int]      = mapped_column(primary_key=True)
+    season_id:      Mapped[int]      = mapped_column(Integer, ForeignKey("seasons.id"))
+    character_id:   Mapped[int]      = mapped_column(Integer, ForeignKey("characters.id"))
+    final_rank:     Mapped[int]      = mapped_column(Integer)
+    final_elo:      Mapped[int]      = mapped_column(Integer)
+    reward_gold:    Mapped[int]      = mapped_column(Integer, default=0)
+    reward_claimed: Mapped[bool]     = mapped_column(Boolean, default=False)
+    # Exkluzivní kosmetické odměny za sezónu (přiřadí se při process_expired_season)
+    reward_title:   Mapped[str|None] = mapped_column(String(64), nullable=True)
+    reward_frame:   Mapped[str|None] = mapped_column(String(32), nullable=True)
+    # Příznak zda hráč již viděl sezónní recap modal
+    recap_shown:    Mapped[bool]     = mapped_column(Boolean, default=False)
 
     season    = relationship("Season", back_populates="results")
     character = relationship("Character")
@@ -85,6 +113,8 @@ class SeasonResult(Base):
             "final_elo":      self.final_elo,
             "reward_gold":    self.reward_gold,
             "reward_claimed": self.reward_claimed,
+            "reward_title":   self.reward_title,
+            "reward_frame":   self.reward_frame,
         }
 
 
