@@ -1,0 +1,7 @@
+[
+  {"name": "Goblinský král",    "emoji": "👺", "hp_base": 3000,  "xp_reward": 150,  "gold_reward": 250},
+  {"name": "Kamenný golem",     "emoji": "🗿", "hp_base": 6000,  "xp_reward": 280,  "gold_reward": 450},
+  {"name": "Temný nekromancer", "emoji": "💀", "hp_base": 10000, "xp_reward": 450,  "gold_reward": 750},
+  {"name": "Ohnivý drak",       "emoji": "🐉", "hp_base": 16000, "xp_reward": 700,  "gold_reward": 1200},
+  {"name": "Stínový démon",     "emoji": "👾", "hp_base": 24000, "xp_reward": 1000, "gold_reward": 1800}
+]

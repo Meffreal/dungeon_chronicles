@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "name": "Stezka Mrtvých",
+    "badge": "💀",
+    "color": "#9b59b6",
+    "dungeon_name": "Hrobka Zapomenutých",
+    "dungeon_icon": "🪦",
+    "dungeon_quest_id": 45,
+    "quest_ids": [30, 31, 32, 33, 34],
+    "reward_title": "Vyvolený Mrtvých",
+    "desc": "Série questů vedoucí do starobylé hrobky plné nemrtvých."
+  },
+  {
+    "id": 2,
+    "name": "Cesta Ohně",
+    "badge": "🔥",
+    "color": "#e67e22",
+    "dungeon_name": "Ohnivé Útroby",
+    "dungeon_icon": "🌋",
+    "dungeon_quest_id": 46,
+    "quest_ids": [35, 36, 37, 38, 39],
+    "reward_title": "Spalující hrdina",
+    "desc": "Série questů vedoucí do útrob aktivní sopky."
+  },
+  {
+    "id": 3,
+    "name": "Cesta Chaosu",
+    "badge": "🌀",
+    "color": "#1abc9c",
+    "dungeon_name": "Citadela Chaosu",
+    "dungeon_icon": "⚠️",
+    "dungeon_quest_id": 47,
+    "quest_ids": [40, 41, 42, 43, 44],
+    "reward_title": "Pán Chaosu",
+    "desc": "Série questů vedoucí do citadely rozlomené reality."
+  }
+]
