@@ -29,3 +29,4 @@ from models.economy import GoldTransaction
 from models.bloodline import Bloodline
 # Hall of the Fallen
 from models.hall_of_fallen import HallOfFallen
+from models.bug_report import BugReport
