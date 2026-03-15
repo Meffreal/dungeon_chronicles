@@ -61,6 +61,7 @@
     <button class="tb-btn" id="notif-bell" onclick="showPage('notifications')" style="position:relative">
       🔔 <span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;font-size:0.6rem;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif">0</span>
     </button>
+    <button class="tb-btn" onclick="openBugReportModal()" title="Report a Bug">🐛</button>
     <button class="tb-btn" onclick="refreshChar()">↺</button>
     <button class="tb-btn dng" onclick="logout()">Odhlásit</button>
   </div>
@@ -1023,5 +1024,51 @@
     <span class="mob-nav-label">Profil</span>
   </button>
 </nav>
+
+<!-- BUG REPORT MODAL -->
+<div class="overlay" id="modal-bug-report">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-x" onclick="closeModal('modal-bug-report')">✕</button>
+    <h2 style="margin-bottom:16px">🐛 Report a Bug</h2>
+
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:.75rem;color:var(--clr-muted);margin-bottom:4px">Název bugu *</label>
+      <input id="br-title" type="text" maxlength="120" placeholder="Krátký popis problému..."
+        style="width:100%;background:var(--clr-surface);border:1px solid rgba(255,255,255,.1);color:var(--clr-text);padding:8px 12px;border-radius:6px;font-size:.85rem">
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:.75rem;color:var(--clr-muted);margin-bottom:4px">Co se stalo? *</label>
+      <textarea id="br-description" maxlength="2000" placeholder="Popiš co se stalo a kde..."
+        style="width:100%;height:90px;resize:vertical;background:var(--clr-surface);border:1px solid rgba(255,255,255,.1);color:var(--clr-text);padding:8px 12px;border-radius:6px;font-size:.85rem;font-family:inherit"></textarea>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label style="display:block;font-size:.75rem;color:var(--clr-muted);margin-bottom:4px">Kroky k reprodukci</label>
+      <textarea id="br-steps" maxlength="2000" placeholder="1. Jdi do... 2. Klikni na... 3. Stane se..."
+        style="width:100%;height:70px;resize:vertical;background:var(--clr-surface);border:1px solid rgba(255,255,255,.1);color:var(--clr-text);padding:8px 12px;border-radius:6px;font-size:.85rem;font-family:inherit"></textarea>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-size:.75rem;color:var(--clr-muted);margin-bottom:4px">Závažnost</label>
+      <select id="br-severity"
+        style="background:var(--clr-surface);border:1px solid rgba(255,255,255,.1);color:var(--clr-text);padding:8px 12px;border-radius:6px;font-size:.85rem;width:100%;cursor:pointer">
+        <option value="cosmetic">💅 Kosmetická — vizuální, neblokuje hru</option>
+        <option value="minor" selected>⚠️ Menší — nepříjemné, ale hratelné</option>
+        <option value="critical">🔥 Kritická — blokuje hru / ztráta dat</option>
+      </select>
+    </div>
+
+    <input type="hidden" id="br-page-context" value="">
+
+    <button id="br-submit-btn" onclick="submitBugReport()"
+      style="width:100%;background:var(--clr-accent);color:#000;border:none;padding:10px;border-radius:6px;font-size:.9rem;font-weight:600;cursor:pointer;letter-spacing:.5px">
+      Odeslat report
+    </button>
+    <p style="font-size:.7rem;color:var(--clr-muted);margin-top:8px;text-align:center">
+      Max 5 reportů za 24h · Děkujeme za pomoc! 🙏
+    </p>
+  </div>
+</div>
 </body>
 </html>
