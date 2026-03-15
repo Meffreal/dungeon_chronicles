@@ -2103,11 +2103,10 @@
   font-family: 'Cinzel', serif;
 }
 .hub-pending-inline {
-  display: block;
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  padding: 4px 16px 8px;
+  position: absolute;
+  bottom: 14px;
+  right: 16px;
+  z-index: 2;
   font-size: 0.72rem;
   color: var(--gold2);
   font-style: italic;
