@@ -27,8 +27,8 @@ async function submitBugReport() {
       page_context: pageContext || null,
     });
     toast('Díky za report! Budeme se tím zabývat.', 's');
-    closeModal('modal-bug-report');
     _resetBugReportForm();
+    closeModal('modal-bug-report');
   } catch (e) {
     const msg = e?.message || '';
     if (msg.includes('429')) {
