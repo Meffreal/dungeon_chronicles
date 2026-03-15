@@ -149,6 +149,11 @@ async def admin_player(name: str, db: AsyncSession = Depends(get_db)):
     )
     total_matches = matches_res.scalar_one()
 
+    equipped_ids = {
+        char.eq_weapon, char.eq_helmet, char.eq_armor,
+        char.eq_gloves, char.eq_boots, char.eq_ring, char.eq_amulet,
+    } - {None}
+
     return {
         "character": {
             "id":              char.id,
@@ -178,7 +183,7 @@ async def admin_player(name: str, db: AsyncSession = Depends(get_db)):
                 "item_name": inv.item.name if inv.item else "?",
                 "rarity":    inv.item.rarity if inv.item else "?",
                 "qty":       inv.quantity,
-                "equipped":  inv.is_equipped,
+                "equipped":  inv.item_id in equipped_ids,
             }
             for inv in inventory
         ],
