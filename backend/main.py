@@ -70,6 +70,7 @@ from routers import account as account_router
 from routers import news as news_router
 from routers import bloodline as bloodline_router
 from routers import hall as hall_router
+from routers import bugs as bugs_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -177,6 +178,7 @@ app.include_router(account_router.router)
 app.include_router(news_router.router)
 app.include_router(bloodline_router.router)
 app.include_router(hall_router.router)
+app.include_router(bugs_router.router)
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
