@@ -28,23 +28,65 @@ async def get_db():
         yield session
 
 
-def _run_alembic_upgrade() -> None:
-    """Spustí 'alembic upgrade head' synchronně (voláno z asyncio.to_thread)."""
+def _alembic_cfg():
     from alembic.config import Config
-    from alembic import command
+    cfg = Config(str(Path(__file__).parent / "alembic.ini"))
+    cfg.set_main_option("script_location", str(Path(__file__).parent / "alembic"))
+    return cfg
 
-    alembic_cfg = Config(str(Path(__file__).parent / "alembic.ini"))
-    # Zajistíme správný working directory (backend/)
-    alembic_cfg.set_main_option("script_location", str(Path(__file__).parent / "alembic"))
-    command.upgrade(alembic_cfg, "head")
+
+def _run_alembic_upgrade() -> None:
+    from alembic import command
+    command.upgrade(_alembic_cfg(), "head")
+
+
+def _stamp_alembic_head() -> None:
+    """Označí aktuální schéma jako head bez spouštění migrací (fresh install)."""
+    from alembic import command
+    command.stamp(_alembic_cfg(), "head")
+
+
+async def _postgres_has_alembic_version(conn) -> bool:
+    from sqlalchemy import text
+    result = await conn.execute(text(
+        "SELECT EXISTS (SELECT FROM information_schema.tables "
+        "WHERE table_schema = 'public' AND table_name = 'alembic_version')"
+    ))
+    return result.scalar()
 
 
 async def init_db():
-    """Vytvoří tabulky pro nové instalace a spustí Alembic migrace."""
-    # create_all je bezpečné opakovat — vytvoří jen chybějící tabulky (nové instalace)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    """
+    Inicializace schématu:
 
-    # Alembic upgrade head — aplikuje všechny pending migrace
-    # asyncio.to_thread přenese synchronní Alembic do thread poolu
-    await asyncio.to_thread(_run_alembic_upgrade)
+    SQLite (dev):
+      create_all + alembic upgrade head
+      DB persistuje na disku, Alembic verze je uložena → funguje opakovaně.
+
+    PostgreSQL (prod) — fresh install (žádná alembic_version tabulka):
+      create_all vytvoří celé schéma → stamp head (migrace jsou "already applied").
+      Žádný conflict s migracemi, které by duplicitně vytvářely tabulky.
+
+    PostgreSQL (prod) — existující install:
+      alembic upgrade head aplikuje jen nové migrace.
+    """
+    is_sqlite = DATABASE_URL.startswith("sqlite")
+
+    if is_sqlite:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        await asyncio.to_thread(_run_alembic_upgrade)
+        return
+
+    # PostgreSQL: detekuj fresh install
+    async with engine.connect() as conn:
+        fresh = not await _postgres_has_alembic_version(conn)
+
+    if fresh:
+        # Nová DB: vytvoř vše přes create_all, označ jako head
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        await asyncio.to_thread(_stamp_alembic_head)
+    else:
+        # Existující DB: aplikuj jen nové migrace
+        await asyncio.to_thread(_run_alembic_upgrade)
