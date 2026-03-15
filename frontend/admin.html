@@ -538,7 +538,7 @@
   <!-- NEWS FEED PANEL -->
   <div class="panel" id="panel-news">
     <h2>Správa novinek / patch notes</h2>
-    <div class="card" style="max-width:640px;margin-bottom:20px">
+    <div class="card" id="news-form" style="max-width:640px;margin-bottom:20px">
       <h3 style="margin:0 0 12px;font-size:.9rem;color:#c89010">Přidat zprávu</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div>
@@ -720,7 +720,7 @@ async function adminApi(method, path, body) {
 }
 
 function switchTab(tab) {
-  const tabs = ['overview','players','economy','content','events','boss','analytics','experiments','crystals-analytics','broadcast','news'];
+  const tabs = ['overview','players','economy','content','events','boss','analytics','experiments','crystals-analytics','broadcast','news','alerts','bugs'];
   document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', tabs[i] === tab));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
@@ -1817,6 +1817,15 @@ async function runBalanceCheck() {
 
 let _selectedBugId = null;
 
+function _esc(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 async function loadBugReports() {
   const status   = document.getElementById('bug-filter-status').value;
   const severity = document.getElementById('bug-filter-severity').value;
@@ -1849,12 +1858,12 @@ async function loadBugReports() {
 
   tbody.innerHTML = reports.map(r => `
     <tr style="cursor:pointer" onclick="showBugDetail(${r.id})">
-      <td>${severityBadge[r.severity] || r.severity}</td>
-      <td><strong>${r.title}</strong></td>
-      <td>${r.char_name || '—'} <span style="color:#707090;font-size:.72rem">Lv.${r.char_level || '?'} ${r.char_class || ''}</span></td>
-      <td><span style="color:#707090;font-size:.78rem">${r.page_context || '—'}</span></td>
+      <td>${severityBadge[r.severity] || _esc(r.severity)}</td>
+      <td><strong>${_esc(r.title)}</strong></td>
+      <td>${_esc(r.char_name) || '—'} <span style="color:#707090;font-size:.72rem">Lv.${r.char_level || '?'} ${_esc(r.char_class)}</span></td>
+      <td><span style="color:#707090;font-size:.78rem">${_esc(r.page_context) || '—'}</span></td>
       <td style="color:#707090;font-size:.78rem">${r.created_at ? r.created_at.slice(0,16).replace('T',' ') : '—'}</td>
-      <td>${statusBadge[r.status] || r.status}</td>
+      <td>${statusBadge[r.status] || _esc(r.status)}</td>
     </tr>
   `).join('');
 }
@@ -1911,12 +1920,16 @@ async function saveBugChanges() {
 async function deleteBugReport() {
   if (!_selectedBugId) return;
   if (!confirm(`Smazat report #${_selectedBugId}?`)) return;
+  const msg = document.getElementById('bd-msg');
   try {
     await adminApi('DELETE', `/admin/bugs/${_selectedBugId}`);
     document.getElementById('bug-detail').style.display = 'none';
     _selectedBugId = null;
     loadBugReports();
-  } catch (e) {}
+  } catch (e) {
+    msg.textContent = '✗ Chyba při mazání'; msg.style.background = 'rgba(200,50,50,.1)'; msg.style.color = '#d08080';
+    msg.style.display = 'block';
+  }
 }
 
 function prefillBugFixNews() {
