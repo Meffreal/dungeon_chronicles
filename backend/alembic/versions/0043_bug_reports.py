@@ -6,7 +6,7 @@ Create Date: 2026-03-15
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import inspect as sa_inspect
 
 revision = '0043'
 down_revision = '0042'
@@ -16,7 +16,7 @@ depends_on = None
 
 def upgrade():
     bind = op.get_bind()
-    inspector = Inspector.from_engine(bind)
+    inspector = sa_inspect(bind)
     existing_tables = inspector.get_table_names()
 
     if 'bug_reports' not in existing_tables:
