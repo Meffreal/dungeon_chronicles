@@ -51,6 +51,7 @@ from models.cron_job        import CronJob                                      
 from models.disabled_quest  import DisabledQuest                                # noqa: F401
 from models.news            import GameNews                                     # noqa: F401
 from models.balance_alert   import BalanceAlert                                  # noqa: F401
+from models.bug_report      import BugReport                                      # noqa: F401
 
 from routers import auth, character, quest, inventory, market, arena, notifications, guild, achievements, admin, shop
 from routers import faction

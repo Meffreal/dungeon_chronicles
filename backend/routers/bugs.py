@@ -37,17 +37,19 @@ async def submit_bug_report(
         select(Character).where(Character.user_id == user.id)
     )).scalars().first()
 
+    if not char:
+        raise HTTPException(400, "Pro odeslání bug reportu musíš mít vytvořenou postavu.")
+
     # Rate limit: max DAILY_REPORT_LIMIT reportů za posledních 24h
     since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=24)
-    if char:
-        count = (await db.execute(
-            select(func.count(BugReport.id)).where(
-                BugReport.character_id == char.id,
-                BugReport.created_at >= since
-            )
-        )).scalar_one()
-        if count >= DAILY_REPORT_LIMIT:
-            raise HTTPException(429, f"Denní limit {DAILY_REPORT_LIMIT} reportů byl dosažen.")
+    count = (await db.execute(
+        select(func.count(BugReport.id)).where(
+            BugReport.character_id == char.id,
+            BugReport.created_at >= since
+        )
+    )).scalar_one()
+    if count >= DAILY_REPORT_LIMIT:
+        raise HTTPException(429, f"Denní limit {DAILY_REPORT_LIMIT} reportů byl dosažen.")
 
     report = BugReport(
         character_id = char.id if char else None,
