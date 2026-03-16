@@ -123,3 +123,81 @@ async def test_cannot_attack_dead_character(client_db):
     resp = await client.post(f"/arena/attack/{char_b['id']}",
                              headers={"Authorization": f"Bearer {token_a}"})
     assert resp.status_code == 404, f"Očekáván 404, dostal {resp.status_code}"
+
+
+# ── Testy: Guild ───────────────────────────────────────────────────────────────
+
+async def _give_gold(db, char_id: int, amount: int = 1000):
+    """Nastaví gold postavě přímo v DB."""
+    from models.character import Character
+    from sqlalchemy import select
+    res = await db.execute(select(Character).where(Character.id == char_id))
+    c = res.scalar_one()
+    c.gold = amount
+    await db.commit()
+
+
+async def test_dead_member_not_shown_in_guild(client_db):
+    """Mrtvý člen se nesmí zobrazit v seznamu členů cechu."""
+    client, db = client_db
+
+    token_l = await _register(client, "guild_leader_live")
+    token_m = await _register(client, "guild_member_die")
+
+    char_l = await _create_char(client, token_l, "Leader")
+    char_m = await _create_char(client, token_m, "ČlenKteryUmre")
+
+    await _give_gold(db, char_l["id"])
+
+    resp = await client.post("/guild/create",
+                             json={"name": "TestCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    resp = await client.post(f"/guild/join/{guild_id}",
+                             headers={"Authorization": f"Bearer {token_m}"})
+    assert resp.status_code == 200
+
+    await _set_dead(db, char_m["id"])
+
+    resp = await client.get("/guild/my",
+                            headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 200
+    member_ids = [mem["id"] for mem in resp.json()["members"]]
+    assert char_m["id"] not in member_ids, "Mrtvý člen nesmí být v seznamu členů"
+
+
+async def test_dead_member_not_counted_in_guild_list(client_db):
+    """Mrtvý člen se nesmí počítat do member_count v seznam cechů."""
+    from models.character import Character
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token_l = await _register(client, "guild_leader_count")
+    token_m = await _register(client, "guild_member_count_die")
+
+    char_lc = await _create_char(client, token_l, "LeaderCount")
+    char_m = await _create_char(client, token_m, "ČlenCount")
+
+    await _give_gold(db, char_lc["id"])
+
+    resp = await client.post("/guild/create",
+                             json={"name": "CountCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    await client.post(f"/guild/join/{guild_id}",
+                      headers={"Authorization": f"Bearer {token_m}"})
+
+    await _set_dead(db, char_m["id"])
+
+    resp = await client.get("/guild/list")
+    assert resp.status_code == 200
+    guilds = resp.json()["guilds"]
+    test_guild = next((g for g in guilds if g["id"] == guild_id), None)
+    assert test_guild is not None
+    assert test_guild["member_count"] == 1, \
+        f"Čekal member_count=1, dostal {test_guild['member_count']}"

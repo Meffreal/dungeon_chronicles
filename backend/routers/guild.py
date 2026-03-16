@@ -80,7 +80,10 @@ async def _get_char(user: User, db: AsyncSession) -> Character:
 
 async def _member_count(guild_id: int, db: AsyncSession) -> int:
     result = await db.execute(
-        select(func.count()).where(Character.guild_id == guild_id)
+        select(func.count(Character.id)).select_from(Character).where(
+            Character.guild_id == guild_id,
+            Character.is_dead == False,
+        )
     )
     return result.scalar_one()
 
@@ -230,7 +233,10 @@ async def my_guild(
         return {"guild": None}
 
     members_res = await db.execute(
-        select(Character).where(Character.guild_id == guild.id).order_by(Character.level.desc())
+        select(Character).where(
+            Character.guild_id == guild.id,
+            Character.is_dead == False,
+        ).order_by(Character.level.desc())
     )
     members = members_res.scalars().all()
 
@@ -643,7 +649,9 @@ async def guild_websocket(
         await ws.close(code=4001, reason="User not found")
         return
 
-    char_res = await db.execute(select(Character).where(Character.user_id == user_id))
+    char_res = await db.execute(
+        select(Character).where(Character.user_id == user_id, Character.is_dead == False)
+    )
     char = char_res.scalar_one_or_none()
     if not char or char.guild_id != guild_id:
         await ws.close(code=4003, reason="Not in this guild")
