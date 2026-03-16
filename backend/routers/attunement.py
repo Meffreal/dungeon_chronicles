@@ -24,7 +24,7 @@ async def get_progress(
     db: AsyncSession = Depends(get_db),
 ):
     """Vrátí stav všech attunement chainů pro přihlášeného hráče."""
-    result = await db.execute(select(Character).where(Character.user_id == user.id))
+    result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Nejdřív si vytvoř postavu.")

@@ -135,7 +135,7 @@ async function loadLegacyItems() {
       return;
     }
 
-    const inv = await api('GET', '/inventory/');
+    const inv = await api('GET', '/character/legacy/items');
     const items = (inv.items || []);
 
     if (items.length === 0) {

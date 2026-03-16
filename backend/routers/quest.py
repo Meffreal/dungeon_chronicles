@@ -158,12 +158,10 @@ class StartQuestRequest(BaseModel):
 
 async def _get_char_and_quest(user: User, db: AsyncSession):
     """Helper — vrátí (Character, Quest) nebo hodí 404."""
-    c_result = await db.execute(select(Character).where(Character.user_id == user.id))
+    c_result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = c_result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Nejdřív si vytvoř postavu.")
-    if char.is_dead:
-        raise HTTPException(403, f"Tato postava zemřela. Zabit: {char.killed_by or 'Neznámý nepřítel'}")
 
     q_result = await db.execute(
         select(Quest)

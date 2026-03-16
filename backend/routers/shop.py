@@ -114,7 +114,7 @@ async def get_shop(
     db: AsyncSession = Depends(get_db),
 ):
     """Vrátí aktuální zásoby všech NPC obchodníků."""
-    char_res = await db.execute(select(Character).where(Character.user_id == user.id))
+    char_res = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = char_res.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")
@@ -151,7 +151,7 @@ async def buy_from_shop(
     db: AsyncSession = Depends(get_db),
 ):
     """Koupí item od NPC obchodníka."""
-    char_res = await db.execute(select(Character).where(Character.user_id == user.id))
+    char_res = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = char_res.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")

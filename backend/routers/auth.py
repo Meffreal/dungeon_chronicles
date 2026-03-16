@@ -132,11 +132,11 @@ async def login(
     user.last_login = datetime.now(timezone.utc)
     await db.commit()
 
-    # Má charakter? + login streak tracking
+    # Má charakter? + login streak tracking (pouze živá postava)
     from models.character import Character
     from models.crystal import CrystalTransaction
     ch_result = await db.execute(
-        select(Character).where(Character.user_id == user.id)
+        select(Character).where(Character.user_id == user.id, Character.is_dead == False)
     )
     char = ch_result.scalar_one_or_none()
     has_char = char is not None

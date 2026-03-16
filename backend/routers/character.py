@@ -108,12 +108,10 @@ STAT_CZ = {
 }
 
 async def _get_char(user: User, db: AsyncSession) -> Character:
-    result = await db.execute(select(Character).where(Character.user_id == user.id))
+    result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")
-    if char.is_dead:
-        raise HTTPException(403, f"Tato postava zemřela. Zabit: {char.killed_by or 'Neznámý nepřítel'}")
     return char
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -150,9 +148,9 @@ async def create_character(
         raise HTTPException(400, f"Neplatná třída. Možnosti: {[c.value for c in CharacterClass]}")
 
     # Jeden hráč = jedna živá postava (mrtvá HC postava umožní nový run)
-    existing_res = await db.execute(select(Character).where(Character.user_id == user.id))
+    existing_res = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     existing_char = existing_res.scalar_one_or_none()
-    if existing_char and not existing_char.is_dead:
+    if existing_char:
         raise HTTPException(400, "Již máš živou postavu. Jeden účet = jedna živá postava.")
 
     # Unikátní jméno
@@ -224,7 +222,7 @@ async def get_my_character(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Character).where(Character.user_id == user.id))
+    result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena — nejprve si vytvoř postavu.")
@@ -957,6 +955,29 @@ async def get_pending_legacy(
             "legacy_chain": item_full.legacy_chain_json or [],
         },
     }
+
+
+@router.get("/legacy/items")
+async def get_legacy_items(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Vrátí inventář mrtvé postavy pro výběr legacy itemu."""
+    from sqlalchemy.orm import selectinload
+    char_res = await db.execute(
+        select(Character).where(Character.user_id == user.id, Character.is_dead == True)
+    )
+    char = char_res.scalar_one_or_none()
+    if not char:
+        return {"items": []}
+
+    inv_res = await db.execute(
+        select(InventoryItem)
+        .options(selectinload(InventoryItem.item))
+        .where(InventoryItem.character_id == char.id)
+    )
+    items = inv_res.scalars().all()
+    return {"items": [i.to_dict() for i in items if i.item]}
 
 
 @router.post("/complete-onboarding")

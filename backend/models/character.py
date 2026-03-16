@@ -65,7 +65,7 @@ class Character(Base):
     __tablename__ = "characters"
 
     id:         Mapped[int] = mapped_column(primary_key=True)
-    user_id:    Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
+    user_id:    Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
     name:       Mapped[str] = mapped_column(String(32), unique=True, index=True)
     cls:        Mapped[str] = mapped_column(String(16))   # CharacterClass value
     level:      Mapped[int] = mapped_column(Integer, default=1)

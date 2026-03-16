@@ -27,7 +27,7 @@ DELETE_RETENTION_DAYS = 30
 
 
 async def _get_char(user: User, db: AsyncSession) -> Character | None:
-    res = await db.execute(select(Character).where(Character.user_id == user.id))
+    res = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     return res.scalar_one_or_none()
 
 

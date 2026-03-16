@@ -34,7 +34,7 @@ async def submit_bug_report(
 ):
     # Načti postavu
     char = (await db.execute(
-        select(Character).where(Character.user_id == user.id)
+        select(Character).where(Character.user_id == user.id, Character.is_dead == False)
     )).scalars().first()
 
     if not char:

@@ -157,12 +157,10 @@ async def _get_active_modifier(db: AsyncSession) -> dict | None:
 
 
 async def _get_char(user: User, db: AsyncSession) -> Character:
-    result = await db.execute(select(Character).where(Character.user_id == user.id))
+    result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")
-    if char.is_dead:
-        raise HTTPException(403, f"Tato postava zemřela. Zabit: {char.killed_by or 'Neznámý nepřítel'}")
     return char
 
 
@@ -861,7 +859,7 @@ async def abandon_dungeon(
     run.status = "failed"
 
     # Vyplať nashromážděné stage odměny (stages 1 až N-1) místo jejich smazání
-    char_result = await db.execute(select(Character).where(Character.user_id == user.id))
+    char_result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = char_result.scalar_one_or_none()
     partial_xp   = run.reward_xp
     partial_gold = run.reward_gold

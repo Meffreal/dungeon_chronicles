@@ -34,7 +34,7 @@ def _now() -> datetime:
 
 
 async def _get_char(user: User, db: AsyncSession) -> Character:
-    res = await db.execute(select(Character).where(Character.user_id == user.id))
+    res = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = res.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")

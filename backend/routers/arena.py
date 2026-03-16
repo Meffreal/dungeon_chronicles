@@ -67,7 +67,7 @@ def _reset_arena_gold_if_new_day(char: "Character") -> None:
 
 
 async def _get_char(user: User, db: AsyncSession) -> Character:
-    result = await db.execute(select(Character).where(Character.user_id == user.id))
+    result = await db.execute(select(Character).where(Character.user_id == user.id, Character.is_dead == False))
     char = result.scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena.")
