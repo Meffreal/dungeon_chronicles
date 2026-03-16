@@ -89,6 +89,7 @@ async def get_opponents(
         select(Character).where(
             and_(
                 Character.id != char.id,
+                Character.is_dead == False,
                 Character.arena_rank >= max(100, char.arena_rank - 300),
                 Character.arena_rank <= char.arena_rank + 300,
             )
@@ -99,8 +100,10 @@ async def get_opponents(
     # Pokud není dost hráčů v rozsahu, vrať všechny kromě sebe
     if len(opponents) < 3:
         result2 = await db.execute(
-            select(Character).where(Character.id != char.id)
-            .order_by(Character.arena_rank.desc()).limit(10)
+            select(Character).where(
+                Character.id != char.id,
+                Character.is_dead == False,
+            ).order_by(Character.arena_rank.desc()).limit(10)
         )
         opponents = result2.scalars().all()
 
@@ -178,7 +181,9 @@ async def attack(
         raise HTTPException(400, f"Cooldown! Další útok za {mins}:{secs:02d}.")
 
     # Načti obránce
-    def_res = await db.execute(select(Character).where(Character.id == defender_id))
+    def_res = await db.execute(
+        select(Character).where(Character.id == defender_id, Character.is_dead == False)
+    )
     defender = def_res.scalar_one_or_none()
     if not defender:
         raise HTTPException(404, "Soupeř nenalezen.")
@@ -403,6 +408,7 @@ async def arena_leaderboard(db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(
         select(Character)
+        .where(Character.is_dead == False)
         .order_by(Character.arena_rank.desc())
         .limit(20)
     )
@@ -448,7 +454,7 @@ async def season_leaderboard(db: AsyncSession = Depends(get_db)):
 
     result = await db.execute(
         select(Character)
-        .where(Character.arena_rank > 0)
+        .where(Character.arena_rank > 0, Character.is_dead == False)
         .order_by(Character.arena_rank.desc())
         .limit(25)
     )
