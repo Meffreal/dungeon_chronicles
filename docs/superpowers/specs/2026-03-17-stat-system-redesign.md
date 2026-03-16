@@ -104,10 +104,34 @@ Crit damage = +100% (2× celkový damage)
 
 ## Dopad na Items
 
-- Pole `bonus_atk` na zbraních = `weapon_dmg` (žádné přejmenování, stejné pole)
-- Pole `bonus_def` na zbroji = `armor_value` (žádné přejmenování, stejné pole)
-- Předměty s oběma fieldy (prsteny, amulety): `bonus_atk` → weapon_dmg pool, `bonus_def` → armor pool — bez změny logiky
-- **Item upgrade systém**: `InventoryItem._upgraded_item_dict()` škáluje `atk`/`def` klíče — tyto klíče se přejmenují na `weapon_dmg`/`armor_value` ve slovníku; hodnoty se nemění
+### Zachovaná pole (stále relevantní)
+
+| Pole | Účel |
+|------|------|
+| `bonus_atk` | weapon_dmg zdroj (zbraně, prsteny, amulety) |
+| `bonus_def` | armor_value zdroj (zbroje, helmy, boty, prsteny) |
+| `bonus_str`, `bonus_dex`, `bonus_int`, `bonus_end`, `bonus_luck` | Primární stat bonusy — zachovány |
+| `bonus_hp` | Flat HP bonus — zachován (přidává se k vypočítanému HP) |
+
+### Odstraněná pole z Item modelu (DB migrace)
+
+| Pole | Důvod |
+|------|-------|
+| `bonus_spd` | SPD stat odstraněn — žádné využití |
+| `bonus_mp` | MP odstraněno — **výjimka: scrolly** (viz níže) |
+
+### Výjimka: bonus_mp na scrollech
+
+`bonus_mp` na scrollech aktuálně funguje jako **okamžitý XP bonus** (ne mana). Tato logika se přesune na `bonus_xp` field — nový sloupec v Item modelu, nebo se logika přepíše aby používala `bonus_hp` jako náhradní carrier. Rozhodnutí: přidat `bonus_xp: int = 0` do Item modelu.
+
+### Runosmith a Fateweaver
+
+- `runosmith.py` — odstraní se všechny efekty generující `bonus_spd` a `bonus_mp`; nahradí se ekvivalentními bonusy (např. `bonus_str`/`bonus_dex`/`bonus_int`)
+- `fateweaver.py` — odstraní se efekt `bonus_mp_flat: 40`
+
+### Item upgrade systém
+
+`InventoryItem._upgraded_item_dict()` škáluje klíče `atk`, `def`, `spd`, `mp` — klíče `spd` a `mp` se odstraní, `atk` a `def` zůstávají.
 
 ---
 
@@ -117,7 +141,7 @@ Crit damage = +100% (2× celkový damage)
 
 ```python
 # Stará pole která MIZÍ:
-# atk, def_, spd, mp
+# atk, def_, spd, mp, strategy
 
 # Nová pole:
 weapon_dmg: int        # bonus_atk z vybavené zbraně (nebo class base)
@@ -127,7 +151,7 @@ secondary_a: int       # první sekundární stat (DEX pro Warriora, STR pro Ran
 secondary_b: int       # druhý sekundární stat (INT pro Warriora, INT pro Rangera, DEX pro Mage)
 
 # Zachována pole:
-hp, luck, class_name, level, talents, talent_t2, subclass, set_bonuses, strategy
+hp, luck, class_name, level, talents, talent_t2, subclass, set_bonuses
 ```
 
 ### Damage výpočet za runtime
@@ -149,22 +173,31 @@ def _calc_damage(weapon_dmg, primary_stat, sec_a, sec_b,
 
 - `_dodge_chance()` funkce
 - `slow` status efekt
-- `spd_mult` v COMBAT_STRATEGIES (klíč `spd_mult` se odstraní)
+- `COMBAT_STRATEGIES` dict — **kompletně odstraněn**
+- `strategy` field z `CombatantConfig`
 - MP tracking (`self.mp`, `self.mp_max`, `mp_cost_pct` logika)
-- `mp_mult` v COMBAT_STRATEGIES (klíč se odstraní)
 
-### Strategie po úpravě
+### Combat strategies — kompletní odstranění
 
-```python
-COMBAT_STRATEGIES = {
-    "balanced":    {"atk_mult": 1.00, "def_mult": 1.00},
-    "aggro":       {"atk_mult": 1.25, "def_mult": 0.85},
-    "defensive":   {"atk_mult": 0.90, "def_mult": 1.30},
-    "burst":       {"atk_mult": 1.15, "def_mult": 0.95},  # burst = agresivnější aggro
-}
-```
+`COMBAT_STRATEGIES` se odstraní úplně. Dopad:
 
-`atk_mult` násobí výsledný damage, `def_mult` násobí `armor_value`.
+| Místo | Akce |
+|-------|------|
+| `combat_engine.py` | Smazat `COMBAT_STRATEGIES` dict a veškerou `_strat[...]` logiku |
+| `CombatantConfig` | Odstraní se field `strategy: str = "balanced"` |
+| `_FighterState.__init__()` | Odstraní se aplikace multiplikátorů z strategie |
+| `routers/arena.py` | Odstraní se `strategy` z `ArenaAttackBody` |
+| `routers/quest.py` | Odstraní se `strategy` z `StartQuestRequest` |
+| `routers/dungeon.py` | Odstraní se `strategy` z `EnterDungeonRequest` |
+| `routers/guild_war.py` | Odstraní se `strategy` z `WarAttackReq` |
+| `frontend/js/ui.js` | Smazat `_STRAT_DEFS`, `getStrategy()`, `strategyPickerHtml()` |
+| `frontend/js/arena.js` | Odstraní se `strategy: getStrategy()` z API volání |
+| `frontend/js/quest.js` | Odstraní se `strategy: getStrategy()` z API volání |
+| `frontend/js/dungeons.js` | Odstraní se `strategy: getStrategy()` z API volání |
+| `frontend/js/guild.js` | Odstraní se `strategy` z API volání |
+| `localStorage` | Klíč `combat_strategy` se přestane ukládat |
+
+Poznámka: `defensive` strategie měla `start_status: "shield"` — tento efekt zaniká spolu se strategiemi.
 
 ---
 
@@ -212,14 +245,30 @@ Subclassy `elementalist` a `necromancer` ztratí `mp_mult` — nahradí je `dmg_
 **Soubor:** `backend/alembic/versions/0046_stat_system_redesign.py`
 
 Operace (vše s idempotentním guard):
-1. Odstraň sloupce `atk`, `def_`, `spd`, `mp_max` z tabulky `characters`
-2. `hp_max` zůstává — bude přepočítán při startu přes `recalculate_stats()`
+
+**Tabulka `characters` — odstraněné sloupce:**
+- `atk`, `def_`, `spd`, `mp_max`
+- `hp_max` zůstává — přepočítán při startu přes `recalculate_stats()`
+
+**Tabulka `items` — odstraněné sloupce:**
+- `bonus_spd`, `bonus_mp`
+
+**Tabulka `items` — nový sloupec:**
+- `bonus_xp: int = 0` (náhrada za scroll logiku z `bonus_mp`)
 
 ```python
 # Idempotentní guard vzor:
 cols = [c['name'] for c in inspect(bind).get_columns('characters')]
 if 'atk' in cols:
     op.drop_column('characters', 'atk')
+
+item_cols = [c['name'] for c in inspect(bind).get_columns('items')]
+if 'bonus_spd' in item_cols:
+    op.drop_column('items', 'bonus_spd')
+if 'bonus_mp' in item_cols:
+    op.drop_column('items', 'bonus_mp')
+if 'bonus_xp' not in item_cols:
+    op.add_column('items', sa.Column('bonus_xp', sa.Integer(), nullable=False, server_default='0'))
 ```
 
 ---
