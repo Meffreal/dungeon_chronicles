@@ -118,9 +118,10 @@ async def _get_char(user: User, db: AsyncSession) -> Character:
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 class CreateCharacterRequest(BaseModel):
-    name:    str
-    cls:     str            # warrior / mage / ranger
-    faction: str | None = None  # rad_popele / pakt_stinu / kongregace_prazdna
+    name:      str
+    cls:       str            # warrior / mage / ranger
+    faction:   str | None = None  # rad_popele / pakt_stinu / kongregace_prazdna
+    is_hardcore: bool = False     # opt-in permadeath mode
 
 class AllocateStatRequest(BaseModel):
     stat: str  # strength / dexterity / intelligence / endurance / luck
@@ -177,7 +178,7 @@ async def create_character(
         luck=base["luck"],
         faction=req.faction,
         experiment_group=_random.randint(0, 9),
-        is_hardcore=True,
+        is_hardcore=req.is_hardcore,
     )
     char.recalculate_stats()
     db.add(char)
