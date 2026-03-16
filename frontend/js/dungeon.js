@@ -75,8 +75,8 @@ function renderDungeonPage(listData, statusData) {
     return;
   }
 
-  // Pokud máme dokončený/nesebraný run
-  if (run && run.status === 'completed' && !run.reward_claimed) {
+  // Pokud máme dokončený/nesebraný run (nebo failed s nasbíranými odměnami)
+  if (run && !run.reward_claimed && (run.status === 'completed' || (run.status === 'failed' && (run.reward_xp > 0 || run.reward_gold > 0)))) {
     renderDungeonReady(run);
     return;
   }
@@ -185,7 +185,7 @@ function renderDungeonList(dungeons, modifier) {
     const iv = setInterval(() => {
       secs--;
       el.textContent = _formatCd(secs);
-      if (secs <= 0) { clearInterval(iv); loadDungeonData(); }
+      if (secs <= 0) { clearInterval(iv); loadDungeons(); }
     }, 1000);
   });
 }
@@ -303,8 +303,8 @@ function renderDungeonReady(run) {
 
   container.innerHTML = `
     <div class="dng-completed-wrapper">
-      <div class="dng-completed-icon">🏆</div>
-      <h2>${esc(run.dungeon_name)} — Dokončeno!</h2>
+      <div class="dng-completed-icon">${run.status === 'failed' ? '⚠' : '🏆'}</div>
+      <h2>${esc(run.dungeon_name)} — ${run.status === 'failed' ? 'Nashromážděné odměny' : 'Dokončeno!'}</h2>
       <div class="dng-final-rewards">
         <div class="dng-reward-item">
           <span class="dng-reward-ico">✨</span>
@@ -343,12 +343,12 @@ async function enterDungeon(dungeonKey, btnEl) {
   } catch (e) {
     toast(e.message || 'Vstup do dungeonu selhal.', 'e');
     if (btn) { btn.disabled = false; btn.textContent = '⚔ Vstoupit'; }
-    await loadDungeonData();
+    await loadDungeons();
   }
 }
 
 async function resumeDungeon(dungeonKey) {
-  await loadDungeonData();
+  await loadDungeons();
 }
 
 async function dungeonNextStage(runId) {
@@ -369,7 +369,7 @@ async function dungeonNextStage(runId) {
 
   } catch (e) {
     toast(e.message || 'Postup na další stage selhal.', 'e');
-    await loadDungeonData();
+    await loadDungeons();
   }
 }
 
@@ -395,7 +395,7 @@ async function dungeonAcceptSecretPath(runId, accept) {
 
   } catch (e) {
     toast(e.message || 'Postup na tajný stage selhal.', 'e');
-    await loadDungeonData();
+    await loadDungeons();
   }
 }
 
@@ -445,7 +445,7 @@ async function collectDungeon(runId) {
       toast(`⬆ Level UP! Dosáhl jsi level ${result.leveled_up.at(-1)}!`, 's', 5000);
     }
 
-    await loadDungeonData();
+    await loadDungeons();
   } catch (e) {
     toast(e.message || 'Nelze vyzvednout odměny.', 'e');
   }
@@ -456,7 +456,7 @@ async function abandonDungeon(runId) {
   try {
     await api('POST', '/dungeon/abandon', { run_id: runId });
     toast('Dungeon opuštěn.', 'i');
-    await loadDungeonData();
+    await loadDungeons();
   } catch (e) {
     toast(e.message || 'Opuštění selhalo.', 'e');
   }
@@ -504,7 +504,7 @@ function _showStageReplay(result, stageNum) {
       }
     } else if (!result.player_won) {
       toast(`💀 Poražen v ${stageName}. Dungeon selhal.`, 'e', 5000);
-      await loadDungeonData();
+      await loadDungeons();
     } else {
       renderActiveDungeon(result.run, _dungeonModifier);
       // Naplní insights kontejner vložený v renderActiveDungeon
@@ -521,8 +521,11 @@ function _showStageReplay(result, stageNum) {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function _getDungeonDef(run) {
-  // Dummy helper — frontend nemá přímý přístup k DUNGEON_DEFINITIONS
-  // ale API vrací stage info v run.to_dict()
+  if (!run) return null;
+  // DUNGEON_DATA je globální z dungeons.js, naplněno z /dungeon/config
+  if (typeof DUNGEON_DATA !== 'undefined' && DUNGEON_DATA.length > 0) {
+    return DUNGEON_DATA.find(d => d.dungeon_key === run.dungeon_key) || null;
+  }
   return null;
 }
 

@@ -511,7 +511,9 @@ async def next_stage(
     if run.player_hp_current <= 0:
         raise HTTPException(400, "Hráč nemá HP — dungeon selhal.")
 
-    ddef = DUNGEON_DEFINITIONS[run.dungeon_key]
+    ddef = DUNGEON_DEFINITIONS.get(run.dungeon_key)
+    if not ddef:
+        raise HTTPException(400, f"Neznámý dungeon '{run.dungeon_key}' — data mohla být aktualizována. Opusťte dungeon.")
     next_stage_num = run.current_stage + 1
 
     if next_stage_num > run.total_stages:
@@ -625,22 +627,29 @@ async def next_stage(
 
     # Weekly hooky — kills a dungeons
     if combat.attacker_won:
-        if char.guild_id:
-            from routers.guild import increment_guild_weekly
-            await increment_guild_weekly(char.guild_id, "kills", 1, char.id, db)
+        try:
+            if char.guild_id:
+                from routers.guild import increment_guild_weekly
+                await increment_guild_weekly(char.guild_id, "kills", 1, char.id, db)
+                if dungeon_completed:
+                    await increment_guild_weekly(char.guild_id, "dungeons", 1, char.id, db)
+            from routers.weekly_quest import increment_weekly_board
+            await increment_weekly_board(char.id, "kills", 1, db)
             if dungeon_completed:
-                await increment_guild_weekly(char.guild_id, "dungeons", 1, char.id, db)
-        from routers.weekly_quest import increment_weekly_board
-        await increment_weekly_board(char.id, "kills", 1, db)
-        if dungeon_completed:
-            await increment_weekly_board(char.id, "dungeons", 1, db)
-        from routers.season_pass import add_season_xp
-        await add_season_xp(char.id, "dungeon_stage", db)
-        if dungeon_completed:
-            await add_season_xp(char.id, "dungeon_complete", db)
-        # Durability loss
-        from routers.inventory import _decrease_equipped_durability, DURABILITY_LOSS_DUNGEON
-        await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
+                await increment_weekly_board(char.id, "dungeons", 1, db)
+            from routers.season_pass import add_season_xp
+            await add_season_xp(char.id, "dungeon_stage", db)
+            if dungeon_completed:
+                await add_season_xp(char.id, "dungeon_complete", db)
+            # Durability loss
+            from routers.inventory import _decrease_equipped_durability, DURABILITY_LOSS_DUNGEON
+            await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
+        except Exception as _hook_err:
+            import logging as _logging
+            _logging.getLogger(__name__).warning(
+                "Dungeon next_stage weekly hook failed (non-critical, stage %s): %s",
+                next_stage_num, _hook_err
+            )
 
     # HC permadeath — postava zemřela na tomto stage
     permadeath_data = None
@@ -845,7 +854,25 @@ async def abandon_dungeon(
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     ddef = DUNGEON_DEFINITIONS.get(run.dungeon_key, {})
 
-    run.status         = "failed"
+    run.status = "failed"
+
+    # Vyplať nashromážděné stage odměny (stages 1 až N-1) místo jejich smazání
+    char_result = await db.execute(select(Character).where(Character.user_id == user.id))
+    char = char_result.scalar_one_or_none()
+    partial_xp   = run.reward_xp
+    partial_gold = run.reward_gold
+    if char and (partial_xp > 0 or partial_gold > 0):
+        char.xp   += partial_xp
+        char.gold += partial_gold
+        if partial_gold > 0:
+            await log_gold(db, char, partial_gold, GoldReason.DUNGEON_REWARD,
+                           {"dungeon_run_id": run.id, "dungeon_key": run.dungeon_key, "partial": True})
+        while char.xp >= xp_to_next(char.level):
+            char.xp    -= xp_to_next(char.level)
+            char.level += 1
+            char.stat_points = (char.stat_points or 0) + 1
+            char.recalculate_stats()
+
     run.reward_xp      = 0
     run.reward_gold    = 0
     run.reward_claimed = True  # prevent collect
@@ -856,4 +883,4 @@ async def abandon_dungeon(
     except Exception:
         await db.rollback()
         raise HTTPException(500, "Chyba při opouštění dungeonu — zkus znovu.")
-    return {"message": "Dungeon opuštěn."}
+    return {"message": "Dungeon opuštěn.", "partial_xp": partial_xp, "partial_gold": partial_gold}

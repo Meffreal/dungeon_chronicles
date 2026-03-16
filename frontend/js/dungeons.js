@@ -25,7 +25,7 @@ async function loadDungeons() {
       if (typeof renderActiveDungeon === 'function') renderActiveDungeon(run, null);
       return;
     }
-    if (run && run.status === 'completed' && !run.reward_claimed) {
+    if (run && !run.reward_claimed && (run.status === 'completed' || (run.status === 'failed' && (run.reward_xp > 0 || run.reward_gold > 0)))) {
       if (typeof renderDungeonReady === 'function') renderDungeonReady(run);
       return;
     }
