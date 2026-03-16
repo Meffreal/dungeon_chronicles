@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#050508"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#f4d03f"/>
+      <stop offset="60%" stop-color="#c9a84c"/>
+      <stop offset="100%" stop-color="#a07830"/>
+    </linearGradient>
+    <radialGradient id="gem-shine" cx="35%" cy="30%">
+      <stop offset="0%" stop-color="#ff6b6b"/>
+      <stop offset="100%" stop-color="#8b1a1a"/>
+    </radialGradient>
+    <radialGradient id="pommel-glow" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#f4d03f"/>
+      <stop offset="100%" stop-color="#c9a84c"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="0.8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="32" height="32" rx="5" fill="url(#bg)"/>
+
+  <!-- Border rune-line -->
+  <rect x="1.5" y="1.5" width="29" height="29" rx="4" fill="none"
+        stroke="#c9a84c" stroke-width="0.6" opacity="0.45"/>
+
+  <!-- Subtle corner diamonds -->
+  <polygon points="3,1.5 4.5,3 3,4.5 1.5,3" fill="#c9a84c" opacity="0.5"/>
+  <polygon points="29,1.5 30.5,3 29,4.5 27.5,3" fill="#c9a84c" opacity="0.5"/>
+  <polygon points="3,27.5 4.5,29 3,30.5 1.5,29" fill="#c9a84c" opacity="0.5"/>
+  <polygon points="29,27.5 30.5,29 29,30.5 27.5,29" fill="#c9a84c" opacity="0.5"/>
+
+  <!-- ===== SWORD ===== -->
+
+  <!-- Blade (pointing up) -->
+  <polygon points="16,3 17.4,14.5 14.6,14.5"
+           fill="url(#blade)" filter="url(#glow)"/>
+  <!-- Blade highlight (shine) -->
+  <polygon points="16,3 16.45,14.5 16,13" fill="#f4d03f" opacity="0.55"/>
+
+  <!-- Crossguard -->
+  <rect x="10" y="14.5" width="12" height="2.2" rx="1.1"
+        fill="#c9a84c" stroke="#f4d03f" stroke-width="0.3" opacity="0.95"/>
+  <!-- Crossguard end knobs -->
+  <circle cx="10.4" cy="15.6" r="1.1" fill="#a07830"/>
+  <circle cx="21.6" cy="15.6" r="1.1" fill="#a07830"/>
+
+  <!-- Crimson gem at crossguard center -->
+  <rect x="14.5" y="13.8" width="3" height="3.6" rx="0.6"
+        fill="url(#gem-shine)" filter="url(#glow)"/>
+  <!-- Gem highlight -->
+  <rect x="14.9" y="14.1" width="1" height="1.2" rx="0.3"
+        fill="#ff8a8a" opacity="0.7"/>
+
+  <!-- Grip -->
+  <rect x="15.1" y="16.7" width="1.8" height="8.2" rx="0.6"
+        fill="#7a5520"/>
+  <!-- Grip wrapping lines -->
+  <line x1="15.1" y1="18.3" x2="16.9" y2="18.3" stroke="#c9a84c" stroke-width="0.45" opacity="0.7"/>
+  <line x1="15.1" y1="20.1" x2="16.9" y2="20.1" stroke="#c9a84c" stroke-width="0.45" opacity="0.7"/>
+  <line x1="15.1" y1="21.9" x2="16.9" y2="21.9" stroke="#c9a84c" stroke-width="0.45" opacity="0.7"/>
+  <line x1="15.1" y1="23.7" x2="16.9" y2="23.7" stroke="#c9a84c" stroke-width="0.45" opacity="0.7"/>
+
+  <!-- Pommel -->
+  <circle cx="16" cy="26.5" r="2.4"
+          fill="url(#pommel-glow)" stroke="#f4d03f" stroke-width="0.4"
+          filter="url(#glow)"/>
+  <circle cx="16" cy="26.5" r="1" fill="#f4d03f" opacity="0.8"/>
+</svg>
