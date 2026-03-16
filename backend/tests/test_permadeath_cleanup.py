@@ -199,3 +199,147 @@ async def test_dead_member_not_counted_in_guild_list(client_db):
     assert test_guild is not None
     assert test_guild["member_count"] == 1, \
         f"Čekal member_count=1, dostal {test_guild['member_count']}"
+
+
+# ── Testy: Permadeath guild cleanup ───────────────────────────────────────────
+
+async def _simulate_permadeath_cleanup(db, char_id: int):
+    """
+    Simuluje guild cleanup část _trigger_permadeath:
+    - nastaví is_dead=True a guild_id=None
+    - předá leadership nástupci (pokud existuje)
+    Neobsahuje HoF/Bloodline logiku (ta patří do dungeon.py).
+    """
+    from models.character import Character
+    from models.guild import Guild
+    from sqlalchemy import select
+    from datetime import datetime, timezone
+
+    res = await db.execute(select(Character).where(Character.id == char_id))
+    char = res.scalar_one()
+
+    if char.guild_id is not None:
+        g_res = await db.execute(select(Guild).where(Guild.id == char.guild_id))
+        guild = g_res.scalar_one_or_none()
+        if guild and guild.leader_id == char.id:
+            succ_res = await db.execute(
+                select(Character).where(
+                    Character.guild_id == guild.id,
+                    Character.is_dead == False,
+                    Character.id != char.id,
+                ).order_by(Character.level.desc()).limit(1)
+            )
+            successor = succ_res.scalar_one_or_none()
+            if successor:
+                guild.leader_id = successor.id
+        char.guild_id = None
+
+    char.is_dead = True
+    char.died_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+
+
+async def test_permadeath_removes_char_from_guild(client_db):
+    """Po permadeath musí být guild_id=None."""
+    from models.character import Character
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token_l = await _register(client, "pd_leader_remove")
+    token_m = await _register(client, "pd_member_die")
+
+    char_l = await _create_char(client, token_l, "LeaderR")
+    char_m = await _create_char(client, token_m, "ClenDie")
+
+    await _give_gold(db, char_l["id"], 500)
+
+    resp = await client.post("/guild/create",
+                             json={"name": "PDCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    resp = await client.post(f"/guild/join/{guild_id}",
+                             headers={"Authorization": f"Bearer {token_m}"})
+    assert resp.status_code == 200
+
+    await _simulate_permadeath_cleanup(db, char_m["id"])
+
+    res = await db.execute(select(Character).where(Character.id == char_m["id"]))
+    dead = res.scalar_one()
+    assert dead.is_dead is True
+    assert dead.guild_id is None, "Po permadeath musí být guild_id=None"
+
+
+async def test_permadeath_leader_succession_to_highest_level(client_db):
+    """Leadership přejde na živého člena s nejvyšším levelem."""
+    from models.character import Character
+    from models.guild import Guild
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token_l  = await _register(client, "pd_leader_suc")
+    token_m1 = await _register(client, "pd_member_low")
+    token_m2 = await _register(client, "pd_member_high")
+
+    char_l  = await _create_char(client, token_l,  "LeaderSuc")
+    char_m1 = await _create_char(client, token_m1, "LowLevel")
+    char_m2 = await _create_char(client, token_m2, "HighLevel")
+
+    await _give_gold(db, char_l["id"], 500)
+
+    resp = await client.post("/guild/create",
+                             json={"name": "SucCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    resp = await client.post(f"/guild/join/{guild_id}",
+                             headers={"Authorization": f"Bearer {token_m1}"})
+    assert resp.status_code == 200
+    resp = await client.post(f"/guild/join/{guild_id}",
+                             headers={"Authorization": f"Bearer {token_m2}"})
+    assert resp.status_code == 200
+
+    # Nastav levely přímo v DB
+    res1 = await db.execute(select(Character).where(Character.id == char_m1["id"]))
+    res1.scalar_one().level = 1
+    res2 = await db.execute(select(Character).where(Character.id == char_m2["id"]))
+    res2.scalar_one().level = 10
+    await db.commit()
+
+    await _simulate_permadeath_cleanup(db, char_l["id"])
+
+    g_res = await db.execute(select(Guild).where(Guild.id == guild_id))
+    guild = g_res.scalar_one()
+    assert guild.leader_id == char_m2["id"], \
+        f"Leader má být HighLevel ({char_m2['id']}), dostal {guild.leader_id}"
+
+
+async def test_permadeath_solo_leader_guild_keeps_marker(client_db):
+    """Pokud leader umře sám, guild.leader_id zůstane jako owner marker."""
+    from models.guild import Guild
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token_l = await _register(client, "pd_solo_leader")
+    char_l  = await _create_char(client, token_l, "SoloLeader")
+
+    await _give_gold(db, char_l["id"], 500)
+
+    resp = await client.post("/guild/create",
+                             json={"name": "SoloCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token_l}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    await _simulate_permadeath_cleanup(db, char_l["id"])
+
+    g_res = await db.execute(select(Guild).where(Guild.id == guild_id))
+    guild = g_res.scalar_one()
+    assert guild is not None, "Guild musí stále existovat"
+    assert guild.leader_id == char_l["id"], \
+        "leader_id musí zůstat jako owner marker"

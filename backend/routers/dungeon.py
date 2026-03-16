@@ -43,6 +43,8 @@ from game.dungeon_modifiers import (
 from game.set_bonuses import get_char_set_combat_effects
 from models.hall_of_fallen import HallOfFallen
 from game.bloodline import award_death_bloodline_xp
+from models.guild import Guild
+from models.notification import Notification, NotifType
 
 router = APIRouter(prefix="/dungeon", tags=["dungeon"])
 
@@ -121,6 +123,30 @@ async def _trigger_permadeath(
         dungeons_cleared=dungeons_cleared,
         db=db,
     )
+
+    # ── Guild cleanup ─────────────────────────────────────────────────────────
+    if char.guild_id is not None:
+        g_res = await db.execute(select(Guild).where(Guild.id == char.guild_id))
+        guild = g_res.scalar_one_or_none()
+        if guild and guild.leader_id == char.id:
+            succ_res = await db.execute(
+                select(Character).where(
+                    Character.guild_id == guild.id,
+                    Character.is_dead == False,
+                    Character.id != char.id,
+                ).order_by(Character.level.desc()).limit(1)
+            )
+            successor = succ_res.scalar_one_or_none()
+            if successor:
+                guild.leader_id = successor.id
+                db.add(Notification(
+                    character_id=successor.id,
+                    type=NotifType.SYSTEM,
+                    title="⚜ Stal ses Guild Masterem!",
+                    body=f"{char.name} padl v boji. Vedení cechu přechází na tebe.",
+                ))
+            # else: guild.leader_id zůstane jako owner marker
+        char.guild_id = None
 
     return {
         "permadeath":       True,
