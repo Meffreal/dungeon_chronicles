@@ -12,7 +12,7 @@
 - `GoldReason` enum v `models/economy.py`
 
 ## Alembic migrace
-- Poslední: `0021_talent_t2_key.py` → příští `0022_`
+- Poslední: `0044_fix_hardcore_flag.py` → příští `0045_`
 - Šablona idempotentní guard:
   ```python
   cols = [c['name'] for c in inspect(bind).get_columns('table')]
