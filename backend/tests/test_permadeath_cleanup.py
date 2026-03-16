@@ -170,9 +170,6 @@ async def test_dead_member_not_shown_in_guild(client_db):
 
 async def test_dead_member_not_counted_in_guild_list(client_db):
     """Mrtvý člen se nesmí počítat do member_count v seznam cechů."""
-    from models.character import Character
-    from sqlalchemy import select
-
     client, db = client_db
 
     token_l = await _register(client, "guild_leader_count")
@@ -189,8 +186,9 @@ async def test_dead_member_not_counted_in_guild_list(client_db):
     assert resp.status_code == 201
     guild_id = resp.json()["guild"]["id"]
 
-    await client.post(f"/guild/join/{guild_id}",
-                      headers={"Authorization": f"Bearer {token_m}"})
+    resp = await client.post(f"/guild/join/{guild_id}",
+                             headers={"Authorization": f"Bearer {token_m}"})
+    assert resp.status_code == 200
 
     await _set_dead(db, char_m["id"])
 
