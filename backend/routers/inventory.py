@@ -435,8 +435,9 @@ async def use_item(
         char.xp    -= xp_to_next(char.level)
         char.level += 1
         char.stat_points = (char.stat_points or 0) + 1
-        char.recalculate_stats()
         leveled_up.append(char.level)
+    if leveled_up:
+        await recalculate_with_gear(char, db)
 
     # Odeber 1 ks z inventáře
     if inv_item.quantity <= 1:

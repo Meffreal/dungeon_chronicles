@@ -775,8 +775,10 @@ async def collect_dungeon(
         char.xp    -= xp_to_next(char.level)
         char.level += 1
         char.stat_points = (char.stat_points or 0) + 1
-        char.recalculate_stats()
         leveled_up.append(char.level)
+    if leveled_up:
+        from routers.inventory import recalculate_with_gear
+        await recalculate_with_gear(char, db)
 
     # World Event příspěvek — dungeon clear
     if run.status == "completed":
@@ -867,11 +869,15 @@ async def abandon_dungeon(
         if partial_gold > 0:
             await log_gold(db, char, partial_gold, GoldReason.DUNGEON_REWARD,
                            {"dungeon_run_id": run.id, "dungeon_key": run.dungeon_key, "partial": True})
+        _partial_leveled = False
         while char.xp >= xp_to_next(char.level):
             char.xp    -= xp_to_next(char.level)
             char.level += 1
             char.stat_points = (char.stat_points or 0) + 1
-            char.recalculate_stats()
+            _partial_leveled = True
+        if _partial_leveled:
+            from routers.inventory import recalculate_with_gear
+            await recalculate_with_gear(char, db)
 
     run.reward_xp      = 0
     run.reward_gold    = 0

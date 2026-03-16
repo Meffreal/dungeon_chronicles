@@ -501,8 +501,10 @@ async def collect_quest(
         char.xp    -= xp_to_next(char.level)
         char.level += 1
         char.stat_points = (char.stat_points or 0) + 1
-        char.recalculate_stats()
         leveled_up.append(char.level)
+    if leveled_up:
+        from routers.inventory import recalculate_with_gear
+        await recalculate_with_gear(char, db)
     # Auto-unlock talentů (Tier 1) při dosažení level 10/20/30
     from game.talents import TALENT_TREE as _TALENT_TREE
     _newly_talents = char.check_and_unlock_talents() if leveled_up else []
