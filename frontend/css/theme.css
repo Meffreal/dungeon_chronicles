@@ -28,8 +28,8 @@
 
   /* Text */
   --text:  #d8c8b8;
-  --text2: #8a7a6a;
-  --text3: #5a4a3a;
+  --text2: #a89878;
+  --text3: #7a6858;
 
   /* Ostatní — zachovány původní hodnoty */
   --green:   var(--clr-poison);
@@ -43,7 +43,7 @@
   --clr-surface: var(--clr-slate);
   --clr-accent:  var(--clr-gold);
   --clr-text:    #d8c8b8;
-  --clr-muted:   #5a4a3a;
+  --clr-muted:   #7a6858;
 }
 
 /* ── NPC OBCHOD — REDESIGN ─────────────────────────────────────────────────── */
@@ -508,8 +508,8 @@
 .season-banner{background:linear-gradient(135deg,#1a0a2e,#2a1050);border:1px solid rgba(163,53,238,.4);border-radius:5px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;}
 .season-num{font-family:'Cinzel',serif;font-size:1.5rem;font-weight:700;color:#c060ff;line-height:1;}
 .season-theme-name{font-family:'Cinzel',serif;font-size:0.72rem;color:#e0a0ff;margin-top:2px;font-weight:600;white-space:nowrap;}
-.season-lbl{font-size:0.6rem;color:rgba(163,53,238,.7);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;}
-.season-theme-lore{font-size:0.65rem;color:var(--text3);font-style:italic;line-height:1.4;margin-bottom:5px;max-width:320px;}
+.season-lbl{font-size:0.66rem;color:rgba(163,53,238,.85);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;}
+.season-theme-lore{font-family:'Crimson Text',Georgia,serif;font-size:0.88rem;font-weight:400;color:var(--text2);font-style:italic;line-height:1.6;margin-bottom:5px;max-width:320px;}
 .season-timer{font-family:'Cinzel',serif;font-size:0.85rem;color:var(--text2);}
 .season-claim-btn{background:linear-gradient(135deg,#5a3800,#a06808,#5a3800);border:1px solid var(--gold2);color:var(--gold2);padding:6px 14px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .season-claim-btn:hover{box-shadow:0 0 12px rgba(200,144,32,.4);}
@@ -4846,11 +4846,11 @@
 }
 
 .hub-district-desc {
-  font-family: 'IM Fell English', 'Georgia', serif;
+  font-family: 'Crimson Text', Georgia, serif;
   font-style: italic;
-  font-size: .8rem;
-  color: var(--clr-muted, #7a6a5a);
-  line-height: 1.4;
+  font-size: .86rem;
+  color: var(--text2);
+  line-height: 1.55;
   flex: 1;
 }
 

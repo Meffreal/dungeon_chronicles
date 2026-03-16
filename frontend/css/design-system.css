@@ -4,7 +4,7 @@
    Self-contained: no external dependencies beyond Google Fonts
    ═══════════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Josefin+Sans:wght@300;400;600&family=UnifrakturMaguntia&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&family=IM+Fell+English:ital@0;1&family=Josefin+Sans:wght@300;400;600&family=UnifrakturMaguntia&display=swap');
 
 :root {
 
@@ -26,11 +26,12 @@
   --clr-ember:       #e67e22;
 
   /* ── TYPOGRAFIE ─────────────────────────────────────────────────────────── */
-  --font-display: 'Cinzel Decorative', serif;
-  --font-heading: 'Cinzel', serif;
-  --font-body:    'IM Fell English', 'Crimson Text', serif;
-  --font-ui:      'Josefin Sans', sans-serif;
-  --font-rune:    'UnifrakturMaguntia', cursive;
+  --font-display:  'Cinzel Decorative', serif;
+  --font-heading:  'Cinzel', serif;
+  --font-body:     'Crimson Text', Georgia, serif;   /* čitelný — descriptions, quest text, UI */
+  --font-lore:     'IM Fell English', serif;          /* flavor lore, epitafy, citáty */
+  --font-ui:       'Josefin Sans', sans-serif;
+  --font-rune:     'UnifrakturMaguntia', cursive;
 
   /* ── SPACING ────────────────────────────────────────────────────────────── */
   --space-1:   4px;

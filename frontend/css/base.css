@@ -2,18 +2,18 @@
 :root {
   --bg:#050508;       --bg2:#0d0d14;   --bg3:#1a1a2e;
   --border:rgba(201,168,76,0.18);   --border2:rgba(201,168,76,0.40);
-  --text2:#a08878; --text3:#6a5040;
+  --text2:#a89878; --text3:#7a6858;
   --green:#2ab870;    --green2:#50d070; --blue:#2050c8; --purple:#8030c0; --purple2:#b070f0;
   --cls-warrior:#c8965a; --cls-mage:#5090d0; --cls-ranger:#4aad6a;
   /* ── Typography scale ──────────────────────────────────────────────────── */
-  --fs-2xs:0.65rem;
-  --fs-xs: 0.72rem;
-  --fs-sm: 0.78rem;
-  --fs-base:0.88rem;
-  --fs-md: 0.94rem;
-  --fs-lg: 1.06rem;
-  --fs-xl: 1.18rem;
-  --lh-tight:1.35;   --lh-snug:1.5;   --lh-base:1.6;   --lh-loose:1.75;
+  --fs-2xs:0.70rem;
+  --fs-xs: 0.76rem;
+  --fs-sm: 0.82rem;
+  --fs-base:0.91rem;
+  --fs-md: 0.97rem;
+  --fs-lg: 1.08rem;
+  --fs-xl: 1.22rem;
+  --lh-tight:1.35;   --lh-snug:1.55;   --lh-base:1.65;   --lh-loose:1.8;
   --ls-tight:0.5px;
   --hp:#c02828;       --mp:#2050c8;    --xp:#28a840;
   --common:#9d9d9d;   --uncommon:#1eff00; --rare:#0070dd; --epic:#a335ee; --legend:#ff8000;
@@ -21,9 +21,9 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{font-size:17px;}
+html{font-size:18px;}
 html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.5;display:flex;flex-direction:column;}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:16px;font-weight:400;line-height:1.55;display:flex;flex-direction:column;}
 
 /* ── UTILITY BARVY ───────────────────────────────────────────────────────── */
 .c-red{color:#e06060;} .c-green{color:#60d080;} .c-blue{color:#6090f0;} .c-gold{color:var(--gold2);} .c-purple{color:var(--purple2);} .c-cyan{color:#60d8e0;} .c-silver{color:#c0c0d0;}

@@ -11,10 +11,10 @@
 }
 .qb-section-lbl {
   font-family: var(--font-heading);
-  font-size: 0.62rem;
+  font-size: 0.70rem;
   letter-spacing: var(--ls-wider);
   text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.55);
   margin: var(--space-3) 0 var(--space-2);
   display: flex;
   align-items: center;
@@ -191,10 +191,10 @@
 }
 .qv2-subtitle {
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.79rem;
   font-style: italic;
-  color: rgba(255,255,255,0.45);
-  line-height: 1.4;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -208,7 +208,7 @@
   padding: 2px 8px;
   border-radius: 20px;
   font-family: var(--font-heading);
-  font-size: 0.58rem;
+  font-size: 0.67rem;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   font-weight: 700;
@@ -233,14 +233,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.45);
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.62);
   font-family: var(--font-ui);
 }
 .qv2-meta-item strong {
   font-family: var(--font-heading);
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.75);
+  font-size: 0.79rem;
+  color: rgba(255,255,255,0.88);
   font-weight: 600;
 }
 .qv2-meta-item--gold strong { color: var(--clr-gold); }
@@ -295,9 +295,9 @@
 .qv2-progress-lbl {
   display: flex;
   justify-content: space-between;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-family: var(--font-heading);
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.58);
   margin-top: 3px;
   letter-spacing: var(--ls-base);
 }

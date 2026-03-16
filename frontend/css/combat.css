@@ -507,8 +507,8 @@
 
 /* Log entry base */
 .cl-entry {
-  font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-family: 'Crimson Text', Georgia, serif;
+  font-size: 0.87rem;
   line-height: 1.5;
   padding: 1px 0;
   color: var(--clr-ash);

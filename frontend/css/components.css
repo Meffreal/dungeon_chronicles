@@ -46,7 +46,7 @@
 /* ── FORMULÁŘE ───────────────────────────────────────────────────────────── */
 .fld{margin-bottom:11px;}
 .fld label{display:block;font-family:'Cinzel',serif;font-size:0.72rem;letter-spacing:var(--ls-wide);text-transform:uppercase;color:var(--text2);margin-bottom:5px;}
-.fld input{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IM Fell English',serif;font-size:0.96rem;outline:none;transition:all .2s;}
+.fld input{width:100%;padding:8px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:0.96rem;outline:none;transition:all .2s;}
 .fld input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 .fmsg{padding:7px 11px;border-radius:3px;font-size:0.82rem;margin-bottom:9px;display:none;}
 .fmsg.err{display:block;background:rgba(232,64,64,.15);border:1px solid #e84040;color:#ff9090;}
@@ -489,7 +489,7 @@
 .ps-item{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;transition:background .1s;}
 .ps-item:hover{background:rgba(232,176,32,.12);}
 .ps-cls{font-size:1rem;flex-shrink:0;}
-.ps-name{flex:1;font-family:'IM Fell English',serif;font-size:0.92rem;color:var(--text);}
+.ps-name{flex:1;font-family:'Crimson Text',Georgia,serif;font-size:0.92rem;color:var(--text);}
 .ps-level{font-family:'Cinzel',serif;font-size:0.68rem;color:var(--gold2);flex-shrink:0;}
 .ps-no-result{padding:8px 10px;font-size:0.8rem;color:var(--text3);font-style:italic;}
 .ps-selected{font-size:0.72rem;color:var(--green);margin-top:3px;font-family:'Cinzel',serif;}
@@ -500,7 +500,7 @@
 .pr-form-title{font-family:'Cinzel',serif;font-size:0.82rem;color:var(--gold2);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
 .pr-form-row{margin-bottom:10px;}
 .pr-form-row label{display:block;font-family:'Cinzel',serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
-.pr-input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'IM Fell English',serif;font-size:0.92rem;outline:none;transition:all .2s;}
+.pr-input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:0.92rem;outline:none;transition:all .2s;}
 .pr-input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 select.pr-input option{background:var(--panel2);}
 
@@ -1381,4 +1381,129 @@ select.pr-input option{background:var(--panel2);}
   }
 }
 
+/* ── READABILITY OVERRIDES ────────────────────────────────────────────────
+   Zvyšuje čitelnost prvků s hardcodovanými miniaturními velikostmi.
+   Centralizované opravy — neupravovat jednotlivé komponenty.
+   ─────────────────────────────────────────────────────────────────────── */
 
+/* Tlačítka */
+.btn-sm { font-size: 0.73rem; }
+
+/* Sekční labely */
+.sec-hdr-sub { font-size: 0.68rem; }
+.inv-section-label { font-size: 0.66rem; }
+
+/* Dungeon — miniaturní texty */
+.dng-desc { font-size: 0.86rem; line-height: 1.72; }
+.dng-flavor { font-size: 0.82rem; line-height: 1.6; }
+.dng-subtitle { font-size: 0.65rem; }
+.dng-hstat-l { font-size: 0.63rem; }
+.dng-info-lbl { font-size: 0.62rem; }
+.dng-rewards-title { font-size: 0.65rem; }
+.dng-atm-chip { font-size: 0.68rem; }
+.dng-status-badge { font-size: 0.67rem; }
+.dng-req-title { font-size: 0.67rem; }
+.dng-req-hint { font-size: 0.78rem; line-height: 1.5; }
+.dng-enter-btn { font-size: 0.8rem; }
+
+/* Item popisy */
+.item-desc { font-size: 0.91rem; line-height: 1.68; }
+.item-bonus-row { font-size: 0.89rem; }
+.item-detail-meta { font-size: 0.89rem; }
+
+/* Třídy — výběr povolání */
+.cls-desc { font-size: 0.79rem; line-height: 1.55; }
+.cls-nums { font-size: 0.75rem; }
+.cls-flavor { font-size: 0.75rem; }
+.cls-mechanic-badge { font-size: 0.65rem; }
+.cls-mechanic-detail { font-size: 0.72rem; line-height: 1.5; }
+.hc-warning { font-size: 0.82rem; }
+.hc-warning__sub { font-size: 0.76rem; }
+
+/* Attunement */
+.att-step-num { font-size: 0.69rem; }
+.att-step-meta { font-size: 0.75rem; }
+.att-start-btn { font-size: 0.65rem; }
+.att-progress-pct { font-size: 0.72rem; }
+.att-chain-desc { font-size: 0.85rem; }
+
+/* Renown tiery */
+.rt-num { font-size: 0.67rem; }
+.rt-badge { font-size: 0.68rem; }
+.rt-reward { font-size: 0.79rem; }
+.btn-claim { font-size: 0.69rem; }
+
+/* Frakce */
+.faction-card-tagline { font-size: 0.72rem; }
+.faction-rep-label { font-size: 0.72rem; }
+.faction-banner-tagline { font-size: 0.84rem; }
+
+/* Shop */
+.shop-npc-count { font-size: 0.70rem; }
+.shop-tab-btn { font-size: 0.75rem; }
+
+/* Set itemy */
+.inv-set-badge { font-size: 0.65rem; }
+.equip-set-panel-title { font-size: 0.66rem; }
+.set-bonus-req { font-size: 0.68rem; }
+.set-info-pieces { font-size: 0.76rem; }
+.set-bonus-row { font-size: 0.78rem; }
+
+/* Strategie */
+.strategy-label { font-size: 0.71rem; }
+.strategy-desc { font-size: 0.76rem; }
+.strat-btn { font-size: 0.78rem; }
+
+/* Formuláře a labely */
+.fld label { font-size: 0.75rem; }
+
+/* Bojový log */
+.blog { font-size: 0.85rem; line-height: 1.72; }
+
+/* ── FONT OVERRIDES — čitelnost popisných textů ───────────────────────────
+   Přepisuje 'IM Fell English' (tenký dekorativní) na 'Crimson Text'
+   (čitelný literary serif) pro veškerý gameplay text.
+   'IM Fell English' zůstává POUZE pro flavor lore / citáty.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Popisy itemů a bonusy */
+.item-desc,
+.item-bonus-row,
+.item-detail-meta,
+.item-detail-name { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Quest a dungeon popisný text */
+.dng-desc,
+.dng-flavor,
+.dng-req-chain,
+.dng-req-hint { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Třídy — výběr povolání */
+.cls-desc,
+.cls-flavor,
+.cls-mechanic-detail { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Attunement popis */
+.att-chain-desc,
+.att-reward-title { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Faction texty */
+.faction-banner-tagline,
+.faction-card-tagline,
+.faction-change-warning { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Notifikace a hc-warning */
+.notif-text,
+.hc-warning { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Prázdné stavy */
+.empty-state-sub { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Strategie popis */
+.strategy-desc { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Combat/fight log */
+.blog { font-family: 'Crimson Text', Georgia, serif; }
+
+/* Toast zprávy */
+.toast { font-family: 'Crimson Text', Georgia, serif; font-size: 0.91rem; }

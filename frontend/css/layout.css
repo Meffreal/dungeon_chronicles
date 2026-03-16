@@ -190,7 +190,7 @@
   padding:8px 11px;cursor:pointer;transition:all .18s cubic-bezier(.2,0,.1,1);
   background:none;border:none;border-left:3px solid transparent;
   color:rgba(255,255,255,.65);
-  font-family:'IM Fell English',serif;font-size:0.94rem;text-align:left;
+  font-family:'Crimson Text',Georgia,serif;font-size:0.97rem;font-weight:400;text-align:left;
 }
 .nav-btn .ni{font-size:0.9rem;width:17px;text-align:center;transition:transform .18s;}
 .nav-btn:hover{
