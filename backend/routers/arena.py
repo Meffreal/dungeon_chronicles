@@ -328,7 +328,9 @@ async def attack(
     await _cache.delete("arena:season_leaderboard")
 
     gold_earned = actual_win_gold if attacker_won else actual_loss_gold
-    cap_reached = attacker_won and actual_win_gold < GOLD_REWARD_WIN
+    # Porovnáváme s _effective_win_gold (ne GOLD_REWARD_WIN), protože A/B experiment
+    # multiplikátor mění efektivní výhru — cap jsme dosáhli jen pokud actual < effective.
+    cap_reached = attacker_won and actual_win_gold < _effective_win_gold
 
     return {
         "result":           "win" if attacker_won else "loss",
