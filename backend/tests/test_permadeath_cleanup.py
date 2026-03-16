@@ -218,6 +218,9 @@ async def _simulate_permadeath_cleanup(db, char_id: int):
     res = await db.execute(select(Character).where(Character.id == char_id))
     char = res.scalar_one()
 
+    char.is_dead = True
+    char.died_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
     if char.guild_id is not None:
         g_res = await db.execute(select(Guild).where(Guild.id == char.guild_id))
         guild = g_res.scalar_one_or_none()
@@ -234,8 +237,6 @@ async def _simulate_permadeath_cleanup(db, char_id: int):
                 guild.leader_id = successor.id
         char.guild_id = None
 
-    char.is_dead = True
-    char.died_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
 
 
