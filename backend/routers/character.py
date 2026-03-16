@@ -21,6 +21,7 @@ from models.item import Item, InventoryItem, UPGRADE_STAT_MULT, MAX_UPGRADE_LEVE
 from models.quest import Quest, QuestStatus
 from models.achievement import PlayerAchievement, ACHIEVEMENT_DEFINITIONS
 from models.faction import FactionReputation
+from models.guild import Guild
 from game.factions import FACTIONS
 from routers.auth import get_current_user
 
@@ -211,6 +212,23 @@ async def create_character(
             reputation=0,
         )
         db.add(faction_rep)
+
+    # ── Auto-rejoin: nová postava přebere osiřelý cech ────────────────────────
+    dead_res = await db.execute(
+        select(Character).where(
+            Character.user_id == user.id,
+            Character.is_dead == True,
+        ).order_by(Character.id.desc())
+    )
+    for dead_char in dead_res.scalars().all():
+        orphan_res = await db.execute(
+            select(Guild).where(Guild.leader_id == dead_char.id)
+        )
+        orphan_guild = orphan_res.scalar_one_or_none()
+        if orphan_guild:
+            char.guild_id = orphan_guild.id
+            orphan_guild.leader_id = char.id
+            break  # max jeden cech na uživatele
 
     await db.commit()
     await db.refresh(char)

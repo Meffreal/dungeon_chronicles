@@ -343,3 +343,77 @@ async def test_permadeath_solo_leader_guild_keeps_marker(client_db):
     assert guild is not None, "Guild musí stále existovat"
     assert guild.leader_id == char_l["id"], \
         "leader_id musí zůstat jako owner marker"
+
+
+# ── Testy: Auto-rejoin při vytvoření nové postavy ─────────────────────────────
+
+async def test_new_char_autojoins_orphaned_guild(client_db):
+    """Nová postava automaticky přebere osiřelý cech (kde mrtvá postava byla leader)."""
+    from models.character import Character
+    from models.guild import Guild
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token = await _register(client, "rejoin_user")
+    char1 = await _create_char(client, token, "PrvníHrdina")
+
+    await _give_gold(db, char1["id"], 500)
+
+    resp = await client.post("/guild/create",
+                             json={"name": "RejoinCech", "description": "", "emblem": "🛡️"},
+                             headers={"Authorization": f"Bearer {token}"})
+    assert resp.status_code == 201
+    guild_id = resp.json()["guild"]["id"]
+
+    # Simuluj permadeath cleanup: is_dead=True, guild_id=None, guild.leader_id zůstane
+    res = await db.execute(select(Character).where(Character.id == char1["id"]))
+    c = res.scalar_one()
+    c.is_dead = True
+    c.guild_id = None
+    # guild.leader_id zůstane ukazovat na char1 (owner marker)
+    await db.commit()
+
+    # Vytvoř novou postavu
+    resp2 = await client.post("/character/create",
+                              json={"name": "DruhýHrdina", "cls": "warrior"},
+                              headers={"Authorization": f"Bearer {token}"})
+    assert resp2.status_code == 201
+    char2 = resp2.json()["character"]
+
+    # Nová postava musí být v cechu a musí být leaderem
+    g_res = await db.execute(select(Guild).where(Guild.id == guild_id))
+    guild = g_res.scalar_one()
+    assert guild.leader_id == char2["id"], \
+        f"Nová postava má být leader, dostal leader_id={guild.leader_id}"
+
+    c2_res = await db.execute(select(Character).where(Character.id == char2["id"]))
+    c2 = c2_res.scalar_one()
+    assert c2.guild_id == guild_id, \
+        f"Nová postava má být v cechu {guild_id}, dostal guild_id={c2.guild_id}"
+
+
+async def test_new_char_no_orphaned_guild_no_autojoin(client_db):
+    """Pokud předchozí postava nebyla leader cechu, nová postava nevstupuje do cechu."""
+    from models.character import Character
+    from sqlalchemy import select
+
+    client, db = client_db
+
+    token = await _register(client, "norejoin_user")
+    char1 = await _create_char(client, token, "BezCechuHrdina")
+
+    # Zabij bez cechu
+    res = await db.execute(select(Character).where(Character.id == char1["id"]))
+    res.scalar_one().is_dead = True
+    await db.commit()
+
+    resp2 = await client.post("/character/create",
+                              json={"name": "DruhýBezCechu", "cls": "mage"},
+                              headers={"Authorization": f"Bearer {token}"})
+    assert resp2.status_code == 201
+    char2 = resp2.json()["character"]
+
+    c2_res = await db.execute(select(Character).where(Character.id == char2["id"]))
+    c2 = c2_res.scalar_one()
+    assert c2.guild_id is None, "Postava bez osiřelého cechu nesmí dostat guild_id"
