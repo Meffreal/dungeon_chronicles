@@ -80,7 +80,11 @@ async def _trigger_permadeath(
     dungeons_cleared = len(runs_result.scalars().all())
 
     # Délka přežití v dnech
+    # PostgreSQL s DateTime(timezone=True) vrací timezone-aware datetime; now je naive.
+    # Normalizujeme na naive před odčítáním.
     created_at = char.created_at if isinstance(char.created_at, datetime) else now
+    if getattr(created_at, 'tzinfo', None) is not None:
+        created_at = created_at.replace(tzinfo=None)
     days_survived = max(0, (now - created_at).days)
 
     # Hall of the Fallen snapshot
@@ -441,14 +445,13 @@ async def enter_dungeon(
         from routers.inventory import _decrease_equipped_durability, DURABILITY_LOSS_DUNGEON
         await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
 
-    # HC permadeath — postava zemřela na stage 1
-    permadeath_data = None
-    if not stage1_won and char.is_hardcore and combat.attacker_hp_remaining <= 0:
-        permadeath_data = await _trigger_permadeath(
-            char, stage_def["enemy_name"], req.dungeon_id, now, db
-        )
-
     try:
+        # HC permadeath — postava zemřela na stage 1
+        permadeath_data = None
+        if not stage1_won and char.is_hardcore and combat.attacker_hp_remaining <= 0:
+            permadeath_data = await _trigger_permadeath(
+                char, stage_def["enemy_name"], req.dungeon_id, now, db
+            )
         await db.commit()
         await db.refresh(run)
     except Exception:
@@ -651,14 +654,13 @@ async def next_stage(
                 next_stage_num, _hook_err
             )
 
-    # HC permadeath — postava zemřela na tomto stage
-    permadeath_data = None
-    if run.status == "failed" and char.is_hardcore and combat.attacker_hp_remaining <= 0:
-        permadeath_data = await _trigger_permadeath(
-            char, stage_def["enemy_name"], run.dungeon_key, now, db
-        )
-
     try:
+        # HC permadeath — postava zemřela na tomto stage
+        permadeath_data = None
+        if run.status == "failed" and char.is_hardcore and combat.attacker_hp_remaining <= 0:
+            permadeath_data = await _trigger_permadeath(
+                char, stage_def["enemy_name"], run.dungeon_key, now, db
+            )
         await db.commit()
         await db.refresh(run)
     except Exception:
