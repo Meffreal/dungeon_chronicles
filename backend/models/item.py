@@ -146,4 +146,5 @@ class InventoryItem(Base):
             "quantity":      self.quantity,
             "upgrade_level": self.upgrade_level or 0,
             "durability":    dur,
+            "legacy_chain":  self.legacy_chain_json or [],
         }

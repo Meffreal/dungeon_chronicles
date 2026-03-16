@@ -881,6 +881,24 @@
   </div>
 </div>
 
+<!-- LEGACY ITEM — B.6 (fullscreen, outside main layout) -->
+<div id="page-legacy-item" class="page--legacy">
+  <div class="legacy-screen">
+    <div class="death-vignette"></div>
+    <div class="legacy-content-wrap">
+      <div class="legacy-header">
+        <div class="legacy-icon">⚔️</div>
+        <h2 class="legacy-title">DĚDICTVÍ</h2>
+        <p class="legacy-subtitle">Vyber jeden předmět — příští hrdina ho ponese jako odkaz padlého hrdiny</p>
+      </div>
+      <div id="legacy-content" class="legacy-content">
+        <div class="inv-empty">Načítám inventář...</div>
+      </div>
+    </div>
+    <button class="btn btn--ghost legacy-back-btn" onclick="backToDeathScreen()">← Zpět na nekrolog</button>
+  </div>
+</div>
+
 <!-- MODAL — Quest Preview (NPC encounter) -->
 <div class="overlay" id="modal-quest-preview" onclick="if(event.target===this)closeModal('modal-quest-preview')">
   <!-- Populated dynamically by openQuestPreview() -->

@@ -120,3 +120,116 @@ function showDeathScreen(char) {
     openModal('modal-create');
   }, { once: true });
 }
+
+// ── B.6 — Legacy Item ──────────────────────────────────────────────────────
+
+async function loadLegacyItems() {
+  const el = document.getElementById('legacy-content');
+  if (!el) return;
+  el.innerHTML = '<div class="inv-empty">Načítám inventář...</div>';
+
+  try {
+    const pending = await api('GET', '/character/legacy/pending');
+    if (pending.has_legacy) {
+      renderLegacyPending(el, pending.item);
+      return;
+    }
+
+    const inv = await api('GET', '/inventory/');
+    const items = (inv.items || []);
+
+    if (items.length === 0) {
+      el.innerHTML = `
+        <div class="legacy-empty-msg">
+          <p>Tvůj hrdina neměl žádné předměty k odkázání.</p>
+          <button class="btn btn--primary" onclick="startNewRun()">☩ Nový Run</button>
+        </div>`;
+      return;
+    }
+
+    renderLegacyGrid(el, items);
+  } catch (err) {
+    el.innerHTML = '<div class="inv-empty">Chyba při načítání inventáře.</div>';
+    console.error('[Legacy] load error:', err);
+  }
+}
+
+function renderLegacyGrid(el, items) {
+  const UPGRADE_BADGE = ['', '★', '★★', '★★★'];
+
+  const grid = items.map(inv => {
+    const item = inv.item;
+    const rc   = RARITY_COL[item?.rarity] || '#9d9d9d';
+    const ul   = inv.upgrade_level || 0;
+    const bonuses  = Object.entries(item?.bonuses || {}).filter(([, v]) => v > 0);
+    const bonusTxt = bonuses.slice(0, 3).map(([k, v]) => `+${v} ${k.toUpperCase()}`).join(' · ');
+    const chain    = inv.legacy_chain || [];
+
+    return `<div class="inv-card legacy-selectable" style="--rc:${rc}"
+              onclick="confirmSelectLegacy(${inv.id}, ${JSON.stringify(item?.name || '?')})">
+      <div class="inv-card-icon">${item?.icon || '📦'}</div>
+      <div class="inv-card-name" style="color:${rc}">${item?.name || '?'}</div>
+      <div class="inv-card-type">${SLOT_CZ[item?.type] || item?.type || ''}</div>
+      <div class="inv-card-bonus">${bonusTxt}</div>
+      ${ul > 0 ? `<div class="inv-upgrade-badge">${UPGRADE_BADGE[Math.min(ul, 3)]}</div>` : ''}
+      ${chain.length > 0 ? `<div class="legacy-chain-badge">⛓ ${chain.length}</div>` : ''}
+      <div class="legacy-select-hint">Vybrat</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <p class="legacy-intro-text">Tento předmět poputuje s tvým příštím hrdinou jako odkaz padlého.</p>
+    <div class="inv-grid">${grid}</div>
+    <div class="legacy-skip-wrap">
+      <button class="btn btn--ghost" onclick="backToDeathScreen()">Přeskočit — začít bez dědictví</button>
+    </div>`;
+}
+
+function renderLegacyPending(el, item) {
+  const rc    = RARITY_COL[item?.rarity] || '#9d9d9d';
+  const chain = item.legacy_chain || [];
+
+  const chainHtml = chain.map(h => `
+    <div class="legacy-chain-entry">
+      <span>${CLS_E[h.hero_cls] || '⚔️'} <strong>${h.hero_name || '?'}</strong></span>
+      <span class="legacy-chain-detail">Lvl ${h.hero_level || '?'} · ${h.dungeon || 'Neznámo'}</span>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="legacy-pending-wrap">
+      <p class="legacy-intro-text">Tento předmět čeká na tvého příštího hrdinu.</p>
+      <div class="legacy-pending-card" style="--rc:${rc}">
+        <div class="legacy-pending-icon">${item.icon || '📦'}</div>
+        <div class="legacy-pending-name" style="color:${rc}">${item.name || '?'}</div>
+        <div class="legacy-pending-rarity">${RARITY_CZ[item.rarity] || ''} ${SLOT_CZ[item.type] || ''}</div>
+        ${chain.length > 0 ? `
+          <div class="legacy-chain-history">
+            <div class="legacy-chain-title">Předchozí nositelé:</div>
+            ${chainHtml}
+          </div>` : ''}
+      </div>
+      <button class="btn btn--primary" onclick="startNewRun()">☩ Nový Run</button>
+    </div>`;
+}
+
+async function confirmSelectLegacy(invItemId, itemName) {
+  if (!confirm(`Vybrat "${itemName}" jako dědictví pro příštího hrdinu?`)) return;
+  try {
+    await api('POST', '/character/legacy/select', { item_id: invItemId });
+    toast('Dědictví uloženo! Příští hrdina ponese odkaz.', 's');
+    loadLegacyItems();
+  } catch (err) {
+    toast(err?.detail || 'Chyba při výběru dědictví.', 'e');
+  }
+}
+
+function backToDeathScreen() {
+  document.getElementById('page-legacy-item')?.classList.remove('active');
+  document.getElementById('page-death')?.classList.add('active');
+}
+
+function startNewRun() {
+  document.getElementById('page-legacy-item')?.classList.remove('active');
+  document.getElementById('page-death')?.classList.remove('active');
+  openModal('modal-create');
+}

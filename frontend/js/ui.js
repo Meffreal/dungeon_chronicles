@@ -313,6 +313,10 @@ function showPage(name) {
   if (name === 'professions')   loadProfessions();
   if (name === 'build')         loadBuild();
   if (name === 'overview')      loadHub();
+  if (name === 'legacy-item') {
+    document.getElementById('page-death')?.classList.remove('active');
+    loadLegacyItems();
+  }
 
   // Zobraz jednorázový discovery tip při prvním otevření stránky
   if (name !== 'overview') showFeatureTip(name, PAGE_TIPS[name]);
