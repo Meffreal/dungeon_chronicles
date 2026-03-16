@@ -121,7 +121,7 @@ class CreateCharacterRequest(BaseModel):
     name:      str
     cls:       str            # warrior / mage / ranger
     faction:   str | None = None  # rad_popele / pakt_stinu / kongregace_prazdna
-    is_hardcore: bool = False     # opt-in permadeath mode
+    is_hardcore: bool = True      # hra je HC by design — permadeath je výchozí
 
 class AllocateStatRequest(BaseModel):
     stat: str  # strength / dexterity / intelligence / endurance / luck
