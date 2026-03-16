@@ -13,11 +13,12 @@ Hover tooltip na všech item kartách. Vychází z varianty D (`frontend/tooltip
 
 ## Rozsah
 
-Tooltips se zobrazují na **4 lokacích**:
+Tooltips se zobrazují na **5 lokacích**:
 1. **Inventář batoh** — každá karta v `.inv-grid` (`.inv-card`)
 2. **Equip strip** — nasazené sloty v horním pásu inventáře (`.inv-strip-slot`, jen zaplněné)
 3. **Character sheet** — vybavovací sloty (`.eq-slot`, jen zaplněné)
 4. **Obchod** — karty zboží NPC (`.shop-card`)
+5. **Tržiště** — řádky tabulky (`renderMarketTable`), trigger na `.mkt-item-cell`
 
 ## Architektura
 
@@ -27,7 +28,9 @@ Přidat sekci `/* ── Item Tooltip D — Haunted Scroll ── */`:
 
 **Trigger mechanismus:**
 ```css
-.has-tip { position: relative; overflow: visible; }
+.has-tip { position: relative; overflow: visible !important; }
+/* !important nutné: theme.css načte se po components.css a definuje overflow:hidden
+   na .inv-card, .eq-slot, .inv-strip-slot — bez !important tooltip bude oříznut */
 .has-tip:hover .tip-d { opacity: 1; transform: translateX(-50%) translateY(0); }
 @media (max-width: 768px) { .tip-d { display: none; } }
 ```
@@ -105,6 +108,23 @@ int → Inteligence, end → Výdrž
 
 ### Integrace
 
+#### `market.js` — `renderMarketTable()`
+
+Tržiště renderuje `<table>`, nikoliv karty. Trigger je `.mkt-item-cell` div (první `<td>` každého řádku). Přidat třídu `has-tip` na `.mkt-item-cell` a tooltip s cenou za kus:
+
+```js
+`<div class="mkt-item-cell has-tip">
+  <div class="mkt-item-icon">${l.item?.icon||'📦'}</div>
+  <div>
+    <div class="mkt-item-name" style="color:${rc}">${esc(l.item?.name||'?')}</div>
+    <div class="mkt-item-type">${l.item?.type||''}</div>
+  </div>
+  ${l.item ? buildItemTooltipHTML(l.item, null, { price: l.price }) : ''}
+</div>`
+```
+
+`l.price` je cena za 1 kus — to se zobrazí v tooltip footeru.
+
 #### `inventory.js` — `renderInv()`
 
 ```js
@@ -176,7 +196,8 @@ Manuální ověření:
 2. Hover na nasazený item v equip stripu → tooltip zobrazí item data
 3. Hover na slot ve vybavení (character sheet) → tooltip
 4. Hover na item v obchodě → tooltip zobrazí cenu v footeru
-5. Kliknutí otevře modal (tooltip neblokuje click)
-6. Mobile (< 768px): tooltip se nezobrazí
-7. Legendární item: oranžový glow band + oranžová jména
-8. Set item: cyan set badge + cyan barvy
+5. Hover na item v tržišti (`.mkt-item-cell`) → tooltip zobrazí staty + cenu/ks
+6. Kliknutí otevře modal (tooltip neblokuje click)
+7. Mobile (< 768px): tooltip se nezobrazí
+8. Legendární item: oranžový glow band + oranžová jména
+9. Set item: cyan set badge + cyan barvy
