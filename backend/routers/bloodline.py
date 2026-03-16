@@ -46,7 +46,7 @@ async def bloodline_status(
             "killed_by":      c.killed_by,
             "death_dungeon":  c.death_dungeon,
             "days_survived":  (
-                (c.died_at - c.created_at).days
+                (c.died_at - (c.created_at.replace(tzinfo=None) if getattr(c.created_at, 'tzinfo', None) else c.created_at)).days
                 if c.died_at and c.created_at else 0
             ),
         }

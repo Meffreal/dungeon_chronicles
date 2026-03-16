@@ -21,6 +21,8 @@ async def record_death_in_hall(char: "Character", db: "AsyncSession") -> None:
     died_at = getattr(char, 'died_at', None) or now
     created_at = getattr(char, 'created_at', None) or now
 
+    if created_at and getattr(created_at, 'tzinfo', None) is not None:
+        created_at = created_at.replace(tzinfo=None)
     days_survived = max(0, (died_at - created_at).days) if died_at and created_at else 0
 
     # Build snapshot — talents, subclass, stats
