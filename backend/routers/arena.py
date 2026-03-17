@@ -15,7 +15,7 @@ from models.character import Character, xp_to_next
 from models.arena import ArenaMatch, Season, SeasonResult
 from models.economy import log_gold, GoldReason
 from models.notification import Notification, NotifType
-from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list
+from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list, calculate_win_chance
 from game.experiments import get_experiment_overrides, apply_overrides_to_engine, apply_overrides_to_router
 from game.achievements import check_and_award
 from game.combatant_builder import build_combatant_config
@@ -110,13 +110,12 @@ async def get_opponents(
     CLS_N = {"warrior": "Válečník", "mage": "Mág", "ranger": "Lovec"}
     CLS_E = {"warrior": "⚔️", "mage": "🔮", "ranger": "🏹"}
 
-    def win_chance(me: Character, opp: Character) -> float:
-        """Odhad šance na výhru na základě stats."""
-        my_power  = me.atk  + me.def_ + me.hp_max // 10 + me.spd
-        opp_power = opp.atk + opp.def_ + opp.hp_max // 10 + opp.spd
-        if my_power + opp_power == 0:
-            return 0.5
-        return round(my_power / (my_power + opp_power), 2)
+    # Sestavíme CombatantConfig pro hráče i každého soupeře pro výpočet win_chance
+    my_cfg = await build_combatant_config(char, db)
+    opp_cfgs: dict[int, float] = {}
+    for o in opponents:
+        opp_cfg = await build_combatant_config(o, db)
+        opp_cfgs[o.id] = calculate_win_chance(my_cfg, opp_cfg)
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     cd_until = char.arena_cooldown_until
@@ -135,11 +134,8 @@ async def get_opponents(
                 "arena_rank": o.arena_rank,
                 "wins":       o.arena_wins,
                 "losses":     o.arena_losses,
-                "atk":        o.atk,
-                "def":        o.def_,
                 "hp":         o.hp_max,
-                "spd":        o.spd,
-                "win_chance": win_chance(char, o),
+                "win_chance": opp_cfgs[o.id],
                 "appearance": o.get_appearance(),
             }
             for o in opponents
