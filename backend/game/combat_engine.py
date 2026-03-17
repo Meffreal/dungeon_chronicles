@@ -59,11 +59,7 @@ DAMAGE_VARIANCE       = 0.15   # ±15% rozptyl
 BASE_CRIT_CHANCE      = 0.05   # 5% baseline
 CRIT_PER_LUCK         = 0.01   # +1% za bod luck
 MAX_CRIT_CHANCE       = 0.40   # max 40%
-BASE_DODGE_CHANCE     = 0.10   # 10% baseline
-DODGE_PER_SPD_DIFF    = 0.012  # +1.2% za každý bod SPD převahy
-MAX_DODGE_CHANCE      = 0.35   # max 35%
-MIN_DODGE_CHANCE      = 0.03   # min 3%
-ABILITY_TRIGGER_PROB  = 0.40   # 40% šance triggernout specialní ability (pokud není MP-based)
+ABILITY_TRIGGER_PROB  = 0.40   # 40% šance triggernout specialní ability
 
 
 # ── Combat strategie ───────────────────────────────────────────────────────────
@@ -89,30 +85,6 @@ def soft_cap_stat(value: int) -> int:
         zone12 = int((SOFT_CAP_ZONE2_END - zone1) * SOFT_CAP_ZONE2_RATE)  # = 70
         return zone1 + zone12 + int((value - SOFT_CAP_ZONE2_END) * SOFT_CAP_ZONE3_RATE)
 
-
-COMBAT_STRATEGIES: dict = {
-    "balanced": {
-        "name": "Vyvážená", "emoji": "⚖️",
-        "desc": "Žádné bonusy ani postihy — standardní boj.",
-        "atk_mult": 1.00, "def_mult": 1.00, "spd_mult": 1.00, "mp_mult": 1.00,
-    },
-    "aggro": {
-        "name": "Aggro", "emoji": "⚔️",
-        "desc": "+25% ATK, +10% SPD, -15% DEF.",
-        "atk_mult": 1.25, "def_mult": 0.85, "spd_mult": 1.10, "mp_mult": 1.00,
-    },
-    "defensive": {
-        "name": "Obranná", "emoji": "🛡️",
-        "desc": "-10% ATK, +30% DEF, začíná se štítem.",
-        "atk_mult": 0.90, "def_mult": 1.30, "spd_mult": 0.95, "mp_mult": 1.00,
-        "start_status": "shield",
-    },
-    "burst": {
-        "name": "Burst", "emoji": "💥",
-        "desc": "+10% ATK, +50% MP (více speciálních schopností).",
-        "atk_mult": 1.10, "def_mult": 1.00, "spd_mult": 1.00, "mp_mult": 1.50,
-    },
-}
 
 
 # ── Status efekty ──────────────────────────────────────────────────────────────
@@ -146,11 +118,6 @@ STATUS_DEFS = {
         "name": "Oslabení", "emoji": "💔",
         "rounds": 2, "atk_debuff_pct": 0.30, # -30% ATK
         "description": "Oslaben — snížené poškození.",
-    },
-    "slow": {
-        "name": "Zpomalení", "emoji": "🐌",
-        "rounds": 2, "spd_debuff_pct": 0.40, # -40% SPD
-        "description": "Zpomalení — vyšší šance na zásah.",
     },
     "regen": {
         "name": "Regenerace", "emoji": "💚",
@@ -205,11 +172,11 @@ SUBCLASS_ABILITIES: dict[str, dict] = {
     },
     "elementalist": {
         "name": "Armageddon", "emoji": "☄️", "mp_cost_pct": 0.40,
-        "desc": "Kombinace živlů decimuje nepřítele. Způsobuje hoření a zpomalení.",
+        "desc": "Kombinace živlů decimuje nepřítele. Způsobuje hoření.",
         "type": "magic",
         "dmg_mult": 2.5, "def_ignore_pct": 1.0,
         "apply_status": "burn",
-        "extra_statuses": ["slow"],
+        "extra_statuses": [],
     },
     "necromancer": {
         "name": "Mor Nemrtvých", "emoji": "☠️", "mp_cost_pct": 0.25,
@@ -352,7 +319,6 @@ class CombatEvent:
 # Typy eventů:
 EVENT_ATTACK        = "attack"          # normální útok
 EVENT_CRIT          = "crit"            # kritický útok
-EVENT_DODGE         = "dodge"           # uhnutí
 EVENT_ABILITY       = "ability"         # class ability
 EVENT_STATUS_APPLY  = "status_apply"    # aplikace status efektu
 EVENT_STATUS_TICK   = "status_tick"     # tick status efektu
@@ -422,10 +388,6 @@ class _FighterState:
         self.spd = int(soft_cap_stat(_dex))
         # Ranger: first strike flag
         self.has_class_first_strike = (cfg.cls == "ranger")
-        # MP: default based on class (abilities are still MP-gated until Task 6 removes MP)
-        _mp_base = {"warrior": 30, "ranger": 40, "mage": 80}.get(cfg.cls, 50)
-        self.mp      = _mp_base
-        self.mp_max  = _mp_base
         self.statuses: list[ActiveStatus] = []
         # Boss specifické
         self.current_phase    = 0
@@ -612,11 +574,6 @@ STATUS_INTERACTIONS: dict = {
         "desc": "Hoření × Štít — každý burn tick sníží absorpci štítu o 10 %.",
     },
 }
-
-
-def _dodge_chance(defender_spd: int, attacker_spd: int) -> float:
-    diff = defender_spd - attacker_spd
-    return max(MIN_DODGE_CHANCE, min(MAX_DODGE_CHANCE, BASE_DODGE_CHANCE + diff * DODGE_PER_SPD_DIFF))
 
 
 def _calc_damage(
@@ -1047,18 +1004,18 @@ def _execute_t2_ability(
         ))
         log.append(txt)
 
-    # ── mage: Prázdnota Many — vysaje 30% aktuální many protivníka ──────────
+    # ── mage: Prázdnota Many — aplikuje weaken na nepřítele ─────────────────
     elif key == "mana_void":
-        drain = max(0, int(defender.mp * 0.30))
-        defender.mp = max(0, defender.mp - drain)
-        txt = (f"  🕳 {aname}: Prázdnota Many! Vysáto {drain} MP z {dname}  "
-               f"[{dname} MP: {defender.mp}]")
+        defender.add_status("weaken", hp_max=defender.hp_max, atk=attacker.effective_atk())
+        txt = (f"  🕳 {aname}: Prázdnota Many! {dname} je oslaben!")
         events.append(CombatEvent(
             type="t2_status", round=round_num,
             actor=aname, target=dname,
             actor_hp=attacker.hp, target_hp=defender.hp,
             actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-            ability_name="Prázdnota Many", ability_emoji="🕳", text=txt,
+            ability_name="Prázdnota Many", ability_emoji="🕳",
+            status_name="weaken", status_emoji=STATUS_DEFS["weaken"]["emoji"],
+            text=txt,
         ))
         log.append(txt)
 
@@ -1266,13 +1223,10 @@ def _execute_attack(
         attacker.remove_status("stun")
         return 0
 
-    # ── 2. Subclass/Class ability (MP-based) ─────────────────────────────────
+    # ── 2. Subclass/Class ability ─────────────────────────────────────────────
     # Subclass ability má přednost před základní class ability
     ability = SUBCLASS_ABILITIES.get(a_sub or "") or (CLASS_ABILITIES.get(a_cls) if a_cls else None)
     if ability:
-        mp_cost = max(1, int(ability["mp_cost_pct"] * attacker.mp_max))
-    if ability and attacker.mp >= mp_cost:
-        attacker.mp -= mp_cost
         ignore_pct = ability.get("def_ignore_pct", 0.0)
 
         # ── Multi-hit (Stínová Čepel) — speciální branch, vrátí early ────────
@@ -1465,23 +1419,7 @@ def _execute_attack(
 
         return total_dmg
 
-    # ── 3. Dodge check ────────────────────────────────────────────────────────
-    _dodge = _dodge_chance(defender.effective_spd(), attacker.effective_spd())
-    if random.random() < _dodge:
-        txt = f"  💨 {d_name} uhnul útoku!"
-        evt = CombatEvent(
-            type=EVENT_DODGE,
-            round=round_num,
-            actor=a_name, target=d_name,
-            actor_hp=attacker.hp, target_hp=defender.hp,
-            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-            text=txt,
-        )
-        events.append(evt)
-        log.append(txt)
-        return 0
-
-    # ── 4. Crit check ─────────────────────────────────────────────────────────
+    # ── 3. Crit check ─────────────────────────────────────────────────────────
     # Talent: Hunter's Mark — první útok +75 % dmg
     _hunters_mult = 1.0
     if attacker.hunters_mark_active:
@@ -1509,7 +1447,9 @@ def _execute_attack(
             ))
             log.append(_fs_txt)
 
-    _effective_crit_chance = min(MAX_CRIT_CHANCE, _crit_chance(attacker.luck) + _fs_crit_bonus)
+    from game.combat_stats import calc_crit_chance as _calc_crit_chance
+    _effective_crit_chance = min(MAX_CRIT_CHANCE,
+        _calc_crit_chance(attacker.luck, defender.level) + attacker.crit_bonus_pct + _fs_crit_bonus)
     is_crit = random.random() < _effective_crit_chance
     dmg     = _calc_damage(attacker, defender, is_crit,
                            crit_mult=_crit_m)
