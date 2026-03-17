@@ -1,4 +1,4 @@
-# ⚔️ Dungeon Chronicles — Setup Guide
+# Dungeon Chronicles
 
 ## Požadavky
 - Python 3.11+
@@ -6,14 +6,10 @@
 
 ---
 
-## 1. Instalace
-
-```bash
+# Install
 cd backend
 pip install -r requirements.txt
 ```
-
----
 
 ## 2. Spuštění serveru
 
@@ -21,28 +17,6 @@ pip install -r requirements.txt
 cd backend
 uvicorn main:app --reload --port 8000
 ```
-
-Server se spustí na `http://localhost:8000`
-
-- Automaticky vytvoří databázi `dungeon.db`
-- Automaticky naplní 40+ itemů (seed)
-
----
-
-## 3. Otevření hry
-
-Otevři v prohlížeči:
-```
-http://localhost:8000
-```
-
-Nebo přímo soubory:
-- `frontend/index.html` — login stránka
-- `frontend/game.html` — herní UI
-
-> ⚠️ Pokud otevíráš přímo soubory (ne přes server), ujisti se že backend běží na portu 8000.
-
----
 
 ## 4. API dokumentace
 
@@ -53,39 +27,44 @@ http://localhost:8000/docs
 
 ---
 
-## Struktura projektu
+/*
+ You are a senior backend/frontend game developer and head of game development.
+ Read the official DiceBear Adventurer documentation here:
+ https://www.dicebear.com/styles/adventurer/
+ Find all valid appearance and customization options supported by this style
+ and implement them into our game avatar generation system.
 
-```
-dungeon-chronicles/
-├── backend/
-│   ├── main.py          ← Entry point
-│   ├── database.py      ← SQLAlchemy setup
-│   ├── config.py        ← Nastavení / JWT secret
-│   ├── models/          ← DB modely
-│   ├── routers/         ← API endpointy
-│   ├── game/            ← Herní logika
-│   └── requirements.txt
-└── frontend/
-    ├── index.html       ← Login / Register
-    └── game.html        ← Hlavní herní UI
-```
+ Only include options that are valid according to the documentation.
+ Remove any appearance options that are not listed or supported for DiceBear Adventurer.
 
----
+ The valid appearance options include:
+   - seed (string)
+   - flip (boolean)
+   - rotate (integer 0-360)
+   - scale (integer 0-200)
+   - radius (integer 0-50)
+   - size (integer >=1)
+   - backgroundColor (array of hex or "transparent")
+   - backgroundType (array: gradientLinear, solid)
+   - backgroundRotation (array [min, max])
+   - translateX (integer -100 to 100)
+   - translateY (integer -100 to 100)
+   - clip (boolean)
+   - randomizeIds (boolean)
+   - base (array: default)
+   - earrings (array: variant01..variant06)
+   - earringsProbability (integer 0-100)
+   - eyebrows (array: variant01..variant15)
+   - eyes (array: variant01..variant26)
+   - features (array: birthmark, blush, freckles, mustache)
+   - featuresProbability (integer 0-100)
+   - glasses (array: variant01..variant05)
+   - glassesProbability (integer 0-100)
+   - hair (array: long01..long26, short01..short19)
+   - hairColor (array of hex color strings or transparent)
+   - hairProbability (integer 0-100)
+   - mouth (array: variant01..variant30)
+   - skinColor (array of hex color strings or transparent)
 
-## Hotové v Session 1
-
-- ✅ User registrace + login (JWT auth)
-- ✅ Tvorba postavy (3 třídy: Válečník, Mág, Lovec)
-- ✅ Quest systém (start → timer → collect)
-- ✅ Bojová logika (auto-fight výpočet)
-- ✅ Loot / drop systém
-- ✅ Level up systém
-- ✅ 40+ itemů v databázi
-- ✅ Dark fantasy UI
-
-## Plánováno v Session 2
-
-- 🔜 Aréna PvP (žebříček, útoky)
-- 🔜 Guild systém (create, join, chat)
-- 🔜 Inventář + equip systém
-- 🔜 Trh (marketplace)
+ Generate code for both backend (API integration / generation logic) and frontend (UI controls to pick these options). Make sure all fields are validated against documented limits/types.
+*/

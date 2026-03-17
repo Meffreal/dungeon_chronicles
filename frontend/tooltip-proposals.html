@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Item Tooltip Proposals — Dungeon Chronicles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&family=Cinzel+Decorative:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN SYSTEM — Dungeon Chronicles
+═══════════════════════════════════════════ */
+:root {
+  --bg:         #050508;
+  --bg2:        #0d0d14;
+  --bg3:        #1a1a2e;
+  --border:     rgba(201,168,76,0.18);
+  --border2:    rgba(201,168,76,0.40);
+  --clr-gold:   #c8a040;
+  --clr-gold-b: #e8b850;
+  --clr-text:   #d8c8b8;
+  --clr-muted:  #5a4a3a;
+
+  --common:    #9d9d9d;
+  --uncommon:  #1eff00;
+  --rare:      #0070dd;
+  --epic:      #a335ee;
+  --legendary: #ff8000;
+  --set:       #00d4ff;
+
+  --hp: #c02828;
+  --mp: #2050c8;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.04), transparent),
+    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(201,168,76,0.015) 60px, rgba(201,168,76,0.015) 61px);
+  color: var(--clr-text);
+  font-family: 'IM Fell English', serif;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.4rem;
+  color: var(--clr-gold);
+  text-align: center;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.3rem;
+  text-shadow: 0 0 30px rgba(200,160,64,0.4);
+}
+.subtitle {
+  text-align: center;
+  color: var(--clr-muted);
+  font-size: 0.82rem;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  margin-bottom: 2.5rem;
+}
+
+/* ── variant label ── */
+.section {
+  margin-bottom: 4rem;
+}
+.section-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--clr-gold);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+.section-desc {
+  font-size: 0.82rem;
+  color: var(--clr-muted);
+  font-style: italic;
+  margin-bottom: 1.5rem;
+}
+
+/* ── item trigger cards (generic) ── */
+.demo-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.trigger-card {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  user-select: none;
+  width: 110px;
+  text-align: center;
+}
+.trigger-card:hover { border-color: var(--border2); }
+
+.tc-icon { font-size: 2rem; line-height: 1; margin-bottom: 6px; }
+.tc-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tc-type {
+  font-size: 0.6rem;
+  color: var(--clr-muted);
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   VARIANTA A — "ARCANE CODEX"
+   Rozevírá se jako magická pergamenová karta
+   s ornamentálními rohy; text se "píše"
+═══════════════════════════════════════════ */
+.tip-a {
+  --rc: var(--common);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) scaleY(0.85);
+  transform-origin: bottom center;
+  width: 240px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 9999;
+}
+.trigger-card:hover .tip-a {
+  opacity: 1;
+  transform: translateX(-50%) scaleY(1);
+}
+
+.tip-a-inner {
+  background:
+    linear-gradient(160deg, #0e0e1c 0%, #14112a 50%, #0a0a18 100%);
+  border: 1px solid var(--rc);
+  border-radius: 2px;
+  padding: 14px 14px 12px;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.8),
+    0 0 20px rgba(0,0,0,0.9),
+    0 0 40px color-mix(in srgb, var(--rc) 20%, transparent);
+  position: relative;
+}
+
+/* corner ornaments */
+.tip-a-inner::before, .tip-a-inner::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--rc);
+  border-style: solid;
+  opacity: 0.7;
+}
+.tip-a-inner::before { top: 4px; left: 4px; border-width: 2px 0 0 2px; }
+.tip-a-inner::after  { bottom: 4px; right: 4px; border-width: 0 2px 2px 0; }
+
+/* extra 2 corners via wrapper */
+.tip-a-corners::before, .tip-a-corners::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--rc);
+  border-style: solid;
+  opacity: 0.7;
+}
+.tip-a-corners::before { top: 4px; right: 4px; border-width: 2px 2px 0 0; }
+.tip-a-corners::after  { bottom: 4px; left: 4px; border-width: 0 0 2px 2px; }
+
+.tip-a-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.tip-a-ico { font-size: 1.6rem; line-height: 1; }
+.tip-a-title-wrap { flex: 1; min-width: 0; }
+.tip-a-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--rc);
+  line-height: 1.2;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--rc) 50%, transparent);
+}
+.tip-a-type {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.68rem;
+  color: rgba(216,200,184,0.5);
+  margin-top: 1px;
+}
+.tip-a-rarity {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--rc);
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+/* stats */
+.tip-a-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 8px;
+  margin-bottom: 8px;
+}
+.tip-a-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+.tip-a-stat-key {
+  color: rgba(216,200,184,0.5);
+  font-style: italic;
+  font-size: 0.68rem;
+}
+.tip-a-stat-val {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--clr-gold-b);
+}
+.tip-a-stat-val.neg { color: #e05030; }
+
+/* description */
+.tip-a-desc {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.6);
+  line-height: 1.45;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 7px;
+  margin-top: 4px;
+}
+
+/* footer: level + price */
+.tip-a-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.tip-a-lvl {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: rgba(216,200,184,0.4);
+}
+.tip-a-price {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: var(--clr-gold);
+}
+
+/* arrow */
+.tip-a::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--rc);
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════
+   VARIANTA B — "FORGE PLATE"
+   Hutný, kovový feel — jako výkovek z kováře
+   Kompaktnější, pro menší itemy
+═══════════════════════════════════════════ */
+.tip-b {
+  --rc: var(--common);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: 220px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s ease-out;
+  z-index: 9999;
+}
+.trigger-card:hover .tip-b {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tip-b-inner {
+  background: linear-gradient(180deg, #161620 0%, #0c0c18 100%);
+  border-top: 3px solid var(--rc);
+  border-left: 1px solid rgba(255,255,255,0.06);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  box-shadow:
+    0 8px 32px rgba(0,0,0,0.9),
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 0 30px color-mix(in srgb, var(--rc) 12%, transparent);
+}
+
+.tip-b-header {
+  padding: 10px 12px 8px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--rc) 12%, transparent) 0%,
+    transparent 70%);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.tip-b-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--rc);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--rc) 40%, transparent);
+}
+.tip-b-meta {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+}
+.tip-b-tag {
+  font-size: 0.6rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 1px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(216,200,184,0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.tip-b-tag.rarity-tag { color: var(--rc); border-color: color-mix(in srgb, var(--rc) 30%, transparent); }
+
+.tip-b-stats {
+  padding: 8px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tip-b-chip {
+  font-family: 'Cinzel', serif;
+  font-size: 0.64rem;
+  padding: 2px 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: var(--clr-gold-b);
+  white-space: nowrap;
+}
+
+.tip-b-desc {
+  padding: 0 12px 8px;
+  font-size: 0.68rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.5);
+  line-height: 1.4;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding-top: 7px;
+}
+
+.tip-b-foot {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+.tip-b-lvl-req {
+  font-size: 0.62rem;
+  font-family: 'Cinzel', serif;
+  color: rgba(216,200,184,0.35);
+  letter-spacing: 0.06em;
+}
+.tip-b-sell {
+  font-size: 0.62rem;
+  font-family: 'Cinzel', serif;
+  color: var(--clr-gold);
+}
+
+.tip-b::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: color-mix(in srgb, var(--rc) 60%, transparent);
+}
+
+/* ═══════════════════════════════════════════
+   VARIANTA C — "RUNE SHARD"
+   Asymetrický cut corner, rune-like čáry,
+   živý glow efekt animovaný podle rarity
+═══════════════════════════════════════════ */
+.tip-c {
+  --rc: var(--common);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  transform-origin: bottom center;
+  width: 236px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s cubic-bezier(0.2,0,0,1.5);
+  z-index: 9999;
+}
+.trigger-card:hover .tip-c {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.tip-c-inner {
+  background: linear-gradient(145deg, #12121f 0%, #0d0d1a 100%);
+  /* cut corner top-right */
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 0px));
+  border: 1px solid color-mix(in srgb, var(--rc) 35%, transparent);
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.95),
+    inset 0 0 30px rgba(0,0,0,0.5),
+    0 0 24px color-mix(in srgb, var(--rc) 15%, transparent);
+  padding: 13px 13px 11px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* animated rune lines */
+.tip-c-inner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--rc) 80%, transparent) 40%,
+    color-mix(in srgb, var(--rc) 80%, transparent) 60%,
+    transparent 100%);
+  animation: tip-c-scan 3s ease-in-out infinite;
+}
+@keyframes tip-c-scan {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.3); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+.tip-c-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%,
+    color-mix(in srgb, var(--rc) 8%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.tip-c-cut-mark {
+  position: absolute;
+  top: 0; right: 0;
+  width: 18px; height: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rc) 40%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--rc) 40%, transparent);
+}
+
+.tip-c-icon {
+  position: absolute;
+  top: 10px; right: 24px;
+  font-size: 1.4rem;
+  opacity: 0.25;
+}
+
+.tip-c-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--rc);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--rc) 60%, transparent);
+  margin-bottom: 2px;
+}
+.tip-c-sub {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 9px;
+}
+.tip-c-rarity {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--rc) 70%, white 30%);
+}
+.tip-c-dot {
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: var(--rc);
+  opacity: 0.4;
+}
+.tip-c-type {
+  font-size: 0.64rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.4);
+}
+
+/* divider line with rune marks */
+.tip-c-divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent,
+    color-mix(in srgb, var(--rc) 40%, transparent) 20%,
+    color-mix(in srgb, var(--rc) 40%, transparent) 80%,
+    transparent);
+  margin: 8px 0;
+  position: relative;
+}
+.tip-c-divider::before, .tip-c-divider::after {
+  content: '◆';
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  font-size: 0.45rem;
+  color: var(--rc);
+  opacity: 0.5;
+}
+.tip-c-divider::before { left: 20%; }
+.tip-c-divider::after { right: 20%; }
+
+.tip-c-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 10px;
+  margin-bottom: 2px;
+}
+.tip-c-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tip-c-sk { font-size: 0.66rem; color: rgba(216,200,184,0.45); font-style: italic; }
+.tip-c-sv {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  color: #d4b060;
+}
+
+.tip-c-desc {
+  font-size: 0.68rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.5);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.tip-c-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.tip-c-lvl {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  color: rgba(216,200,184,0.3);
+  letter-spacing: 0.08em;
+}
+.tip-c-gold {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  color: var(--clr-gold);
+  text-shadow: 0 0 8px rgba(200,160,64,0.4);
+}
+
+.tip-c::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: color-mix(in srgb, var(--rc) 50%, transparent);
+}
+
+/* ═══════════════════════════════════════════
+   VARIANTA D — "HAUNTED SCROLL"
+   Pergamen s rozmazaným okrajem, vybledlý text,
+   horní část se temně glowuje dle rarity;
+   Lore-heavy design
+═══════════════════════════════════════════ */
+.tip-d {
+  --rc: var(--common);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: 250px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s, transform 0.22s ease-out;
+  z-index: 9999;
+}
+.trigger-card:hover .tip-d {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tip-d-inner {
+  background:
+    radial-gradient(ellipse 100% 50% at 50% 0%,
+      color-mix(in srgb, var(--rc) 10%, transparent), transparent 60%),
+    linear-gradient(180deg,
+      #141218 0%,
+      #0f0d16 40%,
+      #0b0a12 100%);
+  border: 1px solid color-mix(in srgb, var(--rc) 25%, rgba(201,168,76,0.15));
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.7),
+    0 16px 48px rgba(0,0,0,0.95),
+    0 0 50px color-mix(in srgb, var(--rc) 10%, transparent);
+  padding: 0;
+  overflow: hidden;
+}
+
+/* top glow band */
+.tip-d-glow-band {
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--rc) 30%, var(--rc) 70%, transparent 100%);
+  opacity: 0.7;
+}
+
+.tip-d-body { padding: 12px 14px 10px; }
+
+.tip-d-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.tip-d-ico {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rc) 50%, transparent));
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.tip-d-info { flex: 1; min-width: 0; }
+.tip-d-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--rc);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--rc) 50%, transparent);
+  line-height: 1.15;
+}
+.tip-d-rarity-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.tip-d-rarity-gem {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--rc);
+  box-shadow: 0 0 6px var(--rc);
+}
+.tip-d-rarity-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--rc) 80%, white 20%);
+}
+.tip-d-slot-label {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.4);
+  margin-top: 2px;
+}
+
+/* upgrade badge */
+.tip-d-upgrade {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  color: var(--clr-gold);
+  text-shadow: 0 0 8px rgba(200,160,64,0.5);
+  align-self: flex-start;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* horizontal rule with ornament */
+.tip-d-hr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+.tip-d-hr-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent, rgba(255,255,255,0.07) 50%, transparent);
+}
+.tip-d-hr-gem {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rc) 50%, transparent);
+}
+
+/* stats in 2-column pairs */
+.tip-d-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin-bottom: 9px;
+}
+.tip-d-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+.tip-d-sk {
+  font-size: 0.64rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.42);
+}
+.tip-d-sv {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #d4b868;
+  text-align: right;
+}
+.tip-d-sv.big { color: #e8c87a; font-size: 0.76rem; }
+
+/* set info */
+.tip-d-set {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 2px;
+  margin-bottom: 9px;
+}
+.tip-d-set-gem {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #00d4ff;
+  box-shadow: 0 0 5px #00d4ff;
+  flex-shrink: 0;
+}
+.tip-d-set-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: #00d4ff;
+  letter-spacing: 0.08em;
+}
+
+.tip-d-desc {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.48);
+  line-height: 1.45;
+}
+
+.tip-d-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 14px 8px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(0,0,0,0.2);
+}
+.tip-d-lvl {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  color: rgba(216,200,184,0.3);
+  letter-spacing: 0.07em;
+}
+.tip-d-price {
+  font-family: 'Cinzel', serif;
+  font-size: 0.64rem;
+  color: var(--clr-gold);
+  opacity: 0.8;
+}
+
+.tip-d::after {
+  content: '';
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: color-mix(in srgb, var(--rc) 55%, rgba(201,168,76,0.3));
+}
+
+/* ═══════════════════════════════════════════
+   RARITY overflow fix + placement
+═══════════════════════════════════════════ */
+
+/* když je karta blízko levého/pravého okraje */
+.demo-row { padding: 140px 0 20px; }
+
+/* rarity color overrides */
+.r-common { --rc: #9d9d9d !important; }
+.r-uncommon { --rc: #1eff00 !important; }
+.r-rare { --rc: #0070dd !important; }
+.r-epic { --rc: #a335ee !important; }
+.r-legendary { --rc: #ff8000 !important; }
+.r-set { --rc: #00d4ff !important; }
+
+</style>
+</head>
+<body>
+
+<h1>Item Tooltip — Design Proposals</h1>
+<p class="subtitle">Hover nad kartami pro náhled. Každá varianta použitelná globálně.</p>
+
+<!-- ─────────────────────────────────
+     VARIANTA A — ARCANE CODEX
+───────────────────────────────── -->
+<div class="section">
+  <div class="section-label">A — Arcane Codex &nbsp;·&nbsp; Pergamenová karta s ornamentálními rohy</div>
+  <div class="section-desc">Rohovité ornamenty dle rarity, 2-sloupcové staty, jemné scale-in animace. Elegantní, čitelný.</div>
+
+  <div class="demo-row">
+
+    <!-- Common -->
+    <div class="trigger-card">
+      <div class="tip-a r-common">
+        <div class="tip-a-inner tip-a-corners">
+          <div class="tip-a-head">
+            <div class="tip-a-ico">🗡️</div>
+            <div class="tip-a-title-wrap">
+              <div class="tip-a-name">Rezavý dýka</div>
+              <div class="tip-a-type">Zbraň — jednoruční</div>
+            </div>
+            <div class="tip-a-rarity">Běžný</div>
+          </div>
+          <div class="tip-a-stats">
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Útok</span><span class="tip-a-stat-val">+8</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Rychlost</span><span class="tip-a-stat-val">+2</span></div>
+          </div>
+          <div class="tip-a-desc">"Stará čepel, ale stále drží hranu."</div>
+          <div class="tip-a-foot">
+            <div class="tip-a-lvl">Lv. 1+</div>
+            <div class="tip-a-price">12 G</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🗡️</div>
+      <div class="tc-name" style="color:#9d9d9d">Rezavý dýka</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+    <!-- Rare -->
+    <div class="trigger-card">
+      <div class="tip-a r-rare">
+        <div class="tip-a-inner tip-a-corners">
+          <div class="tip-a-head">
+            <div class="tip-a-ico">⚔️</div>
+            <div class="tip-a-title-wrap">
+              <div class="tip-a-name">Čepel Oceánských Hlubin</div>
+              <div class="tip-a-type">Zbraň — dlouhý meč</div>
+            </div>
+            <div class="tip-a-rarity">Vzácný</div>
+          </div>
+          <div class="tip-a-stats">
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Útok</span><span class="tip-a-stat-val">+42</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Síla</span><span class="tip-a-stat-val">+14</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Obrana</span><span class="tip-a-stat-val">+5</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Rychlost</span><span class="tip-a-stat-val">+8</span></div>
+          </div>
+          <div class="tip-a-desc">"Vykovana z kovu potopeného korábu, cítí puls vody."</div>
+          <div class="tip-a-foot">
+            <div class="tip-a-lvl">Lv. 15+</div>
+            <div class="tip-a-price">380 G</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">⚔️</div>
+      <div class="tc-name" style="color:#0070dd">Čepel Oceánů</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+    <!-- Epic -->
+    <div class="trigger-card">
+      <div class="tip-a r-epic">
+        <div class="tip-a-inner tip-a-corners">
+          <div class="tip-a-head">
+            <div class="tip-a-ico">🔮</div>
+            <div class="tip-a-title-wrap">
+              <div class="tip-a-name">Stínový Orbis</div>
+              <div class="tip-a-type">Amulet — magický</div>
+            </div>
+            <div class="tip-a-rarity">Epický</div>
+          </div>
+          <div class="tip-a-stats">
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Int</span><span class="tip-a-stat-val">+25</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">MP</span><span class="tip-a-stat-val">+120</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Útok</span><span class="tip-a-stat-val">+18</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Štěstí</span><span class="tip-a-stat-val">+5</span></div>
+          </div>
+          <div class="tip-a-desc">"Uvězněná duše mága šeptá rady svému nositeli."</div>
+          <div class="tip-a-foot">
+            <div class="tip-a-lvl">Lv. 30+</div>
+            <div class="tip-a-price">1 200 G</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🔮</div>
+      <div class="tc-name" style="color:#a335ee">Stínový Orbis</div>
+      <div class="tc-type">Amulet</div>
+    </div>
+
+    <!-- Legendary -->
+    <div class="trigger-card">
+      <div class="tip-a r-legendary">
+        <div class="tip-a-inner tip-a-corners">
+          <div class="tip-a-head">
+            <div class="tip-a-ico">🔥</div>
+            <div class="tip-a-title-wrap">
+              <div class="tip-a-name">Grimoár Věčného Ohně</div>
+              <div class="tip-a-type">Zbraň — kouzelnická hůl</div>
+            </div>
+            <div class="tip-a-rarity">Legendární</div>
+          </div>
+          <div class="tip-a-stats">
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Útok</span><span class="tip-a-stat-val">+95</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Int</span><span class="tip-a-stat-val">+40</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">MP</span><span class="tip-a-stat-val">+200</span></div>
+            <div class="tip-a-stat"><span class="tip-a-stat-key">Štěstí</span><span class="tip-a-stat-val">+12</span></div>
+          </div>
+          <div class="tip-a-desc">"Zapálena v prvním plameni stvoření. Nikdy nevychladla."</div>
+          <div class="tip-a-foot">
+            <div class="tip-a-lvl">Lv. 50+</div>
+            <div class="tip-a-price">8 500 G</div>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🔥</div>
+      <div class="tc-name" style="color:#ff8000">Grimoár Věčného Ohně</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────
+     VARIANTA B — FORGE PLATE
+───────────────────────────────── -->
+<div class="section">
+  <div class="section-label">B — Forge Plate &nbsp;·&nbsp; Hutná kovářská karta s barevným top-borderem</div>
+  <div class="section-desc">Kompaktní, čipové staty, kovový záhlaví gradient. Ideální pro quickly scanování v inventáři.</div>
+
+  <div class="demo-row">
+
+    <div class="trigger-card">
+      <div class="tip-b r-uncommon">
+        <div class="tip-b-inner">
+          <div class="tip-b-header">
+            <div class="tip-b-name">Ellfské Botky</div>
+            <div class="tip-b-meta">
+              <span class="tip-b-tag rarity-tag">Neobvyklý</span>
+              <span class="tip-b-tag">Boty</span>
+              <span class="tip-b-tag">Lv.8+</span>
+            </div>
+          </div>
+          <div class="tip-b-stats">
+            <span class="tip-b-chip">+18 OBR</span>
+            <span class="tip-b-chip">+12 RYC</span>
+            <span class="tip-b-chip">+5 DEF</span>
+          </div>
+          <div class="tip-b-desc">"Měkce zpracovaná kůže lesního jelena."</div>
+          <div class="tip-b-foot">
+            <span class="tip-b-lvl-req">Požadovaný level: 8</span>
+            <span class="tip-b-sell">45 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">👢</div>
+      <div class="tc-name" style="color:#1eff00">Elfské Botky</div>
+      <div class="tc-type">Boty</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-b r-rare">
+        <div class="tip-b-inner">
+          <div class="tip-b-header">
+            <div class="tip-b-name">Přilba Železné Stráže</div>
+            <div class="tip-b-meta">
+              <span class="tip-b-tag rarity-tag">Vzácný</span>
+              <span class="tip-b-tag">Přilba</span>
+              <span class="tip-b-tag">Lv.20+</span>
+            </div>
+          </div>
+          <div class="tip-b-stats">
+            <span class="tip-b-chip">+55 DEF</span>
+            <span class="tip-b-chip">+30 HP</span>
+            <span class="tip-b-chip">+10 VÝD</span>
+            <span class="tip-b-chip">+4 SÍL</span>
+          </div>
+          <div class="tip-b-desc">"Nosilo ji sto strážců. Každý přežil."</div>
+          <div class="tip-b-foot">
+            <span class="tip-b-lvl-req">Požadovaný level: 20</span>
+            <span class="tip-b-sell">220 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">⛑️</div>
+      <div class="tc-name" style="color:#0070dd">Přilba Stráže</div>
+      <div class="tc-type">Přilba</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-b r-epic">
+        <div class="tip-b-inner">
+          <div class="tip-b-header">
+            <div class="tip-b-name">Rukavice Void Drakona</div>
+            <div class="tip-b-meta">
+              <span class="tip-b-tag rarity-tag">Epický</span>
+              <span class="tip-b-tag">Rukavice</span>
+              <span class="tip-b-tag">Lv.35+</span>
+            </div>
+          </div>
+          <div class="tip-b-stats">
+            <span class="tip-b-chip">+70 ÚTK</span>
+            <span class="tip-b-chip">+35 SÍL</span>
+            <span class="tip-b-chip">+20 DEF</span>
+            <span class="tip-b-chip">+8 ŠTS</span>
+          </div>
+          <div class="tip-b-desc">"Pokrytá šupinami z dimenze prázdnoty."</div>
+          <div class="tip-b-foot">
+            <span class="tip-b-lvl-req">Požadovaný level: 35</span>
+            <span class="tip-b-sell">1 800 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🧤</div>
+      <div class="tc-name" style="color:#a335ee">Rukavice Void Drakona</div>
+      <div class="tc-type">Rukavice</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-b r-legendary">
+        <div class="tip-b-inner">
+          <div class="tip-b-header">
+            <div class="tip-b-name">Brnění Zatmělého Slunce</div>
+            <div class="tip-b-meta">
+              <span class="tip-b-tag rarity-tag">Legendární</span>
+              <span class="tip-b-tag">Brnění</span>
+              <span class="tip-b-tag">Lv.50+</span>
+            </div>
+          </div>
+          <div class="tip-b-stats">
+            <span class="tip-b-chip">+120 DEF</span>
+            <span class="tip-b-chip">+300 HP</span>
+            <span class="tip-b-chip">+50 VÝD</span>
+            <span class="tip-b-chip">+25 SÍL</span>
+          </div>
+          <div class="tip-b-desc">"Kované při zatmění, nesmrtelné jako noc."</div>
+          <div class="tip-b-foot">
+            <span class="tip-b-lvl-req">Požadovaný level: 50</span>
+            <span class="tip-b-sell">12 000 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🥋</div>
+      <div class="tc-name" style="color:#ff8000">Brnění Zatmělého Slunce</div>
+      <div class="tc-type">Brnění</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────
+     VARIANTA C — RUNE SHARD
+───────────────────────────────── -->
+<div class="section">
+  <div class="section-label">C — Rune Shard &nbsp;·&nbsp; Asymetrický cut-corner s animovanou rune linkou</div>
+  <div class="section-desc">Clip-path geometrie, pulsující scan animace na vrchní hraně, scatter-effect. Výrazně herní estetika.</div>
+
+  <div class="demo-row">
+
+    <div class="trigger-card">
+      <div class="tip-c r-common">
+        <div class="tip-c-inner">
+          <div class="tip-c-cut-mark"></div>
+          <div class="tip-c-icon">🗡️</div>
+          <div class="tip-c-name">Rezavá Čepel</div>
+          <div class="tip-c-sub">
+            <span class="tip-c-rarity">Běžný</span>
+            <span class="tip-c-dot"></span>
+            <span class="tip-c-type">Zbraň</span>
+          </div>
+          <div class="tip-c-divider"></div>
+          <div class="tip-c-stats">
+            <div class="tip-c-stat"><span class="tip-c-sk">Útok</span><span class="tip-c-sv">+8</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Rychlost</span><span class="tip-c-sv">+2</span></div>
+          </div>
+          <div class="tip-c-foot">
+            <span class="tip-c-lvl">Lv. 1+</span>
+            <span class="tip-c-gold">12 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🗡️</div>
+      <div class="tc-name" style="color:#9d9d9d">Rezavá Čepel</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-c r-rare">
+        <div class="tip-c-inner">
+          <div class="tip-c-cut-mark"></div>
+          <div class="tip-c-icon">💍</div>
+          <div class="tip-c-name">Prsten Ledových Ostrých</div>
+          <div class="tip-c-sub">
+            <span class="tip-c-rarity">Vzácný</span>
+            <span class="tip-c-dot"></span>
+            <span class="tip-c-type">Prsten</span>
+          </div>
+          <div class="tip-c-divider"></div>
+          <div class="tip-c-stats">
+            <div class="tip-c-stat"><span class="tip-c-sk">Útok</span><span class="tip-c-sv">+22</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Int</span><span class="tip-c-sv">+18</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Štěstí</span><span class="tip-c-sv">+6</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">MP</span><span class="tip-c-sv">+60</span></div>
+          </div>
+          <div class="tip-c-desc">"Diamant, věčně mrazivý na dotek."</div>
+          <div class="tip-c-foot">
+            <span class="tip-c-lvl">Lv. 18+</span>
+            <span class="tip-c-gold">450 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">💍</div>
+      <div class="tc-name" style="color:#0070dd">Prsten Ledových Ostrých</div>
+      <div class="tc-type">Prsten</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-c r-epic">
+        <div class="tip-c-inner">
+          <div class="tip-c-cut-mark"></div>
+          <div class="tip-c-icon">🧿</div>
+          <div class="tip-c-name">Amulet Soumraku</div>
+          <div class="tip-c-sub">
+            <span class="tip-c-rarity">Epický</span>
+            <span class="tip-c-dot"></span>
+            <span class="tip-c-type">Amulet</span>
+          </div>
+          <div class="tip-c-divider"></div>
+          <div class="tip-c-stats">
+            <div class="tip-c-stat"><span class="tip-c-sk">Útok</span><span class="tip-c-sv">+35</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Obrana</span><span class="tip-c-sv">+20</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">HP</span><span class="tip-c-sv">+150</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Štěstí</span><span class="tip-c-sv">+10</span></div>
+          </div>
+          <div class="tip-c-desc">"Vytesan z kamene s věčnou tmou uvnitř."</div>
+          <div class="tip-c-foot">
+            <span class="tip-c-lvl">Lv. 28+</span>
+            <span class="tip-c-gold">2 200 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🧿</div>
+      <div class="tc-name" style="color:#a335ee">Amulet Soumraku</div>
+      <div class="tc-type">Amulet</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-c r-legendary">
+        <div class="tip-c-inner">
+          <div class="tip-c-cut-mark"></div>
+          <div class="tip-c-icon">⚡</div>
+          <div class="tip-c-name">Koruna Bouřlivého Krále</div>
+          <div class="tip-c-sub">
+            <span class="tip-c-rarity">Legendární</span>
+            <span class="tip-c-dot"></span>
+            <span class="tip-c-type">Přilba</span>
+          </div>
+          <div class="tip-c-divider"></div>
+          <div class="tip-c-stats">
+            <div class="tip-c-stat"><span class="tip-c-sk">Obrana</span><span class="tip-c-sv">+90</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">HP</span><span class="tip-c-sv">+250</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Int</span><span class="tip-c-sv">+30</span></div>
+            <div class="tip-c-stat"><span class="tip-c-sk">Štěstí</span><span class="tip-c-sv">+15</span></div>
+          </div>
+          <div class="tip-c-desc">"Kdo nosí korunu, nese bouři."</div>
+          <div class="tip-c-foot">
+            <span class="tip-c-lvl">Lv. 48+</span>
+            <span class="tip-c-gold">9 800 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">⚡</div>
+      <div class="tc-name" style="color:#ff8000">Koruna Bouřlivého Krále</div>
+      <div class="tc-type">Přilba</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─────────────────────────────────
+     VARIANTA D — HAUNTED SCROLL
+───────────────────────────────── -->
+<div class="section">
+  <div class="section-label">D — Haunted Scroll &nbsp;·&nbsp; Lore-heavy, gem badge, set support, upgrade badge</div>
+  <div class="section-desc">Plnohodnotný tooltip — zobrazí upgrade hvězdičky, set příslušnost, gem rarity indicator, lore popis.</div>
+
+  <div class="demo-row">
+
+    <div class="trigger-card">
+      <div class="tip-d r-common">
+        <div class="tip-d-inner">
+          <div class="tip-d-glow-band"></div>
+          <div class="tip-d-body">
+            <div class="tip-d-head">
+              <div class="tip-d-ico">🛡️</div>
+              <div class="tip-d-info">
+                <div class="tip-d-name">Prohnilý Štít</div>
+                <div class="tip-d-rarity-row">
+                  <div class="tip-d-rarity-gem"></div>
+                  <span class="tip-d-rarity-label">Běžný</span>
+                </div>
+                <div class="tip-d-slot-label">Zbraň (offhand)</div>
+              </div>
+            </div>
+            <div class="tip-d-hr"><div class="tip-d-hr-line"></div><div class="tip-d-hr-gem"></div><div class="tip-d-hr-line"></div></div>
+            <div class="tip-d-stats">
+              <div class="tip-d-stat"><span class="tip-d-sk">Obrana</span><span class="tip-d-sv">+12</span></div>
+            </div>
+            <div class="tip-d-desc">"Drží pohromadě jen rezavými hřebíky a nadějí."</div>
+          </div>
+          <div class="tip-d-foot">
+            <span class="tip-d-lvl">Lv. 1+</span>
+            <span class="tip-d-price">8 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🛡️</div>
+      <div class="tc-name" style="color:#9d9d9d">Prohnilý Štít</div>
+      <div class="tc-type">Off-hand</div>
+    </div>
+
+    <div class="trigger-card">
+      <div class="tip-d r-epic">
+        <div class="tip-d-inner">
+          <div class="tip-d-glow-band"></div>
+          <div class="tip-d-body">
+            <div class="tip-d-head">
+              <div class="tip-d-ico">⚔️</div>
+              <div class="tip-d-info">
+                <div class="tip-d-name">Meč Soumračné Legiony</div>
+                <div class="tip-d-rarity-row">
+                  <div class="tip-d-rarity-gem"></div>
+                  <span class="tip-d-rarity-label">Epický</span>
+                </div>
+                <div class="tip-d-slot-label">Zbraň — obouruční</div>
+              </div>
+              <div class="tip-d-upgrade">★★★</div>
+            </div>
+            <div class="tip-d-hr"><div class="tip-d-hr-line"></div><div class="tip-d-hr-gem"></div><div class="tip-d-hr-line"></div></div>
+            <div class="tip-d-stats">
+              <div class="tip-d-stat"><span class="tip-d-sk">Útok</span><span class="tip-d-sv big">+88</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Síla</span><span class="tip-d-sv">+30</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Obratnost</span><span class="tip-d-sv">+15</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Štěstí</span><span class="tip-d-sv">+8</span></div>
+            </div>
+            <div class="tip-d-desc">"Zkován z kovu padlých válečníků. Přenáší jejich hněv."</div>
+          </div>
+          <div class="tip-d-foot">
+            <span class="tip-d-lvl">Lv. 32+</span>
+            <span class="tip-d-price">2 400 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">⚔️</div>
+      <div class="tc-name" style="color:#a335ee">Meč Soumračné Legiony</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+    <!-- Set item -->
+    <div class="trigger-card">
+      <div class="tip-d r-set">
+        <div class="tip-d-inner">
+          <div class="tip-d-glow-band"></div>
+          <div class="tip-d-body">
+            <div class="tip-d-head">
+              <div class="tip-d-ico">🧤</div>
+              <div class="tip-d-info">
+                <div class="tip-d-name">Rukavice Ledové Pustiny</div>
+                <div class="tip-d-rarity-row">
+                  <div class="tip-d-rarity-gem" style="background:#00d4ff;box-shadow:0 0 6px #00d4ff"></div>
+                  <span class="tip-d-rarity-label" style="color:#00d4ff">Setový</span>
+                </div>
+                <div class="tip-d-slot-label">Rukavice</div>
+              </div>
+              <div class="tip-d-upgrade">★★</div>
+            </div>
+            <div class="tip-d-hr"><div class="tip-d-hr-line"></div><div class="tip-d-hr-gem"></div><div class="tip-d-hr-line"></div></div>
+            <div class="tip-d-stats">
+              <div class="tip-d-stat"><span class="tip-d-sk">Útok</span><span class="tip-d-sv">+45</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Obratnost</span><span class="tip-d-sv">+22</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">HP</span><span class="tip-d-sv">+80</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Rychlost</span><span class="tip-d-sv">+12</span></div>
+            </div>
+            <div class="tip-d-set">
+              <div class="tip-d-set-gem"></div>
+              <span class="tip-d-set-name">Ledová Pustina (2/4 kusů)</span>
+            </div>
+            <div class="tip-d-desc">"Sama příroda se stala zbrojí."</div>
+          </div>
+          <div class="tip-d-foot">
+            <span class="tip-d-lvl">Lv. 25+</span>
+            <span class="tip-d-price">1 100 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🧤</div>
+      <div class="tc-name" style="color:#00d4ff">Rukavice Ledové Pustiny</div>
+      <div class="tc-type">Rukavice · Set</div>
+    </div>
+
+    <!-- Legendary with all features -->
+    <div class="trigger-card">
+      <div class="tip-d r-legendary">
+        <div class="tip-d-inner">
+          <div class="tip-d-glow-band"></div>
+          <div class="tip-d-body">
+            <div class="tip-d-head">
+              <div class="tip-d-ico">🔥</div>
+              <div class="tip-d-info">
+                <div class="tip-d-name">Drak Ohňových Vod</div>
+                <div class="tip-d-rarity-row">
+                  <div class="tip-d-rarity-gem"></div>
+                  <span class="tip-d-rarity-label">Legendární</span>
+                </div>
+                <div class="tip-d-slot-label">Zbraň — hůl</div>
+              </div>
+              <div class="tip-d-upgrade" style="color:#ff8000">★★★</div>
+            </div>
+            <div class="tip-d-hr"><div class="tip-d-hr-line"></div><div class="tip-d-hr-gem"></div><div class="tip-d-hr-line"></div></div>
+            <div class="tip-d-stats">
+              <div class="tip-d-stat"><span class="tip-d-sk">Útok</span><span class="tip-d-sv big">+110</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Int</span><span class="tip-d-sv">+55</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">MP</span><span class="tip-d-sv">+250</span></div>
+              <div class="tip-d-stat"><span class="tip-d-sk">Štěstí</span><span class="tip-d-sv">+18</span></div>
+            </div>
+            <div class="tip-d-desc">"Hůl uříznutá z hřbetu živého draka — v ní stále dýchá."</div>
+          </div>
+          <div class="tip-d-foot">
+            <span class="tip-d-lvl">Lv. 50+</span>
+            <span class="tip-d-price">15 000 G</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-icon">🔥</div>
+      <div class="tc-name" style="color:#ff8000">Drak Ohňových Vod</div>
+      <div class="tc-type">Zbraň</div>
+    </div>
+
+  </div>
+</div>
+
+<div style="text-align:center;padding:3rem 0 1rem;font-size:0.72rem;color:rgba(90,74,58,0.5);font-family:'Cinzel',serif;letter-spacing:0.1em">
+  DUNGEON CHRONICLES — TOOLTIP PROPOSALS · Hover pro preview
+</div>
+
+</body>
+</html>
