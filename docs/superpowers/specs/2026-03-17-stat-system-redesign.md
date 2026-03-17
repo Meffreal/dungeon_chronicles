@@ -216,18 +216,23 @@ Poznámka: `defensive` strategie měla `start_status: "shield"` — tento efekt 
 
 ## Dopad na Talenty
 
-### Talenty závislé na MP (musí být přepsány)
+### Talenty bez úprav (13/17)
 
-| Talent | Aktuální efekt | Nový efekt |
-|--------|---------------|-----------|
-| `mana_surge` | +25% MP | +15% damage (flat damage bonus) |
-| `mana_void` (T2) | vysaje 30% many protivníka | aplikuje `weaken` status na 2 kola |
+Následující talenty fungují s novým systémem beze změny:
+`fortitude`, `battle_rage`, `iron_skin`, `arcane_focus`, `spell_echo`, `eagle_eye`, `hunters_mark`, `cyclone_strike`, `rallying_cry`, `execute`, `arcane_storm`, `time_warp`, `rain_of_arrows`
 
-### Talent závislý na dodge
+### Talenty vyžadující úpravu (4/17)
 
-| Talent | Aktuální efekt | Nový efekt |
-|--------|---------------|-----------|
-| `evasion` (Ranger) | +10% dodge šance | +10% crit šance |
+| Talent | Aktuální efekt | Nový efekt | Důvod |
+|--------|---------------|-----------|-------|
+| `mana_surge` (Mage T1) | `mp_pct: 0.25` → +25% MP | `dmg_bonus_pct: 0.15` → +15% damage | MP odstraněno |
+| `evasion` (Ranger T1) | `dodge_bonus_pct: 0.10` → +10% dodge | `crit_bonus_pct: 0.10` → +10% crit šance | Dodge odstraněn |
+| `mana_void` (Mage T2) | `drain_pct: 0.30` → vysaje 30% MP | `apply_status: "weaken", rounds: 2` → aplikuje weaken | MP odstraněno |
+| `shadow_step` (Ranger T2) | `dodge_chance: 0.80` + protiútok 1× | Garantovaný protiútok 1.5× damage + bleed | Dodge odstraněn |
+
+### Talent `mark_for_death` (Ranger T2)
+
+`def_reduction_pct: 0.25` — logika zůstává, ale aplikuje se na `armor_value` nepřítele místo `def_`. Žádná změna v effect dict, jen v combat enginu.
 
 ### Ostatní talenty
 
