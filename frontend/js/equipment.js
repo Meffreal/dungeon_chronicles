@@ -213,18 +213,12 @@ function renderStatPanel() {
 
   // ── Zdroje ──
   const hpMax  = com.hp_max ?? 0;
-  const mpMax  = com.mp_max ?? 0;
   const hpEq   = eq.hp ?? 0;
-  const mpEq   = eq.mp ?? 0;
   const hpBase = hpMax - hpEq;
-  const mpBase = mpMax - mpEq;
 
   document.getElementById('sp-hp-val').textContent  = hpMax.toLocaleString('cs');
-  document.getElementById('sp-mp-val').textContent  = mpMax.toLocaleString('cs');
   document.getElementById('sp-hp-base').textContent = hpBase.toLocaleString('cs');
-  document.getElementById('sp-mp-base').textContent = mpBase.toLocaleString('cs');
   document.getElementById('sp-hp-eq').textContent   = hpEq > 0 ? `+${hpEq.toLocaleString('cs')} vybavení` : '';
-  document.getElementById('sp-mp-eq').textContent   = mpEq > 0 ? `+${mpEq.toLocaleString('cs')} vybavení` : '';
 
   // ── Základní atributy ──
   const PRIMARY_STAT = { warrior:'strength', mage:'intelligence', ranger:'dexterity' };
@@ -234,11 +228,11 @@ function renderStatPanel() {
   const EQ_KEY = { strength:'str', dexterity:'dex', intelligence:'int', endurance:'end', luck:'luck' };
 
   const ATTR_DEF = [
-    { key:'strength',     ico:'💪', lbl:'Síla',        col:'c-red'    },
-    { key:'dexterity',    ico:'🤸', lbl:'Obratnost',   col:'c-green'  },
-    { key:'intelligence', ico:'🧠', lbl:'Inteligence', col:'c-blue'   },
-    { key:'endurance',    ico:'🛡', lbl:'Výdrž',       col:'c-gold'   },
-    { key:'luck',         ico:'🍀', lbl:'Štěstí',      col:'c-purple' },
+    { key:'strength',     ico:'💪', lbl:'Síla',        col:'c-red',    tip:'Síla — hlavní útočný stat Warriora' },
+    { key:'dexterity',    ico:'🤸', lbl:'Obratnost',   col:'c-green',  tip:'Obratnost — hlavní útočný stat Rangera, first strike' },
+    { key:'intelligence', ico:'🧠', lbl:'Inteligence', col:'c-blue',   tip:'Inteligence — hlavní útočný stat Mága' },
+    { key:'endurance',    ico:'🛡', lbl:'Výdrž',       col:'c-gold',   tip:'Výdrž — určuje maximální HP' },
+    { key:'luck',         ico:'🍀', lbl:'Štěstí',      col:'c-purple', tip:'Štěstí — šance na kritický zásah' },
   ];
 
   const sp = char.stat_points || 0;
@@ -261,7 +255,7 @@ function renderStatPanel() {
         ? `<span class="sp-attr-cap-warn" title="Diminishing returns nad 50 bodů (70% efektivita)">⚠</span>`
         : '';
 
-    return `<div class="sp-attr-card${isPrim ? ' primary-attr' : ''}" id="sp-attr-${a.key}">
+    return `<div class="sp-attr-card${isPrim ? ' primary-attr' : ''}" id="sp-attr-${a.key}" title="${a.tip}">
       <div class="sp-attr-top">
         <span class="sp-attr-ico">${a.ico}</span>
         <span class="sp-attr-lbl">${a.lbl}${isPrim ? ' ★' : ''}</span>
@@ -281,15 +275,10 @@ function renderStatPanel() {
   }).join('');
 
   // ── Bojové statistiky ──
-  // crit_pct, dodge_pct, crit_mult jsou nyní v char.combat z backendu
-  // eff_atk/eff_def/eff_spd = hodnoty po soft cap (pro info v panelu)
+  // crit_pct, crit_mult jsou odvozeny z atributů (luck)
   const COMBAT_DEF = [
-    { ico:'⚔',  lbl:'Poškození',     val: com.atk,       eff: com.eff_atk, eqKey:'atk', col:'c-red',   unit:'',  primary:true  },
-    { ico:'🛡',  lbl:'Obrana',        val: com.def,       eff: com.eff_def, eqKey:'def', col:'c-blue',  unit:'',  primary:true  },
-    { ico:'💨',  lbl:'Rychlost',      val: com.spd,       eff: com.eff_spd, eqKey:'spd', col:'c-cyan',  unit:'',  primary:true  },
-    { ico:'💥',  lbl:'Krit. šance',   val: com.crit_pct,  eff: null,        eqKey:null,  col:'c-gold',  unit:'%', primary:false },
-    { ico:'💀',  lbl:'Krit. poškoz.', val: com.crit_mult, eff: null,        eqKey:null,  col:'c-gold',  unit:'%', primary:false },
-    { ico:'🌀',  lbl:'Vyhýbání',      val: com.dodge_pct, eff: null,        eqKey:null,  col:'c-green', unit:'%', primary:false },
+    { ico:'💥',  lbl:'Krit. šance',   val: com.crit_pct,  eff: null, eqKey:null, col:'c-gold',  unit:'%', primary:false },
+    { ico:'💀',  lbl:'Krit. poškoz.', val: com.crit_mult, eff: null, eqKey:null, col:'c-gold',  unit:'%', primary:false },
   ];
 
   const mkCombatCard = c => {
@@ -317,41 +306,11 @@ function renderStatPanel() {
   };
 
   document.getElementById('sp-combat').innerHTML =
-    `<div class="sp-cg-primary">${COMBAT_DEF.filter(c=>c.primary).map(mkCombatCard).join('')}</div>` +
-    `<div class="sp-cg-secondary">${COMBAT_DEF.filter(c=>!c.primary).map(mkCombatCard).join('')}</div>`;
+    `<div class="sp-cg-secondary">${COMBAT_DEF.map(mkCombatCard).join('')}</div>`;
 
-  // ── Class ability card ──
-  const ABILITY_INFO = {
-    warrior: { name:'Otřes Zemí',    emoji:'🪨', cost:30, desc:'1.7× ATK, probíjí 40% brnění' },
-    mage:    { name:'Ohnivá Koule',  emoji:'🔥', cost:60, desc:'2.0× ATK, ignoruje brnění (magie)' },
-    ranger:  { name:'Přesný Zásah', emoji:'🎯', cost:35, desc:'1.3× ATK, garantovaný kritický zásah' },
-  };
-  const ab = ABILITY_INFO[char.cls];
-  const usesCount = ab ? Math.floor((com.mp_max || 0) / ab.cost) : 0;
-
-  let abilityEl = document.getElementById('sp-ability');
-  if (!abilityEl) {
-    abilityEl = document.createElement('div');
-    abilityEl.id = 'sp-ability';
-    const combatEl = document.getElementById('sp-combat');
-    if (combatEl && combatEl.parentNode) {
-      combatEl.parentNode.insertBefore(abilityEl, combatEl.nextSibling);
-    }
-  }
-  if (abilityEl && ab) {
-    abilityEl.innerHTML = `
-      <div class="sp-ability-card">
-        <div class="sp-ability-header">
-          <span class="sp-ability-emoji">${ab.emoji}</span>
-          <span class="sp-ability-name">${ab.name}</span>
-          <span class="sp-ability-cost">${ab.cost} MP</span>
-        </div>
-        <div class="sp-ability-desc">${ab.desc}</div>
-        <div class="sp-ability-uses">Použití za boj: <strong>${usesCount}×</strong> (z ${com.mp_max || 0} MP)</div>
-      </div>`;
-  } else if (abilityEl) {
-    abilityEl.innerHTML = '';
-  }
+  // Vyčisti případný starý ability element
+  const abilityEl = document.getElementById('sp-ability');
+  if (abilityEl) abilityEl.innerHTML = '';
 }
 
 // ── TALENT TREE ──────────────────────────────────────────────────────────────

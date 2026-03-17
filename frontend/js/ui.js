@@ -548,9 +548,6 @@ function updateUI(c) {
   // Dashboard XP bar
   const xpFill = document.getElementById('dash-xp-fill');
   if (xpFill) xpFill.style.width = `${Math.max(2, Math.min(100, (c.xp / c.xp_to_next) * 100))}%`;
-  // Dashboard combat stats
-  set('dash-atk', c.combat?.atk ?? '—');
-  set('dash-def', c.combat?.def ?? '—');
   // Pending actions
   _updateDashPending(c);
 
