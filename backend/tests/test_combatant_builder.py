@@ -72,7 +72,7 @@ async def test_mage_uses_intelligence_as_primary():
     assert cfg.primary_stat == 30   # INT
     assert cfg.secondary_a == 5    # STR
     assert cfg.secondary_b == 8    # DEX
-    assert cfg.weapon_dmg == 4     # unarmed mage base
+    assert cfg.weapon_dmg == 5     # unarmed mage base (CLASS_WEAPON_BASE["mage"] = 5)
 
 
 @pytest.mark.asyncio
@@ -149,7 +149,7 @@ async def test_missing_item_falls_back_to_class_base():
     db = _make_db(get_return=None)   # item nenalezen
 
     cfg = await build_combatant_config(char, db)
-    assert cfg.weapon_dmg == 4     # fallback na CLASS_WEAPON_BASE["mage"]
+    assert cfg.weapon_dmg == 5     # fallback na CLASS_WEAPON_BASE["mage"] = 5
     assert cfg.primary_stat == 18  # base INT, žádný gear bonus
 
 
