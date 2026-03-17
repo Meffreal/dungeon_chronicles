@@ -18,7 +18,7 @@ from models.notification import Notification, NotifType
 from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list
 from game.experiments import get_experiment_overrides, apply_overrides_to_engine, apply_overrides_to_router
 from game.achievements import check_and_award
-from game.set_bonuses import get_char_set_combat_effects
+from game.combatant_builder import build_combatant_config
 from models.guild import Guild
 from game.guild_xp import award_guild_xp
 from game.season import process_expired_season, ensure_active_season
@@ -30,7 +30,7 @@ router = APIRouter(prefix="/arena", tags=["arena"])
 
 
 class ArenaAttackBody(BaseModel):
-    strategy: str = "balanced"
+    pass
 
 _ELO_K = 32
 
@@ -189,32 +189,13 @@ async def attack(
         raise HTTPException(404, "Soupeř nenalezen.")
 
     # Simuluj souboj
-    _strategy = (body.strategy if body else "balanced")
-    _atk_set_fx = await get_char_set_combat_effects(char, db)
-    _def_set_fx = await get_char_set_combat_effects(defender, db)
     # Načti experiment overrides pro útočícího hráče
     _exp_overrides = await get_experiment_overrides(char.experiment_group or 0, db)
     _engine_ov     = apply_overrides_to_engine(_exp_overrides)
     _router_ov     = apply_overrides_to_router(_exp_overrides)
-    atk_cfg = CombatantConfig(
-        name=char.name, hp=char.hp_max, atk=char.atk,
-        def_=char.def_, spd=char.spd, luck=char.luck, level=char.level,
-        cls=char.cls, mp=char.mp_max,
-        strategy=_strategy,
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-        talent_t2=char.talent_t2_key or "",
-        set_bonuses=_atk_set_fx,
-        experiment_overrides=_engine_ov,
-    )
-    def_cfg = CombatantConfig(
-        name=defender.name, hp=defender.hp_max, atk=defender.atk,
-        def_=defender.def_, spd=defender.spd, luck=defender.luck, level=defender.level,
-        cls=defender.cls, mp=defender.mp_max,
-        subclass=defender.subclass or "",
-        talent_t2=defender.talent_t2_key or "",
-        set_bonuses=_def_set_fx,
-    )
+    atk_cfg = await build_combatant_config(char, db)
+    atk_cfg.experiment_overrides = _engine_ov
+    def_cfg = await build_combatant_config(defender, db)
 
     result = simulate_unified_combat(atk_cfg, def_cfg, max_rounds=20)
     attacker_won = result.attacker_won
