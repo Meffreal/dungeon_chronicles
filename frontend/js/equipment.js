@@ -242,9 +242,9 @@ function renderStatPanel() {
   const maxStatVal  = Math.max(1, ...allStatVals);
 
   document.getElementById('sp-attrs').innerHTML = ATTR_DEF.map(a => {
-    const total   = char.stats?.[a.key] ?? 0;
+    const base    = char.stats?.[a.key] ?? 0;
     const eqBonus = eq[EQ_KEY[a.key]]   ?? 0;
-    const base    = total - eqBonus;
+    const total   = base + eqBonus;
     const isPrim  = a.key === primaryKey;
     const barPct  = Math.round((total / maxStatVal) * 100);
     const basePct = Math.round((base  / maxStatVal) * 100);
