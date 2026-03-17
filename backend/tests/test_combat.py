@@ -10,7 +10,6 @@ from game.combat_engine import (
     CombatResult,
     simulate_unified_combat,
     calculate_win_chance,
-    _crit_chance,
     _calc_damage,
     _FighterState,
 )
@@ -33,20 +32,6 @@ def _enemy(hp=80, weapon_dmg=12, armor_value=10, luck=3, level=3):
         luck=luck, level=level, cls="",
     )
 
-
-# ── _crit_chance ──────────────────────────────────────────────────────────────
-
-def test_crit_chance_minimum():
-    assert _crit_chance(luck=0) == pytest.approx(0.05)
-
-
-def test_crit_chance_maximum():
-    assert _crit_chance(luck=100) == pytest.approx(0.40)
-
-
-def test_crit_chance_scales_with_luck():
-    assert _crit_chance(luck=10) > _crit_chance(luck=0)
-    assert _crit_chance(luck=30) > _crit_chance(luck=10)
 
 
 # ── _calc_damage ──────────────────────────────────────────────────────────────

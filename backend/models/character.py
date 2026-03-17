@@ -287,7 +287,7 @@ class Character(Base):
         return xp_to_next(self.level)
 
     def to_dict(self) -> dict:
-        from game.combat_engine import _crit_chance
+        from game.combat_stats import calc_crit_chance as _crit_chance_fn
         bt = self.buff_totals()
         eff_lck = self.luck + bt.get("luck", 0)
         return {
@@ -308,7 +308,7 @@ class Character(Base):
             "active_buffs": self.get_active_buffs(),
             "combat": {
                 "hp_max":    self.hp_max,
-                "crit_pct":  round(_crit_chance(eff_lck) * 100, 1),
+                "crit_pct":  round(_crit_chance_fn(eff_lck, self.level) * 100, 1),
                 "crit_mult": 175,
             },
             "stat_points": self.stat_points or 0,

@@ -554,8 +554,7 @@ class _FighterState:
 
 # ── Pomocné funkce ─────────────────────────────────────────────────────────────
 
-def _crit_chance(luck: int) -> float:
-    return min(MAX_CRIT_CHANCE, BASE_CRIT_CHANCE + luck * CRIT_PER_LUCK)
+
 
 
 # ── Status interaction matrix ──────────────────────────────────────────────────
