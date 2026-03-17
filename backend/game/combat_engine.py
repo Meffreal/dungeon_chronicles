@@ -1400,6 +1400,30 @@ def _execute_attack(
             ))
             log.append(echo_txt)
 
+        # ── F.3 Mage: Spell Burn DoT (ability path) ──────────────────────────
+        if a_cls == "mage":
+            burn_dmg = calculate_spell_burn_damage(defender.hp_max)
+            existing_burn = defender.get_status("burn")
+            if existing_burn:
+                existing_burn.remaining_rounds = max(existing_burn.remaining_rounds, 3)
+                existing_burn.tick_value = max(existing_burn.tick_value, float(burn_dmg))
+            else:
+                defender.statuses.append(ActiveStatus(
+                    name="burn",
+                    remaining_rounds=3,
+                    tick_value=float(burn_dmg),
+                ))
+            burn_txt = f"  🔥 {a_name}: Kouzlo zapaluje {d_name}! ({burn_dmg} dmg/kolo po 3 kola)"
+            events.append(CombatEvent(
+                type="burn", round=round_num,
+                actor=a_name, target=d_name,
+                damage=burn_dmg,
+                actor_hp=attacker.hp, target_hp=defender.hp,
+                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+                text=burn_txt,
+            ))
+            log.append(burn_txt)
+
         return total_dmg
 
     # ── 3. Crit check ─────────────────────────────────────────────────────────
@@ -1494,6 +1518,30 @@ def _execute_attack(
     if defender.cfg.cls == "warrior":
         defender.rage = min(100, defender.rage + 25)
 
+    # ── F.3 Mage: Spell Burn DoT ─────────────────────────────────────────────
+    if a_cls == "mage":
+        burn_dmg = calculate_spell_burn_damage(defender.hp_max)
+        existing_burn = defender.get_status("burn")
+        if existing_burn:
+            existing_burn.remaining_rounds = max(existing_burn.remaining_rounds, 3)
+            existing_burn.tick_value = max(existing_burn.tick_value, float(burn_dmg))
+        else:
+            defender.statuses.append(ActiveStatus(
+                name="burn",
+                remaining_rounds=3,
+                tick_value=float(burn_dmg),
+            ))
+        txt = f"  🔥 {a_name}: Kouzlo zapaluje {d_name}! ({burn_dmg} dmg/kolo po 3 kola)"
+        events.append(CombatEvent(
+            type="burn", round=round_num,
+            actor=a_name, target=d_name,
+            damage=burn_dmg,
+            actor_hp=attacker.hp, target_hp=defender.hp,
+            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+            text=txt,
+        ))
+        log.append(txt)
+
     # ── 5. Crit efekt — aplikuj status pokud máš bonus ───────────────────────
     if is_crit:
         txt = f"  💥 KRITICKÝ ZÁSAH! {a_name} zasahuje za {dmg} dmg!  [{d_name} HP: {defender.hp}]"
@@ -1568,6 +1616,41 @@ def _ranger_chain_or_multi_attack(
         ))
         return _execute_attack(attacker, defender, round_num, events, log)
     return 0
+
+
+def _maybe_spirit_revenge(
+    dead_fighter: "_FighterState",
+    killer: "_FighterState",
+    round_num: int,
+    events: list,
+    log: list,
+) -> None:
+    """
+    Spirit Revenge: Mage zabitý v kole 1 způsobí 20% max HP damage killerovi.
+    Args:
+        dead_fighter: bojovník který právě zemřel
+        killer: bojovník který zabil dead_fighter
+    """
+    if dead_fighter.cfg.cls != "mage":
+        return
+    if not check_spirit_revenge_trigger(round_num):
+        return
+    revenge_dmg = calculate_spirit_revenge_damage(killer.hp_max)
+    killer.hp = max(0, killer.hp - revenge_dmg)
+    txt = (
+        f"  👻 {dead_fighter.cfg.name}: Spirit Revenge! "
+        f"{killer.cfg.name} utrpí {revenge_dmg} dmg!  "
+        f"[{killer.cfg.name} HP: {killer.hp}]"
+    )
+    events.append(CombatEvent(
+        type="spirit_revenge", round=round_num,
+        actor=dead_fighter.cfg.name, target=killer.cfg.name,
+        damage=revenge_dmg,
+        actor_hp=dead_fighter.hp, target_hp=killer.hp,
+        actor_hp_max=dead_fighter.hp_max, target_hp_max=killer.hp_max,
+        text=txt,
+    ))
+    log.append(txt)
 
 
 # ── Hlavní funkce ──────────────────────────────────────────────────────────────
@@ -1661,6 +1744,7 @@ def simulate_unified_combat(
             dmg = _execute_attack(attacker, defender, round_num, events, log)
             total_dmg_by_attacker += dmg
             if defender.hp <= 0:
+                _maybe_spirit_revenge(defender, attacker, round_num, events, log)
                 break
             total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
             if defender.hp <= 0:
@@ -1672,6 +1756,7 @@ def simulate_unified_combat(
                     break
             _execute_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
+                _maybe_spirit_revenge(attacker, defender, round_num, events, log)
                 break
             _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
@@ -1684,6 +1769,7 @@ def simulate_unified_combat(
                     break
             _execute_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
+                _maybe_spirit_revenge(attacker, defender, round_num, events, log)
                 break
             _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
@@ -1696,6 +1782,7 @@ def simulate_unified_combat(
             dmg = _execute_attack(attacker, defender, round_num, events, log)
             total_dmg_by_attacker += dmg
             if defender.hp <= 0:
+                _maybe_spirit_revenge(defender, attacker, round_num, events, log)
                 break
             total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
             if defender.hp <= 0:

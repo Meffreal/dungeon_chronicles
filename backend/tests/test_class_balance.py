@@ -94,3 +94,52 @@ def test_ranger_chain_hit_or_multi_fires_over_10_rounds():
     assert len(chain_events) > 0, (
         "Za 10+ kol musí Ranger mít aspoň jeden chain/multi-hit event"
     )
+
+
+def _mage_vs_tank():
+    mage = CombatantConfig(
+        name="Mage", cls="mage", level=20,
+        hp=400, weapon_dmg=25, armor_value=10,
+        primary_stat=18, secondary_a=5, secondary_b=8,
+        luck=10,
+    )
+    tank = CombatantConfig(
+        name="Tank", cls="warrior", level=20,
+        hp=5000, weapon_dmg=5, armor_value=60,
+        primary_stat=15, secondary_a=8, secondary_b=5,
+        luck=5,
+    )
+    return mage, tank
+
+
+def test_mage_applies_spell_burn_after_attack():
+    """Mage musí aplikovat burn DoT na nepřítele po každém útoku."""
+    from game.combat_engine import simulate_unified_combat
+    mage, tank = _mage_vs_tank()
+    result = simulate_unified_combat(mage, tank, seed=1)
+    burn_events = [e for e in result.events if e.type == "burn"]
+    assert len(burn_events) > 0, "Mage musí způsobit burn DoT (type='burn')"
+
+
+def test_mage_spirit_revenge_on_round1_death():
+    """Mage zabitý v kole 1 musí způsobit Spirit Revenge damage útočníkovi."""
+    import pytest
+    mage_1hp = CombatantConfig(
+        name="Mage", cls="mage", level=1,
+        hp=1, weapon_dmg=5, armor_value=1,
+        primary_stat=5, secondary_a=3, secondary_b=3,
+        luck=5,
+    )
+    killer = CombatantConfig(
+        name="Warrior", cls="warrior", level=20,
+        hp=1000, weapon_dmg=50, armor_value=80,
+        primary_stat=15, secondary_a=8, secondary_b=5,
+        luck=5,
+    )
+    from game.combat_engine import simulate_unified_combat
+    result = simulate_unified_combat(killer, mage_1hp, seed=1)
+    spirit_events = [e for e in result.events if e.type == "spirit_revenge"]
+    assert len(spirit_events) > 0, "Spirit Revenge event musí existovat"
+    sr = spirit_events[0]
+    # 20% z 1000 = 200
+    assert sr.damage == pytest.approx(200, abs=5)
