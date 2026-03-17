@@ -22,8 +22,9 @@ class MarketListing(Base):
     price:        Mapped[int]  = mapped_column(Integer)           # cena za kus
     listed_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     expires_at:   Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    is_sold:      Mapped[bool] = mapped_column(Boolean, default=False)
-    buyer_id:     Mapped[int | None] = mapped_column(Integer, ForeignKey("characters.id"), nullable=True)
+    is_sold:       Mapped[bool] = mapped_column(Boolean, default=False)
+    buyer_id:      Mapped[int | None] = mapped_column(Integer, ForeignKey("characters.id"), nullable=True)
+    upgrade_level: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     seller = relationship("Character", foreign_keys=[seller_id])
     buyer  = relationship("Character", foreign_keys=[buyer_id])
@@ -49,13 +50,14 @@ class MarketListing(Base):
 
     def to_dict(self) -> dict:
         return {
-            "id":          self.id,
-            "seller":      self.seller.name if self.seller else "?",
-            "item":        self.item.to_dict() if self.item else None,
-            "quantity":    self.quantity,
-            "price":       self.price,
-            "total":       self.price * self.quantity,
-            "listed_at":   self.listed_at.isoformat(),
-            "expires_at":  self.expires_at.isoformat(),
-            "is_expired":  self.is_expired,
+            "id":            self.id,
+            "seller":        self.seller.name if self.seller else "?",
+            "item":          self.item.to_dict() if self.item else None,
+            "quantity":      self.quantity,
+            "price":         self.price,
+            "total":         self.price * self.quantity,
+            "listed_at":     self.listed_at.isoformat(),
+            "expires_at":    self.expires_at.isoformat(),
+            "is_expired":    self.is_expired,
+            "upgrade_level": self.upgrade_level or 0,
         }

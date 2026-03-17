@@ -197,6 +197,7 @@ async def list_item(
         listed_at=now,
         expires_at=now + timedelta(hours=LISTING_HOURS),
         is_sold=False,
+        upgrade_level=inv_item.upgrade_level or 0,
     )
     db.add(listing)
     await db.commit()
@@ -259,11 +260,12 @@ async def buy_item(
                        {"listing_id": listing.id, "item_id": listing.item_id,
                         "gross": total_price, "fee": fee})
 
-    # Přidej item kupujícímu do inventáře
+    # Přidej item kupujícímu do inventáře — stackuj pouze pokud se shoduje i upgrade_level
     existing_res = await db.execute(
         select(InventoryItem).where(
             InventoryItem.character_id == char.id,
             InventoryItem.item_id == listing.item_id,
+            InventoryItem.upgrade_level == (listing.upgrade_level or 0),
         )
     )
     existing = existing_res.scalar_one_or_none()
@@ -274,6 +276,7 @@ async def buy_item(
             character_id=char.id,
             item_id=listing.item_id,
             quantity=listing.quantity,
+            upgrade_level=listing.upgrade_level or 0,
         )
         db.add(new_inv)
 
@@ -317,11 +320,12 @@ async def cancel_listing(
     if listing.is_sold:
         raise HTTPException(400, "Nabídka je již prodána, nelze zrušit.")
 
-    # Vrať item do inventáře
+    # Vrať item do inventáře — stackuj pouze pokud se shoduje i upgrade_level
     existing_res = await db.execute(
         select(InventoryItem).where(
             InventoryItem.character_id == char.id,
             InventoryItem.item_id == listing.item_id,
+            InventoryItem.upgrade_level == (listing.upgrade_level or 0),
         )
     )
     existing = existing_res.scalar_one_or_none()
@@ -332,6 +336,7 @@ async def cancel_listing(
             character_id=char.id,
             item_id=listing.item_id,
             quantity=listing.quantity,
+            upgrade_level=listing.upgrade_level or 0,
         ))
 
     await db.delete(listing)
