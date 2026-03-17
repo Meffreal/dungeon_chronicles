@@ -105,8 +105,7 @@ async def browse_market(
             "pages": max(1, (total + page_size - 1) // page_size),
         }
     except Exception as exc:
-        _log.error("browse_market failed", extra={"data": {"error": str(exc), "tb": traceback.format_exc()}})
-        raise
+        return {"debug_error": str(exc), "debug_tb": traceback.format_exc()}
 
 
 @router.get("/my-listings")
