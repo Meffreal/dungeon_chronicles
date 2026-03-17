@@ -89,7 +89,8 @@ function renderInv() {
     const isSet = item?.rarity === 'set';
     const rc = RARITY_COL[item?.rarity] || '#9d9d9d';
     const bonuses = Object.entries(item?.bonuses || {}).filter(([,v]) => v > 0);
-    const bonusTxt = bonuses.slice(0,2).map(([k,v]) => `+${v} ${k.toUpperCase()}`).join(' · ');
+    const BTAG = {atk:'ATK',def:'OBR',spd:'SPD',str:'STR',dex:'AQI',int:'INT',end:'VÝD',luck:'LUCK',hp:'HP',mp:'MP'};
+    const bonusTxt = bonuses.slice(0,2).map(([k,v]) => `+${v} ${BTAG[k]||k.toUpperCase()}`).join(' · ');
     const ul = inv.upgrade_level || 0;
     const equippable = ['weapon','helmet','armor','gloves','boots','ring','amulet'].includes(item?.type);
     const dur = inv.durability ?? 100;
@@ -117,7 +118,7 @@ function openItemDetail(inv) {
   const rc = RARITY_COL[item.rarity] || '#9d9d9d';
   const bonuses = Object.entries(item.bonuses || {}).filter(([,v]) => v > 0);
   const equippable = ['weapon','helmet','armor','gloves','boots','ring','amulet'].includes(item.type);
-  const bonusLabels = {atk:'Útok',def:'Obrana',spd:'Rychlost',hp:'Max HP',mp:'XP (při použití)',str:'Síla',dex:'Obratnost',int:'Inteligence',end:'Výdrž',luck:'Štěstí'};
+  const bonusLabels = {atk:'Útok (ATK)',def:'Obrana (OBR)',spd:'Rychlost',hp:'Max HP',mp:'XP (při použití)',str:'Síla (STR)',dex:'Obratnost (AQI)',int:'Inteligence (INT)',end:'Výdrž (VÝD)',luck:'Štěstí (LUCK)'};
   const isPotion = item.type === 'potion';
 
   const bonusRows = bonuses.map(([k,v]) =>

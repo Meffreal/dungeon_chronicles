@@ -4,6 +4,8 @@ let _achTitleCache = null;
 let _achTitleCacheAt = 0;
 const ACH_CACHE_TTL = 120_000; // 2 minutes
 
+const BONUS_TAG = {atk:'ATK',def:'OBR',spd:'SPD',str:'STR',dex:'AQI',int:'INT',end:'VÝD',luck:'LUCK',hp:'HP',mp:'MP'};
+
 const SLOTS = [
   {k:'helmet'},{k:'armor'},
   {k:'gloves'},{k:'ring'},
@@ -56,7 +58,7 @@ async function renderEquip() {
     const bonusChips = has
       ? Object.entries(item.bonuses || {})  // bonusy vždy ze skutečného itemu!
           .filter(([,v]) => v > 0)
-          .map(([k,v]) => `<span class="eq-slot-bonus-chip">+${v} ${k.toUpperCase()}</span>`)
+          .map(([k,v]) => `<span class="eq-slot-bonus-chip">+${v} ${BONUS_TAG[k]||k.toUpperCase()}</span>`)
           .join('')
       : '';
     const invObj = has && typeof invData !== 'undefined' ? (invData || []).find(i => i.item?.id === item.id) : null;
