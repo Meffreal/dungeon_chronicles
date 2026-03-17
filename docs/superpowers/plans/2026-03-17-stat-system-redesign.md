@@ -1060,7 +1060,8 @@ async def test_warrior_uses_strength_as_primary():
     char.eq_weapon = None
     char.eq_helmet = char.eq_armor = char.eq_gloves = None
     char.eq_boots = char.eq_ring = char.eq_amulet = None
-    char.talent_keys = "[]"
+    char.talents_json = "[]"   # správný atribut, get_talents() čte z talents_json
+    char.get_talents = lambda: []  # mock get_talents() volané v build_combatant_config
     char.talent_t2_key = ""
     char.subclass = ""
     char.prestige_level = 0
@@ -1091,7 +1092,7 @@ game/combatant_builder.py — Sestaví CombatantConfig z Character modelu.
 from sqlalchemy.ext.asyncio import AsyncSession
 from game.combat_engine import CombatantConfig
 from game.combat_stats import CLASS_WEAPON_BASE
-from models.loot import get_set_bonuses  # existující helper
+from game.set_bonuses import get_char_set_combat_effects
 
 
 async def _get_weapon_dmg(char, db: AsyncSession) -> int:
@@ -1139,7 +1140,7 @@ async def build_combatant_config(char, db: AsyncSession) -> CombatantConfig:
     weapon_dmg   = await _get_weapon_dmg(char, db)
     armor_value  = await _get_armor_value(char, db)
     primary, sec_a, sec_b = _primary_secondary(char)
-    set_bonuses  = await get_set_bonuses(char, db)
+    set_bonuses  = await get_char_set_combat_effects(char, db)
     talents      = char.get_talents() if hasattr(char, 'get_talents') else []
 
     return CombatantConfig(
