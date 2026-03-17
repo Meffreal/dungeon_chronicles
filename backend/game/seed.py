@@ -45,6 +45,7 @@ SEED_ITEMS = [
     ("Excalibur",        "weapon", "legendary", "Legendární meč krále Artuše.",      "✨", 65,13, 8,15, 0,16,8, 0,11,7,20,2000),
     ("Žezlo věčnosti",   "weapon", "legendary", "Artefakt staré civilizace.",        "⚡", 45, 5,10,60, 0, 0,0,30,0,0,20,1800),
     ("Luk osudu",        "weapon", "legendary", "Střela tohoto luku nikdy nechybí.", "🌟", 55,10, 8,25, 0, 0,26,7,0,20,20,1900),
+    ("Meffova hůlka osudu",   "weapon", "legendary", "Hůlka, která určuje osud.",        "🪥", 55, 15,30,120, 0, 0,0,100,0,0,20,1800),
 
     # ── ARMOR ────────────────────────────────────────────────────────────────
     # Common
