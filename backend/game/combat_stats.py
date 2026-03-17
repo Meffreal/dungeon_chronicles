@@ -19,8 +19,8 @@ CLASS_ARMOR_CAPS: dict[str, float] = {
 }
 
 CLASS_HP_MULT: dict[str, int] = {
-    "warrior": 5,
-    "ranger":  4,
+    "warrior": 4,
+    "ranger":  3,
     "mage":    2,
 }
 
