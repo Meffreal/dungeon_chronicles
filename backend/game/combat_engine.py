@@ -1878,8 +1878,23 @@ def calculate_win_chance(attacker: CombatantConfig, defender: CombatantConfig) -
     Používá soft-cappované hodnoty pro konzistenci s combat enginem.
     """
     from game.combat_stats import calc_damage_components as _cdc
+
+    def _to_str_dex_int(c: CombatantConfig) -> tuple[int, int, int]:
+        """Zrekonstruuje (STR, DEX, INT) z primary/secondary polí podle třídy.
+        calc_damage_components vždy očekává STR/DEX/INT v pevném pořadí."""
+        p, a, b = c.primary_stat, c.secondary_a, c.secondary_b
+        cls = c.cls or ""
+        if cls == "warrior":
+            return p, a, b   # primary=STR, sec_a=DEX, sec_b=INT
+        elif cls == "ranger":
+            return a, p, b   # primary=DEX, sec_a=STR, sec_b=INT → str=sec_a, dex=primary
+        elif cls == "mage":
+            return a, b, p   # primary=INT, sec_a=STR, sec_b=DEX → str=sec_a, dex=sec_b, int=primary
+        return p, a, b       # fallback (boss/AI)
+
     def power(c: CombatantConfig) -> float:
-        base_dmg, _, _ = _cdc(c.cls or "", c.primary_stat, c.secondary_a, c.secondary_b, c.weapon_dmg)
+        str_, dex, int_ = _to_str_dex_int(c)
+        base_dmg, _, _ = _cdc(c.cls or "", str_, dex, int_, c.weapon_dmg)
         return (c.hp * 0.4
                 + base_dmg * 2.5
                 + c.armor_value * 1.5
