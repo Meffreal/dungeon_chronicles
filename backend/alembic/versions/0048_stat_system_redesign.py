@@ -1,10 +1,10 @@
-"""0047_stat_system_redesign — odstraní staré combat staty z characters a items, přidá bonus_xp"""
+"""0048_stat_system_redesign — odstraní staré combat staty z characters a items, přidá bonus_xp"""
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
 
-revision = '0047'
-down_revision = '0046'
+revision = '0048'
+down_revision = '0047'
 branch_labels = None
 depends_on = None
 
