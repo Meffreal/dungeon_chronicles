@@ -35,7 +35,6 @@ from game.class_mechanics import (
     check_chain_hit,
     check_multi_hit_round,
     ranger_first_round_first_strike,
-    check_mage_opening_crit,
     calculate_spell_burn_damage,
     check_spirit_revenge_trigger,
     calculate_spirit_revenge_damage,
@@ -48,8 +47,7 @@ from game.class_mechanics import (
 #   Ranger:  check_chain_hit(random.random()) po primárním hitu → bonus _execute_attack;
 #            check_multi_hit_round(round_num) → druhý útok bez chain;
 #            ranger_first_round_first_strike() → přeskočit SPD sort v kole 1.
-#   Mage:    check_mage_opening_crit(mage_spd, enemy_spd) → force crit v kole 1;
-#            calculate_spell_burn_damage(enemy.hp_max) → add_status("burn") po každém útoku;
+#   Mage:    calculate_spell_burn_damage(enemy.hp_max) → add_status("burn") po každém útoku;
 #            check_spirit_revenge_trigger(round) → calculate_spirit_revenge_damage() při smrti.
 
 # ── Konstanty ──────────────────────────────────────────────────────────────────

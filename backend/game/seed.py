@@ -112,7 +112,7 @@ SEED_ITEMS = [
     ("Amulet bouře",     "amulet", "epic",      "Přívěsek nabíjený bleskem.",        "⛈️", 12, 6, 8,15,20, 4,4,6,3,4,13, 520),
 
     # ── POTIONS / SCROLLS / ELIXIRS ──────────────────────────────────────────
-    # bonus_mp = XP okamžitě při použití (svitky)
+    # bonus_xp = XP okamžitě při použití (svitky)
     # bonus_str/dex/int/end/luck = dočasný buff (common=1d, uncommon=2d, rare=3d, epic/leg=3d)
     ("Lektvar síly",          "potion","common",   "+1 Síla po dobu 1 dne.",                   "🧪",  0,0,0,0,  0, 1,0,0,0,0, 1, 20),
     ("Lektvar obratnosti",    "potion","common",   "+1 Obratnost po dobu 1 dne.",              "🧪",  0,0,0,0,  0, 0,1,0,0,0, 1, 20),
@@ -128,7 +128,7 @@ SEED_ITEMS = [
 ]
 
 # ── SETOVÉ ITEMY ─────────────────────────────────────────────────────────────
-# Formát: (name, itype, desc, icon, atk, def_, spd, hp, mp,
+# Formát: (name, itype, desc, icon, atk, def_, spd, hp, mp(ignorováno),
 #           s_str, s_dex, s_int, s_end, s_luck, min_lv, sell, set_id, set_name)
 # rarity je vždy "set"
 
@@ -197,7 +197,7 @@ async def seed():
         # ── Normální itemy ────────────────────────────────────────────────────
         for row in SEED_ITEMS:
             (name, itype, rarity, desc, icon,
-             atk, def_, spd, hp, mp,
+             atk, def_, spd, hp, xp,
              s_str, s_dex, s_int, s_end, s_luck,
              min_lv, sell) = row
 
@@ -207,8 +207,8 @@ async def seed():
             item = Item(
                 name=name, item_type=itype, rarity=rarity,
                 description=desc, icon=icon,
-                bonus_atk=atk,  bonus_def=def_, bonus_spd=spd,
-                bonus_hp=hp,    bonus_mp=mp,
+                bonus_atk=atk,  bonus_def=def_,
+                bonus_hp=hp,    bonus_xp=xp,
                 bonus_str=s_str, bonus_dex=s_dex, bonus_int=s_int,
                 bonus_end=s_end, bonus_luck=s_luck,
                 min_level=min_lv, sell_price=sell,
@@ -229,8 +229,8 @@ async def seed():
             item = Item(
                 name=name, item_type=itype, rarity="set",
                 description=desc, icon=icon,
-                bonus_atk=atk,  bonus_def=def_, bonus_spd=spd,
-                bonus_hp=hp,    bonus_mp=mp,
+                bonus_atk=atk,  bonus_def=def_,
+                bonus_hp=hp,
                 bonus_str=s_str, bonus_dex=s_dex, bonus_int=s_int,
                 bonus_end=s_end, bonus_luck=s_luck,
                 min_level=min_lv, sell_price=sell,

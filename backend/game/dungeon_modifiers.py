@@ -6,12 +6,12 @@ Modifikátor platí pro VŠECHNY dungeony a mění statistiky nepřátel, hráč
 Hráči musí přizpůsobit strategii aktuálnímu modifikátoru.
 
 Možné efekty (klíče v dict):
-  enemy_hp_mult, enemy_atk_mult, enemy_def_mult, enemy_spd_mult  — násobič stat nepřítele
-  boss_hp_mult, boss_def_mult                                     — extra násobič pro bosse
-  player_hp_mult, player_atk_mult, player_def_mult, player_mp_mult — násobič stat hráče
-  reward_xp_mult, reward_gold_mult                                — násobič odměn
-  start_status_player                                             — hráč začíná s tímto statusem
-  start_status_enemy                                              — nepřítel začíná s tímto statusem
+  enemy_hp_mult, enemy_atk_mult, enemy_def_mult  — násobič stat nepřítele
+  boss_hp_mult, boss_def_mult                    — extra násobič pro bosse
+  player_hp_mult, player_atk_mult, player_def_mult — násobič stat hráče
+  reward_xp_mult, reward_gold_mult               — násobič odměn
+  start_status_player                            — hráč začíná s tímto statusem
+  start_status_enemy                             — nepřítel začíná s tímto statusem
 """
 
 # ── Definice modifikátorů ──────────────────────────────────────────────────────
@@ -39,10 +39,9 @@ DUNGEON_MODIFIERS: dict[str, dict] = {
     "swift_predators": {
         "name":        "Rychlí Predátoři",
         "emoji":       "⚡",
-        "description": "Nepřátelé jsou bleskově rychlí. +35% SPD, +15% ATK.",
+        "description": "Nepřátelé jsou bleskově rychlí. +15% ATK.",
         "type":        "enemy_buff",
         "color":       "#f39c12",
-        "enemy_spd_mult":  1.35,
         "enemy_atk_mult":  1.15,
     },
     "cursed_grounds": {
@@ -96,10 +95,9 @@ DUNGEON_MODIFIERS: dict[str, dict] = {
     "mana_void": {
         "name":        "Prázdnota Many",
         "emoji":       "🌀",
-        "description": "Magie se rozpadá. Hráč má jen 50% MP — méně speciálních schopností. +20% XP.",
+        "description": "Magie se rozpadá. +20% XP.",
         "type":        "player_debuff",
         "color":       "#7f8c8d",
-        "player_mp_mult":  0.50,
         "reward_xp_mult":  1.20,
     },
     "fortified_bosses": {
@@ -131,7 +129,6 @@ DUNGEON_MODIFIERS: dict[str, dict] = {
         "enemy_atk_mult":   1.20,
         "enemy_def_mult":   1.20,
         "enemy_hp_mult":    1.20,
-        "enemy_spd_mult":   1.20,
         "player_atk_mult":  1.20,
         "player_def_mult":  1.20,
         "player_hp_mult":   1.20,
@@ -154,7 +151,7 @@ def apply_modifier_to_enemy(
     """
     Aplikuje modifikátor na nepřátelské statistiky.
     Pro bosse se navíc uplatní boss_hp_mult / boss_def_mult (pokud jsou definovány).
-    Vrátí (hp, atk, def_, spd).
+    Vrátí (hp, atk, def_, spd). SPD není modifikováno.
     """
     if not modifier:
         return hp, atk, def_, spd
@@ -162,38 +159,35 @@ def apply_modifier_to_enemy(
     hp_mult  = modifier.get("boss_hp_mult",  modifier.get("enemy_hp_mult",  1.0)) if is_boss else modifier.get("enemy_hp_mult",  1.0)
     atk_mult = modifier.get("enemy_atk_mult", 1.0)
     def_mult = modifier.get("boss_def_mult", modifier.get("enemy_def_mult", 1.0)) if is_boss else modifier.get("enemy_def_mult", 1.0)
-    spd_mult = modifier.get("enemy_spd_mult", 1.0)
-
-    return (
-        int(hp   * hp_mult),
-        int(atk  * atk_mult),
-        int(def_ * def_mult),
-        int(spd  * spd_mult),
-    )
-
-
-def apply_modifier_to_player(
-    modifier: dict | None,
-    hp: int, atk: int, def_: int, spd: int, mp: int,
-) -> tuple[int, int, int, int, int]:
-    """
-    Aplikuje modifikátor na hráčské statistiky.
-    Vrátí (hp, atk, def_, spd, mp).
-    """
-    if not modifier:
-        return hp, atk, def_, spd, mp
-
-    hp_mult  = modifier.get("player_hp_mult",  1.0)
-    atk_mult = modifier.get("player_atk_mult", 1.0)
-    def_mult = modifier.get("player_def_mult", 1.0)
-    mp_mult  = modifier.get("player_mp_mult",  1.0)
 
     return (
         int(hp   * hp_mult),
         int(atk  * atk_mult),
         int(def_ * def_mult),
         spd,                   # SPD není modifikováno (beze změny)
-        int(mp   * mp_mult),
+    )
+
+
+def apply_modifier_to_player(
+    modifier: dict | None,
+    hp: int, atk: int, def_: int, spd: int,
+) -> tuple[int, int, int, int]:
+    """
+    Aplikuje modifikátor na hráčské statistiky.
+    Vrátí (hp, atk, def_, spd). SPD není modifikováno.
+    """
+    if not modifier:
+        return hp, atk, def_, spd
+
+    hp_mult  = modifier.get("player_hp_mult",  1.0)
+    atk_mult = modifier.get("player_atk_mult", 1.0)
+    def_mult = modifier.get("player_def_mult", 1.0)
+
+    return (
+        int(hp   * hp_mult),
+        int(atk  * atk_mult),
+        int(def_ * def_mult),
+        spd,                   # SPD není modifikováno (beze změny)
     )
 
 

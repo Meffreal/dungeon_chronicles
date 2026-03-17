@@ -59,7 +59,7 @@ SPIRIT_TYPES = {
     "mage": {
         "name":   "Duch Mága",
         "icon":   "🔮",
-        "effect": {"bonus_mp_flat": 40, "bonus_spell_pct": 10},
+        "effect": {},
         "description": "Archaická inteligence zesiluje tvá kouzla v aréně.",
     },
     "ranger": {
