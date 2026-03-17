@@ -41,3 +41,53 @@ def test_seed_class_items_hint_class_values():
     valid = {"warrior", "ranger", "mage"}
     for item in SEED_CLASS_ITEMS:
         assert item[-1] in valid, f"Neplatný hint_class: {item[-1]}"
+
+
+def test_weighted_pool_favors_matching_class():
+    """Matching class items musí konzistentně dominovat poolu."""
+    from unittest.mock import MagicMock
+    import random
+    from routers.shop import _weighted_pool
+
+    def make_item(id_, hint):
+        m = MagicMock()
+        m.id = id_
+        m.hint_class = hint
+        return m
+
+    items = (
+        [make_item(i, "warrior") for i in range(10)] +
+        [make_item(i + 10, "ranger") for i in range(10)] +
+        [make_item(i + 20, None) for i in range(10)]
+    )
+
+    warrior_wins = 0
+    for seed in range(20):
+        rng = random.Random(seed)
+        pool = _weighted_pool(items, k=10, char_cls="warrior", rng=rng)
+        warrior_count = sum(1 for i in pool if i.hint_class == "warrior")
+        ranger_count  = sum(1 for i in pool if i.hint_class == "ranger")
+        if warrior_count > ranger_count * 2:
+            warrior_wins += 1
+
+    assert warrior_wins >= 16, f"Váhování nefunguje: warrior dominoval jen {warrior_wins}/20 seedů"
+
+
+def test_weighted_pool_no_duplicates():
+    """Pool nesmí obsahovat duplicitní itemy."""
+    from unittest.mock import MagicMock
+    import random
+    from routers.shop import _weighted_pool
+
+    def make_item(id_, hint):
+        m = MagicMock()
+        m.id = id_
+        m.hint_class = hint
+        return m
+
+    items = [make_item(i, "warrior" if i < 5 else None) for i in range(15)]
+    rng = random.Random(99)
+    pool = _weighted_pool(items, k=8, char_cls="warrior", rng=rng)
+
+    ids = [i.id for i in pool]
+    assert len(ids) == len(set(ids)), "Pool obsahuje duplicitní itemy"

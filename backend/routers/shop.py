@@ -74,6 +74,36 @@ def _shop_price(item: Item) -> int:
     return max(10, round(item.sell_price * mult))
 
 
+def _weighted_pool(items: list, k: int, char_cls: str, rng: random.Random) -> list:
+    """Vrátí k unikátních itemů s váhami podle hint_class.
+
+    hint_class == char_cls → 3.0, hint_class == jiná třída → 0.5, None → 1.0
+    Weighted sampling bez náhrady přes postupné odebrání.
+    """
+    available = list(items)
+    weights = []
+    for item in available:
+        hint = getattr(item, 'hint_class', None)
+        if hint == char_cls:
+            weights.append(3.0)
+        elif hint is None:
+            weights.append(1.0)
+        else:
+            weights.append(0.5)
+
+    selected: list = []
+    for _ in range(min(k, len(available))):
+        if not available:
+            break
+        chosen = rng.choices(available, weights=weights, k=1)[0]
+        idx = available.index(chosen)
+        selected.append(chosen)
+        available.pop(idx)
+        weights.pop(idx)
+
+    return selected
+
+
 async def _npc_stock(npc: dict, db: AsyncSession, char_id: int | None = None) -> list[Item]:
     result = await db.execute(
         select(Item).where(
@@ -85,12 +115,24 @@ async def _npc_stock(npc: dict, db: AsyncSession, char_id: int | None = None) ->
     if not all_items:
         return []
 
+    # Zjisti třídu postavy pro váhování shopu
+    char_cls: str | None = None
+    if char_id is not None:
+        cls_res = await db.execute(
+            select(Character.cls).where(Character.id == char_id)
+        )
+        row = cls_res.first()
+        char_cls = row[0] if row else None
+
     slot = _current_slot()
     rng  = random.Random(slot * 100_000 + npc["seed_offset"] * 10_000 + (char_id or 0))
 
     # Vyber rozšířený pool (2× stock_count) pro případ, že hráč část koupí
     pool_size = min(npc["stock_count"] * 2, len(all_items))
-    pool = rng.sample(all_items, pool_size)
+    if char_cls:
+        pool = _weighted_pool(all_items, pool_size, char_cls, rng)
+    else:
+        pool = rng.sample(all_items, pool_size)
 
     # Odstraň itemy již nakoupené tímto hráčem v tomto slotu
     if char_id is not None:
