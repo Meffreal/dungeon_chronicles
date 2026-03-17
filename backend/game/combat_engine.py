@@ -1070,39 +1070,25 @@ def _execute_t2_ability(
         ))
         log.append(txt)
 
-    # ── ranger: Stínový Krok — 80% dodge + protiútok ────────────────────────
+    # ── ranger: Stínový Krok — garantovaný protiútok 1.5× + krvácení ────────
     elif key == "shadow_step":
-        if random.random() < 0.80:
-            # Úspěch: protiútok za 1x ATK
-            dmg = _calc_damage(attacker, defender)
-            dmg = _apply_shield_absorb(defender, dmg)
-            if defender.dmg_reduction_pct > 0:
-                dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
-            defender.hp = max(0, defender.hp - dmg)
-            txt = (f"  👤 {aname}: Stínový Krok! Dodge + protiútok → {dmg} dmg  "
-                   f"[{dname} HP: {defender.hp}]")
-            events.append(CombatEvent(
-                type="t2_dodge", round=round_num,
-                actor=aname, target=dname, damage=dmg,
-                actor_hp=attacker.hp, target_hp=defender.hp,
-                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-                ability_name="Stínový Krok", ability_emoji="👤", text=txt,
-            ))
-        else:
-            # Neúspěch: normální útok
-            dmg = _calc_damage(attacker, defender)
-            dmg = _apply_shield_absorb(defender, dmg)
-            if defender.dmg_reduction_pct > 0:
-                dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
-            defender.hp = max(0, defender.hp - dmg)
-            txt = f"  👤 {aname}: Stínový Krok selhal! Normální útok → {dmg} dmg  [{dname} HP: {defender.hp}]"
-            events.append(CombatEvent(
-                type="t2_attack", round=round_num,
-                actor=aname, target=dname, damage=dmg,
-                actor_hp=attacker.hp, target_hp=defender.hp,
-                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-                ability_name="Stínový Krok", ability_emoji="👤", text=txt,
-            ))
+        # shadow_step: garantovaný protiútok 1.5× + bleed
+        counter_dmg = int(attacker.base_dmg * attacker.dmg_mult * 1.5)
+        counter_dmg = _apply_shield_absorb(defender, counter_dmg)
+        if defender.dmg_reduction_pct > 0:
+            counter_dmg = max(1, int(counter_dmg * (1.0 - defender.dmg_reduction_pct)))
+        defender.hp = max(0, defender.hp - counter_dmg)
+        defender.add_status("bleed", hp_max=defender.hp_max)
+        txt = (f"  👤 {aname}: Stínový Krok! Protiútok → {counter_dmg} dmg + krvácení  "
+               f"[{dname} HP: {defender.hp}]")
+        events.append(CombatEvent(
+            type="counter", round=round_num,
+            actor=aname, target=dname, damage=counter_dmg,
+            actor_hp=attacker.hp, target_hp=defender.hp,
+            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+            ability_name="Stínový Krok", ability_emoji="👤",
+            status_name="bleed", status_emoji="🩸", text=txt,
+        ))
         log.append(txt)
 
     # ── ranger: Označení Smrtí — trvale -25% DEF nepřítele (kumulativní) ────
