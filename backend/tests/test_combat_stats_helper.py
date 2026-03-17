@@ -55,6 +55,7 @@ def test_crit_chance_capped():
 
 def test_hp_for_class():
     from game.combat_stats import calc_hp
-    assert calc_hp("warrior", endurance=15, level=10) == 825
-    assert calc_hp("mage",    endurance=8,  level=10) == 176
-    assert calc_hp("ranger",  endurance=12, level=10) == 528
+    # warrior mult=4, mage mult=2, ranger mult=3  (CLASS_HP_MULT)
+    assert calc_hp("warrior", endurance=15, level=10) == 660   # 15*4*11
+    assert calc_hp("mage",    endurance=8,  level=10) == 176   # 8*2*11
+    assert calc_hp("ranger",  endurance=12, level=10) == 396   # 12*3*11
