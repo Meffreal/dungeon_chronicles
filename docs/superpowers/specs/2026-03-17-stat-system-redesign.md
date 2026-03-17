@@ -137,6 +137,12 @@ Crit damage = +100% (2× celkový damage)
 
 `InventoryItem._upgraded_item_dict()` škáluje klíče `atk`, `def`, `spd`, `mp` — klíče `spd` a `mp` se odstraní, `atk` a `def` zůstávají.
 
+### Item.to_dict() a inventory.py
+
+- `Item.to_dict()` (item.py) v sekci `bonuses` odstraní klíče `"spd"` a `"mp"`, přidá klíč `"xp"` z `self.bonus_xp`
+- `inventory.py` řádek 97: odstraní se řádek `char.mp_max += item.bonus_mp` (MP stat neexistuje)
+- `inventory.py` řádek 426: `gained_xp = item.bonus_mp or 0` → `gained_xp = item.bonus_xp or 0`
+
 ---
 
 ## Dopad na Combat Engine
