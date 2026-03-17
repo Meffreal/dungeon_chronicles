@@ -64,8 +64,8 @@ TALENT_TREE: dict = {
     "hunters_mark": {
         "class": "ranger", "level_req": 30,
         "name": "Lovecká Značka", "emoji": "🎯",
-        "desc": "První útok v souboji způsobí +75 % poškození.",
-        "effect": {"first_strike_bonus_pct": 0.75},
+        "desc": "První útok v souboji způsobí +50 % poškození.",
+        "effect": {"first_strike_bonus_pct": 0.50},
     },
 }
 

@@ -9,13 +9,13 @@ z routerů bez tažení celého enginu.
 CLASS_WEAPON_BASE: dict[str, int] = {
     "warrior": 8,
     "ranger":  6,
-    "mage":    4,
+    "mage":    5,   # was 4
 }
 
 CLASS_ARMOR_CAPS: dict[str, float] = {
-    "warrior": 0.45,
+    "warrior": 0.35,  # was 0.45
     "ranger":  0.25,
-    "mage":    0.15,
+    "mage":    0.20,  # was 0.15
 }
 
 CLASS_HP_MULT: dict[str, int] = {

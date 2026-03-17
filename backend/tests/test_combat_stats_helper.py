@@ -26,10 +26,10 @@ def test_warrior_base_weapon_if_unarmed():
     assert base == 8
 
 def test_armor_cap_warrior():
-    assert CLASS_ARMOR_CAPS["warrior"] == 0.45
+    assert CLASS_ARMOR_CAPS["warrior"] == 0.35
 
 def test_armor_cap_mage():
-    assert CLASS_ARMOR_CAPS["mage"] == 0.15
+    assert CLASS_ARMOR_CAPS["mage"] == 0.20
 
 def test_armor_pct_divides_by_enemy_level():
     from game.combat_stats import calc_armor_pct
@@ -38,11 +38,11 @@ def test_armor_pct_divides_by_enemy_level():
 
 def test_armor_pct_capped():
     pct = calc_armor_pct("warrior", armor_value=9000, enemy_level=1)
-    assert pct == pytest.approx(0.45)
+    assert pct == pytest.approx(0.35)
 
 def test_armor_pct_no_division_by_zero():
     pct = calc_armor_pct("mage", armor_value=50, enemy_level=0)
-    assert pct <= 0.15
+    assert pct <= 0.20
 
 def test_crit_chance_new():
     from game.combat_stats import calc_crit_chance
