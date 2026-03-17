@@ -1,5 +1,14 @@
 // ── NPC OBCHOD ────────────────────────────────────────────────────────────
 
+function _hintClassBadge(hintClass) {
+    if (!hintClass) return '';
+    const badges = { warrior: '⚔️', ranger: '🏹', mage: '🔮' };
+    const label  = { warrior: 'Válečník', ranger: 'Lovec', mage: 'Mág' };
+    const emoji = badges[hintClass] || '';
+    const name  = label[hintClass]  || hintClass;
+    return `<span class="hint-class-badge hint-class-${hintClass}" title="Doporučeno pro: ${name}">${emoji}</span>`;
+}
+
 // ── Shop NPC visual config ──
 const SHOP_NPC_STYLES = {
   blacksmith: {
@@ -323,7 +332,7 @@ function renderShopItemCards(items) {
          style="--rc:${rc};--rgb:${rgb}">
       <div class="shop-card-rarity-bar"></div>
       <div class="shop-card-icon">${item.icon}</div>
-      <div class="shop-card-name" style="color:${rc}">${esc(item.name)}</div>
+      <div class="shop-card-name" style="color:${rc}">${esc(item.name)}${_hintClassBadge(item.hint_class)}</div>
       <div class="shop-card-tags">
         <span class="shop-card-rarity">${RARITY_LABEL[item.rarity] || item.rarity}</span>
         <span class="shop-card-lvl">Lv.${item.min_level}+</span>

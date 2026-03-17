@@ -100,7 +100,7 @@ function renderInv() {
               onclick="openItemDetail(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
       ${isSet ? `<div class="inv-set-glow"></div>` : ''}
       <div class="inv-card-icon">${item?.icon || '📦'}</div>
-      <div class="inv-card-name" style="color:${rc}">${esc(item?.name||'?')}</div>
+      <div class="inv-card-name" style="color:${rc}">${esc(item?.name||'?')}${_hintClassBadge(item?.hint_class)}</div>
       <div class="inv-card-type">${esc(SLOT_CZ[item?.type] || item?.type || '')}</div>
       ${isSet ? `<div class="inv-set-badge">✦ ${esc(item.set_name||'Set')}</div>` : `<div class="inv-card-bonus">${bonusTxt}</div>`}
       ${durBar}

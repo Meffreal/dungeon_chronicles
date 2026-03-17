@@ -1,3 +1,12 @@
+/* ── HINT CLASS BADGE ────────────────────────────────────────────────────── */
+.hint-class-badge {
+    display: inline-block;
+    font-size: 0.75em;
+    margin-left: 4px;
+    opacity: 0.85;
+    vertical-align: middle;
+}
+
 /* ── MODÁLY / OVERLAY ────────────────────────────────────────────────────── */
 .overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
 .overlay.open{opacity:1;pointer-events:all;}
