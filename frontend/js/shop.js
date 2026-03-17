@@ -175,6 +175,7 @@ function _shopNpcStyle(npc) {
 }
 
 let shopRotTimer = null;
+let _shopRotTarget = null;  // absolute ms timestamp when next rotation fires
 let _shopData = null;
 let _buyingItemId = null;  // request dedup: prevent double-buy
 
@@ -189,8 +190,9 @@ async function loadShop() {
 
 function startShopRotTimer(seconds) {
   if (shopRotTimer) clearInterval(shopRotTimer);
-  let s = seconds;
+  _shopRotTarget = Date.now() + seconds * 1000;
   const tick = () => {
+    const s = Math.max(0, Math.round((_shopRotTarget - Date.now()) / 1000));
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
     const timeStr = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`
                           : `${m}:${String(ss).padStart(2,'0')}`;
@@ -201,15 +203,23 @@ function startShopRotTimer(seconds) {
     if (s <= 0) {
       clearInterval(shopRotTimer);
       shopRotTimer = null;
+      _shopRotTarget = null;
       if (timerEl) timerEl.classList.remove('shop-timer-urgent');
       loadShop();
       return;
     }
-    s--;
   };
   tick();
   shopRotTimer = setInterval(tick, 1000);
 }
+
+// Po probuzení z hibernace / návratu z background tabu okamžitě refreshuje shop
+// pokud je timer za cílovým časem (setInterval byl throttlován nebo zastaven)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && _shopRotTarget !== null && Date.now() >= _shopRotTarget) {
+    loadShop();
+  }
+});
 
 let _activeShopNpcIdx = null;  // null = žádný expand
 
