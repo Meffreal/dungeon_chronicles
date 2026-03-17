@@ -100,8 +100,8 @@ TALENT_T2_TREE: dict = {
             "name": "Bojový Pokřik",
             "emoji": "📯",
             "level_req": 25,
-            "desc": "Každé 4. kolo: obnova 15% max HP + aktivuje štít (blokuje 20% dmg 2 kola).",
-            "effect": {"heal_pct": 0.15, "shield_pct": 0.20, "shield_rounds": 2},
+            "desc": "Každé 4. kolo: obnova 10% max HP + aktivuje štít (blokuje 15% dmg 2 kola).",
+            "effect": {"heal_pct": 0.10, "shield_pct": 0.15, "shield_rounds": 2},
         },
         {
             "key": "execute",

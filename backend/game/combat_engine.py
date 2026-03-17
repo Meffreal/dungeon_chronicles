@@ -444,10 +444,10 @@ class _FighterState:
         if _sb.get("first_strike", False):
             self.first_strike = True
         if _sb.get("regen_every_round", False):
-            # Dračí Šupiny 5pc: přidej permanentní regen (30 kol = celý souboj)
+            # Dračí Šupiny 5pc: přidej regen (10 kol)
             self.statuses.append(ActiveStatus(
                 name="regen",
-                remaining_rounds=30,
+                remaining_rounds=10,
                 tick_value=self.hp_max * STATUS_DEFS["regen"]["heal_pct"],
             ))
 
@@ -934,20 +934,20 @@ def _execute_t2_ability(
         ))
         log.append(txt)
 
-    # ── warrior: Bojový Pokřik — heal 15% HP + štít 2 kola ──────────────────
+    # ── warrior: Bojový Pokřik — heal 10% HP + štít 2 kola ──────────────────
     elif key == "rallying_cry":
-        heal = max(1, int(attacker.hp_max * 0.15))
+        heal = max(1, int(attacker.hp_max * 0.10))
         attacker.hp = min(attacker.hp_max, attacker.hp + heal)
-        # Přidej štít (vlastní absorpce 20%, 2 kola)
+        # Přidej štít (vlastní absorpce 15%, 2 kola)
         if attacker.has_status("shield"):
             s = attacker.get_status("shield")
             if s:
                 s.remaining_rounds = 2
-                s.absorb_pct = max(s.absorb_pct, 0.20)
+                s.absorb_pct = max(s.absorb_pct, 0.15)
         else:
             attacker.statuses.append(ActiveStatus(
                 name="shield", remaining_rounds=2,
-                absorb_pct=0.20,
+                absorb_pct=0.15,
             ))
         txt = (f"  📯 {aname}: Bojový Pokřik! +{heal} HP léčení + štít 2 kola  "
                f"[{aname} HP: {attacker.hp}]")
