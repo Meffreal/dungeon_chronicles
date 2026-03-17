@@ -1,8 +1,11 @@
 """
 routers/market.py — Hráčský trh (tržiště)
 """
+import traceback
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
+from core.logging import get_logger
+_log = get_logger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import selectinload
@@ -83,23 +86,27 @@ async def browse_market(
     else:  # price_asc (default)
         query = query.order_by(MarketListing.price.asc())
 
-    result = await db.execute(query)
-    all_listings = result.scalars().all()
+    try:
+        result = await db.execute(query)
+        all_listings = result.scalars().all()
 
-    # Filtruj expirované (SQLite nemá dobrou podporu pro datetime porovnání v query)
-    active = [l for l in all_listings if not _is_expired(l)]
+        # Filtruj expirované (SQLite nemá dobrou podporu pro datetime porovnání v query)
+        active = [l for l in all_listings if not _is_expired(l)]
 
-    # Stránkování
-    total = len(active)
-    start = (page - 1) * page_size
-    page_listings = active[start:start + page_size]
+        # Stránkování
+        total = len(active)
+        start = (page - 1) * page_size
+        page_listings = active[start:start + page_size]
 
-    return {
-        "listings": [l.to_dict() for l in page_listings],
-        "total": total,
-        "page": page,
-        "pages": max(1, (total + page_size - 1) // page_size),
-    }
+        return {
+            "listings": [l.to_dict() for l in page_listings],
+            "total": total,
+            "page": page,
+            "pages": max(1, (total + page_size - 1) // page_size),
+        }
+    except Exception as exc:
+        _log.error("browse_market failed", extra={"data": {"error": str(exc), "tb": traceback.format_exc()}})
+        raise
 
 
 @router.get("/my-listings")
