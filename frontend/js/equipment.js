@@ -4,7 +4,7 @@ let _achTitleCache = null;
 let _achTitleCacheAt = 0;
 const ACH_CACHE_TTL = 120_000; // 2 minutes
 
-const BONUS_TAG = {atk:'ATK',def:'OBR',spd:'SPD',str:'STR',dex:'AQI',int:'INT',end:'HP',luck:'LUCK',hp:'HP',mp:'MP'};
+const BONUS_TAG = {atk:'ATK',def:'ARMOR',spd:'SPD',str:'STR',dex:'AQI',int:'INT',end:'HP',luck:'LUCK',hp:'HP',mp:'MP'};
 
 const SLOTS = [
   {k:'helmet'},{k:'armor'},
