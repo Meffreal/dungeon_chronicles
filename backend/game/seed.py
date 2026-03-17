@@ -203,6 +203,60 @@ SEED_SET_ITEMS = [
 ]
 
 
+SEED_CLASS_ITEMS = [
+    # Formát: (name, type, rarity, desc, icon, atk, def_, spd, hp, xp, s_str, s_dex, s_int, s_end, s_luck, min_level, sell, hint_class)
+    # POZNÁMKA: spd (pole 8) je v Item modelu ignorováno — vždy 0
+
+    # ── WARRIOR ──────────────────────────────────────────────────────────────
+    # Common
+    ("Těžký sekáč",              "weapon",  "common",   "Masivní sekáč pro silné ruce.",              "🪓",  6,  0, 0,  0, 0,  2,0,0,0,0,  1,  10, "warrior"),
+    ("Zbroj bojovníka",          "armor",   "common",   "Jednoduchá ale odolná zbroj.",               "🛡️",  0,  5, 0,  0, 0,  0,0,0,1,0,  1,  12, "warrior"),
+    # Uncommon
+    ("Válečnická sekera",        "weapon",  "uncommon", "Sekera tesaná pro boj z blízka.",            "🪓", 16,  0, 0,  0, 0,  5,0,0,1,0,  3,  38, "warrior"),
+    ("Ocelová helma",            "helmet",  "uncommon", "Ochrana hlavy zkušeného bojovníka.",         "⛑️",  0,  9, 0,  8, 0,  0,0,0,2,0,  3,  35, "warrior"),
+    ("Válečné rukavice",         "gloves",  "uncommon", "Těžké rukavice pro boj z blízka.",           "🥊",  0,  5, 0,  0, 0,  3,0,0,1,0,  3,  32, "warrior"),
+    # Rare
+    ("Ocelový bastard",          "weapon",  "rare",     "Dvouruční meč z nejtvrdší oceli.",           "⚔️", 28,  0, 0,  8, 0,  7,0,0,0,0,  6, 130, "warrior"),
+    ("Plátová zbroj válečníka",  "armor",   "rare",     "Těžká plátová ochrana pro frontový boj.",    "🛡️",  0, 24, 0, 12, 0,  0,0,0,4,0,  6, 125, "warrior"),
+    ("Bojové boty válečníka",    "boots",   "rare",     "Pevné boty pro frontový boj.",               "👢",  0,  7, 0,  8, 0,  3,0,0,1,0,  6, 115, "warrior"),
+    # Epic
+    ("Hněv titana",              "weapon",  "epic",     "Zbraň hodná pravého válečníka.",             "🪓", 50,  0, 0, 15, 0, 12,0,0,5,0, 12, 450, "warrior"),
+    ("Prsten silákův",           "ring",    "epic",     "Magický prsten zesilující fyzickou sílu.",   "💍",  0,  6, 0, 12, 0,  8,0,0,5,0, 10, 420, "warrior"),
+
+    # ── RANGER ───────────────────────────────────────────────────────────────
+    # Common
+    ("Průzkumnický luk",         "weapon",  "common",   "Lehký luk pro rychlé střelce.",              "🏹",  4,  0, 0,  0, 0,  0,2,0,0,1,  1,   9, "ranger"),
+    ("Lehké boty lovce",         "boots",   "common",   "Boty pro pohyb v terénu.",                   "👟",  0,  3, 0,  0, 0,  0,2,0,0,0,  1,  10, "ranger"),
+    # Uncommon
+    ("Ostrostřelecký luk",       "weapon",  "uncommon", "Přesný luk z jasanového dřeva.",             "🏹", 13,  0, 0,  0, 0,  0,6,0,0,2,  3,  34, "ranger"),
+    ("Kůže lovce",               "armor",   "uncommon", "Ohebná zbroj z dračí kůže.",                 "🥋",  0,  8, 0,  0, 0,  0,3,0,0,1,  3,  33, "ranger"),
+    ("Rukavice střelce",         "gloves",  "uncommon", "Lehké rukavice pro přesnou střelbu.",        "🧤",  0,  4, 0,  0, 0,  0,4,0,0,1,  3,  30, "ranger"),
+    # Rare
+    ("Stříbrný luk",             "weapon",  "rare",     "Luk zdobený stříbrnými runy přesnosti.",     "🏹", 23,  0, 0,  6, 0,  0,9,0,0,4,  6, 118, "ranger"),
+    ("Průzkumnická kukla",       "helmet",  "rare",     "Lehká kukla pro přesné střelce.",            "🪖",  0, 11, 0,  6, 0,  0,5,0,0,2,  6, 112, "ranger"),
+    ("Přívěsek lovce",           "amulet",  "rare",     "Talisman ostrých smyslů.",                   "🌿",  0,  4, 0,  8, 0,  0,6,0,0,5,  7, 120, "ranger"),
+    # Epic
+    ("Stín a vítr",              "weapon",  "epic",     "Luk tak rychlý, že zní jako vítr.",          "🏹", 44,  0, 0, 10, 0,  0,14,0,0,6, 12, 430, "ranger"),
+    ("Zbroj stínového lovce",    "armor",   "epic",     "Zbroj splývající se stínem.",                "🥷",  0, 21, 0, 15, 0,  0,10,0,0,4, 10, 410, "ranger"),
+
+    # ── MAGE ─────────────────────────────────────────────────────────────────
+    # Common
+    ("Větvičková hůlka",         "weapon",  "common",   "Malá hůlka pro začínající mága.",            "🪄",  3,  0, 0,  0, 0,  0,0,3,0,0,  1,   8, "mage"),
+    ("Mystické roucho",          "armor",   "common",   "Jednoduché roucho s magickými vzory.",       "👘",  0,  3, 0,  0, 0,  0,0,2,0,0,  1,   9, "mage"),
+    # Uncommon
+    ("Arkanická tyč",            "weapon",  "uncommon", "Tyč kanalizující arkanickou energii.",       "🔮", 10,  0, 0,  0, 0,  0,0,8,0,0,  3,  33, "mage"),
+    ("Čepice zaříkávače",        "helmet",  "uncommon", "Čepice zvyšující soustředění mága.",         "🎓",  0,  6, 0,  0, 0,  0,0,5,0,0,  3,  31, "mage"),
+    ("Prsten moudra",            "ring",    "uncommon", "Prsten zesilující arkanickou sílu.",         "💍",  0,  0, 0,  5, 0,  0,0,6,0,0,  3,  30, "mage"),
+    # Rare
+    ("Runová hůlka",             "weapon",  "rare",     "Hůlka vyřezaná z runového kamene.",          "🔮", 19,  0, 0, 12, 0,  0,0,14,0,0,  6, 122, "mage"),
+    ("Arkanické roucho",         "armor",   "rare",     "Roucho tkané z magických vláken.",           "👘",  0, 13, 0, 15, 0,  0,0, 8,0,0,  6, 118, "mage"),
+    ("Boty učence",              "boots",   "rare",     "Komfortní boty pro dlouhé studium kouzel.",  "👡",  0,  5, 0, 10, 0,  0,0, 6,0,0,  6, 110, "mage"),
+    # Epic
+    ("Arcimágova hůl",           "weapon",  "epic",     "Hůl napájená arkanickým krystalem.",         "🔮", 38,  0, 0, 20, 0,  0,0,16,0,0, 12, 440, "mage"),
+    ("Amulet arkanisty",         "amulet",  "epic",     "Amulet posilující magické schopnosti.",      "📿",  0,  5, 0, 18, 0,  0,0,12,0,0, 10, 415, "mage"),
+]
+
+
 async def seed():
     await init_db()
     async with AsyncSessionLocal() as db:
@@ -275,6 +329,40 @@ async def seed():
                 bonus_end=s_end, bonus_luck=s_luck,
                 min_level=min_lv, sell_price=sell,
                 set_id=set_id, set_name=set_name,
+            )
+            db.add(item)
+            count += 1
+
+        # ── Class-focused itemy ───────────────────────────────────────────────
+        for row in SEED_CLASS_ITEMS:
+            (name, itype, rarity, desc, icon,
+             atk, def_, spd, hp, xp,
+             s_str, s_dex, s_int, s_end, s_luck,
+             min_lv, sell, hint_cls) = row
+
+            if name in existing_names:
+                from sqlalchemy import update as sql_update
+                await db.execute(
+                    sql_update(Item).where(Item.name == name).values(
+                        bonus_atk=atk,  bonus_def=def_,
+                        bonus_hp=hp,    bonus_xp=xp,
+                        bonus_str=s_str, bonus_dex=s_dex, bonus_int=s_int,
+                        bonus_end=s_end, bonus_luck=s_luck,
+                        hint_class=hint_cls,
+                    )
+                )
+                count += 1
+                continue
+
+            item = Item(
+                name=name, item_type=itype, rarity=rarity,
+                description=desc, icon=icon,
+                bonus_atk=atk,  bonus_def=def_,
+                bonus_hp=hp,    bonus_xp=xp,
+                bonus_str=s_str, bonus_dex=s_dex, bonus_int=s_int,
+                bonus_end=s_end, bonus_luck=s_luck,
+                min_level=min_lv, sell_price=sell,
+                hint_class=hint_cls,
             )
             db.add(item)
             count += 1
