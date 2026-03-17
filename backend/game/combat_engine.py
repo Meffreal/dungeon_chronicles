@@ -290,28 +290,27 @@ class BossPhase:
 @dataclass
 class CombatantConfig:
     """Vstupní konfigurace bojovníka pro combat engine."""
-    name:     str
-    hp:       int
-    atk:      int
-    def_:     int
-    spd:      int
-    luck:     int   = 5
-    level:    int   = 1
-    cls:      str   = ""        # "warrior", "mage", "ranger", "" pro AI
-    mp:       int   = 0
+    name:       str
+    hp:         int
+    weapon_dmg: int          # bonus_atk vybavené zbraně (nebo class base)
+    armor_value: int         # součet bonus_def ze všech equipů
+    primary_stat: int        # STR pro warrior / DEX pro ranger / INT pro mage
+    secondary_a: int         # DEX pro warrior / STR pro ranger / STR pro mage
+    secondary_b: int         # INT pro warrior / INT pro ranger / DEX pro mage
+    luck:       int  = 5
+    level:      int  = 1
+    cls:        str  = ""
     # Boss-specific
-    is_boss:  bool  = False
-    phases:   list  = field(default_factory=list)          # list[BossPhase]
-    special_abilities: list = field(default_factory=list)  # list[str] klíče do BOSS_SPECIAL_ABILITIES
-    # Rozšíření
-    hp_max_override: int = 0    # přepíše hp jako hp_max (pro boss HP pool)
-    strategy:        str = "balanced"  # "balanced", "aggro", "defensive", "burst"
-    talents:         list = field(default_factory=list)  # klíče z TALENT_TREE
-    subclass:        str = ""   # klíč z SUBCLASS_DEFINITIONS (berserker, guardian, …)
-    modifier_statuses: list = field(default_factory=list)  # status efekty z dungeon modifikátoru
-    talent_t2:       str = ""   # T2 talent klíč (irreverzibilní volba na levelu 25)
-    set_bonuses:     dict = field(default_factory=dict)    # combat efekty set bonusů
-    experiment_overrides: dict = field(default_factory=dict)  # A/B test overrides pro tuto skupinu
+    is_boss:    bool = False
+    phases:     list = field(default_factory=list)
+    special_abilities: list = field(default_factory=list)
+    hp_max_override: int = 0
+    talents:    list = field(default_factory=list)
+    subclass:   str  = ""
+    modifier_statuses: list = field(default_factory=list)
+    talent_t2:  str  = ""
+    set_bonuses: dict = field(default_factory=dict)
+    experiment_overrides: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -389,20 +388,44 @@ class _FighterState:
         self.cfg     = cfg
         self.hp      = cfg.hp
         self.hp_max  = cfg.hp_max_override if cfg.hp_max_override else cfg.hp
-        # Aplikuj soft caps na combat stats (ATK, DEF, SPD, LUCK)
-        # Raw hodnoty z character modelu zůstávají nezměněny (UI zobrazuje raw)
-        _atk_capped  = soft_cap_stat(cfg.atk)
-        _def_capped  = soft_cap_stat(cfg.def_)
-        _spd_capped  = soft_cap_stat(cfg.spd)
-        self.luck    = soft_cap_stat(cfg.luck)
-        # Aplikuj bojovou strategii na soft-cappované stats
-        _strat       = COMBAT_STRATEGIES.get(cfg.strategy or "balanced", COMBAT_STRATEGIES["balanced"])
-        self.atk     = max(1, int(_atk_capped * _strat["atk_mult"]))
-        self.def_    = max(0, int(_def_capped * _strat["def_mult"]))
-        self.spd     = max(1, int(_spd_capped * _strat["spd_mult"]))
-        _mp_val      = max(0, int(cfg.mp   * _strat["mp_mult"]))
-        self.mp      = _mp_val
-        self.mp_max  = _mp_val
+        from game.combat_stats import calc_damage_components
+        self.luck    = int(soft_cap_stat(cfg.luck))
+        self.level   = cfg.level
+        # Vypocitej base damage z nove formule
+        # primary_stat odpovida primarnimu statu tridy (STR/DEX/INT)
+        # secondary_a = DEX(warrior)/STR(ranger)/STR(mage)
+        # secondary_b = INT(warrior)/INT(ranger)/DEX(mage)
+        if cfg.cls == "warrior":
+            _str, _dex, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+        elif cfg.cls == "ranger":
+            _dex, _str, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+        elif cfg.cls == "mage":
+            _int, _str, _dex = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+        else:
+            _str, _dex, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+        _base_dmg, _, _ = calc_damage_components(
+            cfg.cls or "",
+            str_=_str, dex=_dex, int_=_int,
+            weapon_dmg=cfg.weapon_dmg,
+        )
+        self.base_dmg    = _base_dmg
+        self.armor_value = cfg.armor_value
+        # Subclass dmg_mult a armor_mult
+        self.dmg_mult   = 1.0
+        self.armor_mult = 1.0
+        if cfg.subclass:
+            from models.subclass import SUBCLASS_DEFINITIONS
+            _mults = SUBCLASS_DEFINITIONS.get(cfg.subclass, {}).get("stat_mults", {})
+            self.dmg_mult   = _mults.get("dmg_mult",   1.0)
+            self.armor_mult = _mults.get("armor_mult",  1.0)
+        # SPD derived from DEX (for dodge/initiative calculations)
+        self.spd = int(soft_cap_stat(_dex))
+        # Ranger: first strike flag
+        self.has_class_first_strike = (cfg.cls == "ranger")
+        # MP: default based on class (abilities are still MP-gated until Task 6 removes MP)
+        _mp_base = {"warrior": 30, "ranger": 40, "mage": 80}.get(cfg.cls, 50)
+        self.mp      = _mp_base
+        self.mp_max  = _mp_base
         self.statuses: list[ActiveStatus] = []
         # Boss specifické
         self.current_phase    = 0
@@ -420,16 +443,15 @@ class _FighterState:
         if "fortitude" in _talents:
             self.hp     = int(self.hp     * 1.15)
             self.hp_max = int(self.hp_max * 1.15)
-        # Mana Surge: +25 % MP (po strategy mp_mult)
+        # Mana Surge: +15 % dmg_mult
         if "mana_surge" in _talents:
-            self.mp     = int(self.mp     * 1.25)
-            self.mp_max = int(self.mp_max * 1.25)
+            self.dmg_mult *= 1.15
         # Combat modifikátory — uloženy pro _execute_attack
         self.crit_dmg_bonus_pct    = 0.25 if "battle_rage"   in _talents else 0.0
         self.dmg_reduction_pct     = 0.20 if "iron_skin"      in _talents else 0.0
         self.ability_dmg_bonus_pct = 0.20 if "arcane_focus"   in _talents else 0.0
         self.spell_echo_chance     = 0.25 if "spell_echo"     in _talents else 0.0
-        self.dodge_bonus_pct       = 0.10 if "evasion"        in _talents else 0.0
+        self.crit_bonus_pct        = 0.10 if "evasion"        in _talents else 0.0
         self.hunters_mark_active   = "hunters_mark" in _talents
 
         # ── Talent T2 (aktivní schopnost) ─────────────────────────────────────
@@ -480,17 +502,12 @@ class _FighterState:
         # ── A/B experiment overrides ──────────────────────────────────────────
         _ov = cfg.experiment_overrides or {}
         self.crit_damage_mult  = float(_ov.get("crit_damage_mult",  CRIT_DAMAGE_MULT))
-        self.dodge_chance_cap  = float(_ov.get("dodge_chance_cap",  MAX_DODGE_CHANCE))
         self.ability_damage_mult = float(_ov.get("ability_damage_mult", 1.0))
-
-        # Start status ze strategie (defensive = začne se štítem)
-        if _start_status := _strat.get("start_status"):
-            self.add_status(_start_status, hp_max=self.hp_max, atk=self.atk)
 
         # Start statusy z dungeon modifikátoru (např. poison z cursed_grounds)
         for _mod_status in (cfg.modifier_statuses or []):
             if _mod_status and _mod_status in STATUS_DEFS:
-                self.add_status(_mod_status, hp_max=self.hp_max, atk=self.atk)
+                self.add_status(_mod_status, hp_max=self.hp_max)
 
     # ── Status helpers ───────────────────────────────────────────────────────
 
@@ -542,15 +559,20 @@ class _FighterState:
 
     # ── Efektivní stats (s debuffs) ─────────────────────────────────────────
 
-    def effective_atk(self) -> int:
-        atk = self.atk
+    def effective_dmg(self) -> float:
+        """Celkovy base damage po aplikaci dmg_mult a debuffu."""
+        dmg = self.base_dmg * self.dmg_mult
         for s in self.statuses:
             if s.atk_debuff_pct > 0:
-                atk = int(atk * (1.0 - s.atk_debuff_pct))
+                dmg *= (1.0 - s.atk_debuff_pct)
         # Boss enrage bonus
         if self.dmg_bonus_pct > 0:
-            atk = int(atk * (1.0 + self.dmg_bonus_pct))
-        return max(1, atk)
+            dmg *= (1.0 + self.dmg_bonus_pct)
+        return max(1.0, dmg)
+
+    # Backward compat alias
+    def effective_atk(self) -> int:
+        return max(1, int(self.effective_dmg()))
 
     def effective_spd(self) -> int:
         spd = self.spd
@@ -597,12 +619,24 @@ def _dodge_chance(defender_spd: int, attacker_spd: int) -> float:
     return max(MIN_DODGE_CHANCE, min(MAX_DODGE_CHANCE, BASE_DODGE_CHANCE + diff * DODGE_PER_SPD_DIFF))
 
 
-def _calc_damage(atk: int, def_: int, is_crit: bool = False,
-                 ignore_def_pct: float = 0.0,
-                 crit_mult: float = CRIT_DAMAGE_MULT) -> int:
-    """Vypočítá poškození s rozptylem ±15%."""
-    effective_def = int(def_ * (1.0 - ignore_def_pct))
-    base = max(1, atk - effective_def // 2)
+def _calc_damage(
+    attacker: "_FighterState",
+    defender: "_FighterState",
+    is_crit: bool = False,
+    dmg_override: float = 0.0,
+    ignore_armor: bool = False,
+    crit_mult: float = CRIT_DAMAGE_MULT,
+) -> int:
+    """Vypocita poskozeni pomoci armor reduction formule s rozptylem +-15%."""
+    from game.combat_stats import calc_armor_pct
+    base = dmg_override if dmg_override > 0 else attacker.effective_dmg()
+    if not ignore_armor:
+        armor_pct = calc_armor_pct(
+            defender.cfg.cls or "",
+            int(defender.armor_value * defender.armor_mult),
+            attacker.level,
+        )
+        base *= (1.0 - armor_pct)
     variance = random.uniform(1.0 - DAMAGE_VARIANCE, 1.0 + DAMAGE_VARIANCE)
     dmg = int(base * variance)
     if is_crit:
@@ -638,13 +672,12 @@ def _check_boss_phases(boss: _FighterState, target: _FighterState,
             # Stat buff
             for stat, mult in phase.stat_multipliers.items():
                 if stat == "atk":
-                    boss.atk = int(boss.atk * mult)
-                elif stat == "spd":
-                    boss.spd = int(boss.spd * mult)
+                    boss.dmg_mult *= mult
                 elif stat == "def":
-                    boss.def_ = int(boss.def_ * mult)
+                    boss.armor_mult *= mult
                 elif stat == "dmg_bonus":
                     boss.dmg_bonus_pct += (mult - 1.0)
+                # spd ignoruj
 
             # Boss se léčí
             if phase.heal_pct > 0:
@@ -977,7 +1010,7 @@ def _execute_t2_ability(
     elif key == "execute":
         hp_pct = defender.hp / defender.hp_max if defender.hp_max > 0 else 1.0
         mult = 3.0 if hp_pct < 0.25 else 1.0
-        dmg = _calc_damage(int(attacker.effective_atk() * mult), defender.def_)
+        dmg = _calc_damage(attacker, defender, dmg_override=attacker.effective_dmg() * mult)
         dmg = _apply_shield_absorb(defender, dmg)
         if defender.dmg_reduction_pct > 0:
             dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
@@ -997,8 +1030,9 @@ def _execute_t2_ability(
     elif key == "arcane_storm":
         total = 0
         for _ in range(3):
-            h = _calc_damage(int(attacker.effective_atk() * 0.60), defender.def_,
-                             ignore_def_pct=1.0)
+            h = _calc_damage(attacker, defender,
+                             dmg_override=attacker.effective_dmg() * 0.60,
+                             ignore_armor=True)
             if attacker.ability_dmg_bonus_pct > 0:
                 h = max(1, int(h * (1.0 + attacker.ability_dmg_bonus_pct)))
             defender.hp = max(0, defender.hp - h)
@@ -1033,8 +1067,9 @@ def _execute_t2_ability(
         ability = CLASS_ABILITIES.get(attacker.cfg.cls)
         if ability:
             base_dmg = _calc_damage(
-                int(attacker.effective_atk() * ability["dmg_mult"] * 0.80),
-                defender.def_, ignore_def_pct=ability.get("def_ignore_pct", 0.0),
+                attacker, defender,
+                dmg_override=attacker.effective_dmg() * ability["dmg_mult"] * 0.80,
+                ignore_armor=(ability.get("def_ignore_pct", 0.0) >= 1.0),
             )
             if attacker.ability_dmg_bonus_pct > 0:
                 base_dmg = max(1, int(base_dmg * (1.0 + attacker.ability_dmg_bonus_pct)))
@@ -1082,8 +1117,8 @@ def _execute_t2_ability(
     # ── ranger: Stínový Krok — 80% dodge + protiútok ────────────────────────
     elif key == "shadow_step":
         if random.random() < 0.80:
-            # Úspěch: protiútok za 1× ATK
-            dmg = _calc_damage(attacker.effective_atk(), defender.def_)
+            # Úspěch: protiútok za 1x ATK
+            dmg = _calc_damage(attacker, defender)
             dmg = _apply_shield_absorb(defender, dmg)
             if defender.dmg_reduction_pct > 0:
                 dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
@@ -1099,7 +1134,7 @@ def _execute_t2_ability(
             ))
         else:
             # Neúspěch: normální útok
-            dmg = _calc_damage(attacker.effective_atk(), defender.def_)
+            dmg = _calc_damage(attacker, defender)
             dmg = _apply_shield_absorb(defender, dmg)
             if defender.dmg_reduction_pct > 0:
                 dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
@@ -1116,10 +1151,11 @@ def _execute_t2_ability(
 
     # ── ranger: Označení Smrtí — trvale -25% DEF nepřítele (kumulativní) ────
     elif key == "mark_for_death":
-        old_def = defender.def_
-        defender.def_ = max(1, int(defender.def_ * 0.75))
+        old_armor = defender.armor_value
+        defender.armor_mult *= 0.75
         attacker.t2_def_reduction += 0.25
-        txt = (f"  🎯 {aname}: Označení Smrtí! DEF {dname}: {old_def} → {defender.def_}  "
+        _new_eff_armor = int(defender.armor_value * defender.armor_mult)
+        txt = (f"  🎯 {aname}: Označení Smrtí! Armor {dname}: {old_armor} → {_new_eff_armor}  "
                f"(celková redukce: {int(attacker.t2_def_reduction * 100)}%)")
         events.append(CombatEvent(
             type="t2_status", round=round_num,
@@ -1148,7 +1184,7 @@ def _warrior_berserker_burst(
     Implementováno jako přímý double-damage útok (bez dodge check — burst probíjí)."""
     attacker.rage = 0
     # Double damage útok (ignoruje dodge, neprobíhá ability check)
-    dmg = _calc_damage(attacker.effective_atk() * 2, defender.def_)
+    dmg = _calc_damage(attacker, defender, dmg_override=attacker.effective_dmg() * 2)
     dmg = _apply_shield_absorb(defender, dmg)
     if defender.dmg_reduction_pct > 0:
         dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
@@ -1245,8 +1281,9 @@ def _execute_attack(
             total_mh_dmg = 0
             for _ in range(hit_count):
                 h = _calc_damage(
-                    int(attacker.effective_atk() * ability["dmg_mult"]),
-                    defender.def_, ignore_def_pct=ignore_pct,
+                    attacker, defender,
+                    dmg_override=attacker.effective_dmg() * ability["dmg_mult"],
+                    ignore_armor=(ignore_pct >= 1.0),
                 )
                 h = _apply_shield_absorb(defender, h)
                 if defender.dmg_reduction_pct > 0:
@@ -1289,11 +1326,12 @@ def _execute_attack(
 
         # ── Normal ability ────────────────────────────────────────────────────
         if ability["type"] == "guaranteed_crit":
-            dmg = _calc_damage(attacker.effective_atk(), defender.def_,
-                                is_crit=True, ignore_def_pct=ignore_pct)
+            dmg = _calc_damage(attacker, defender,
+                                is_crit=True, ignore_armor=(ignore_pct >= 1.0))
         else:
-            dmg = _calc_damage(int(attacker.effective_atk() * ability["dmg_mult"]),
-                                defender.def_, ignore_def_pct=ignore_pct)
+            dmg = _calc_damage(attacker, defender,
+                                dmg_override=attacker.effective_dmg() * ability["dmg_mult"],
+                                ignore_armor=(ignore_pct >= 1.0))
 
         # Talent: Arcane Focus — +20 % dmg schopností
         if attacker.ability_dmg_bonus_pct > 0:
@@ -1345,7 +1383,7 @@ def _execute_attack(
         # Subclass: apply_status_self (Strážce — štít na sebe)
         _status_self = ability.get("apply_status_self")
         if _status_self:
-            attacker.add_status(_status_self, hp_max=attacker.hp_max, atk=attacker.atk)
+            attacker.add_status(_status_self, hp_max=attacker.hp_max, atk=attacker.effective_atk())
 
         txt = (f"  {ability['emoji']} {a_name} použil {ability['name']}! "
                f"→ {dmg} dmg  [{d_name} HP: {defender.hp}]")
@@ -1429,7 +1467,6 @@ def _execute_attack(
 
     # ── 3. Dodge check ────────────────────────────────────────────────────────
     _dodge = _dodge_chance(defender.effective_spd(), attacker.effective_spd())
-    _dodge = min(defender.dodge_chance_cap, _dodge + defender.dodge_bonus_pct)  # Talent: Evasion + experiment override
     if random.random() < _dodge:
         txt = f"  💨 {d_name} uhnul útoku!"
         evt = CombatEvent(
@@ -1474,7 +1511,7 @@ def _execute_attack(
 
     _effective_crit_chance = min(MAX_CRIT_CHANCE, _crit_chance(attacker.luck) + _fs_crit_bonus)
     is_crit = random.random() < _effective_crit_chance
-    dmg     = _calc_damage(attacker.effective_atk(), defender.def_, is_crit,
+    dmg     = _calc_damage(attacker, defender, is_crit,
                            crit_mult=_crit_m)
     dmg = max(1, int(dmg * _hunters_mult))
 
@@ -1600,7 +1637,7 @@ def simulate_unified_combat(
 
     # ── Header logu ───────────────────────────────────────────────────────────
     log.append(f"⚔️  {attacker_cfg.name} (Lv.{attacker_cfg.level}) vs {defender_cfg.name} (Lv.{defender_cfg.level})")
-    log.append(f"📊  HP: {attacker.hp} | ATK: {attacker.atk} | DEF: {attacker.def_} | SPD: {attacker.spd}")
+    log.append(f"📊  HP: {attacker.hp} | DMG: {attacker.effective_atk()} | ARM: {attacker.armor_value} | SPD: {attacker.spd}")
     log.append("─" * 40)
 
     # ── Kdo jde první ─────────────────────────────────────────────────────────
@@ -1608,6 +1645,11 @@ def simulate_unified_combat(
     # Set bonus: Přízračný Chodec 5pc — First Strike (zaručený první útok útočníka)
     if attacker.first_strike:
         a_goes_first = True
+    # Ranger class: always first strike
+    if attacker.has_class_first_strike and not defender.has_class_first_strike:
+        a_goes_first = True
+    elif defender.has_class_first_strike and not attacker.has_class_first_strike:
+        a_goes_first = False
 
     total_dmg_by_attacker = 0
     round_num = 0
@@ -1772,11 +1814,13 @@ def calculate_win_chance(attacker: CombatantConfig, defender: CombatantConfig) -
     Rychlý odhad šance na výhru bez simulace. Pro UI display.
     Používá soft-cappované hodnoty pro konzistenci s combat enginem.
     """
+    from game.combat_stats import calc_damage_components as _cdc
     def power(c: CombatantConfig) -> float:
+        base_dmg, _, _ = _cdc(c.cls or "", c.primary_stat, c.secondary_a, c.secondary_b, c.weapon_dmg)
         return (c.hp * 0.4
-                + soft_cap_stat(c.atk)  * 2.5
-                + soft_cap_stat(c.def_) * 1.5
-                + soft_cap_stat(c.spd)  * 0.5)
+                + base_dmg * 2.5
+                + c.armor_value * 1.5
+                + soft_cap_stat(c.luck) * 0.5)
 
     a_pow = power(attacker)
     d_pow = power(defender)
