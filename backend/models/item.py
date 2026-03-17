@@ -61,6 +61,7 @@ class Item(Base):
     # Setové itemy
     set_id:   Mapped[int | None] = mapped_column(Integer, nullable=True)
     set_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    hint_class: Mapped[str | None] = mapped_column(String(16), nullable=True)
 
     def to_dict(self) -> dict:
         try:
@@ -75,6 +76,7 @@ class Item(Base):
             "rarity_color": RARITY_COLOR.get(rarity_obj, "#fff"),
             "set_id":   self.set_id,
             "set_name": self.set_name,
+            "hint_class": self.hint_class,
             "description": self.description,
             "icon": self.icon,
             "bonuses": {
