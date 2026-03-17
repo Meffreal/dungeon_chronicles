@@ -469,7 +469,7 @@ async def dungeon_attack(
             raise HTTPException(400, f"Cooldown! Další útok za {remaining:.1f} minut.")
 
     # Výpočet damage
-    base = char.atk * 3 + char.level * 5
+    base = (char.strength * 2 + char.level) * 3 + char.level * 5
     damage = random.randint(int(base * 0.8), int(base * 1.4))
 
     if contrib is None:

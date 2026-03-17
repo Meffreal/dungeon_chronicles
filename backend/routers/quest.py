@@ -130,7 +130,7 @@ def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set) -> dict | None
     enemy = _quest_enemy_config(qdef, char.level)
     player = CombatantConfig(
         name=char.name, hp=char.hp_max,
-        weapon_dmg=char.atk, armor_value=char.def_,
+        weapon_dmg=char.strength * 2, armor_value=10,
         primary_stat=0, secondary_a=0, secondary_b=0,
         luck=char.luck, level=char.level, cls="",
     )
@@ -212,7 +212,7 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
         enemy = _quest_enemy_config(qdef, char.level)
         player = CombatantConfig(
             name=char.name, hp=char.hp_max,
-            weapon_dmg=char.atk, armor_value=char.def_,
+            weapon_dmg=char.strength * 2, armor_value=10,
             primary_stat=0, secondary_a=0, secondary_b=0,
             luck=char.luck, level=char.level, cls="",
         )
@@ -768,7 +768,7 @@ async def get_daily_quests(
         enemy = _quest_enemy_config(qdef, char.level)
         player = CombatantConfig(
             name=char.name, hp=char.hp_max,
-            weapon_dmg=char.atk, armor_value=char.def_,
+            weapon_dmg=char.strength * 2, armor_value=10,
             primary_stat=0, secondary_a=0, secondary_b=0,
             luck=char.luck, level=char.level, cls="",
         )

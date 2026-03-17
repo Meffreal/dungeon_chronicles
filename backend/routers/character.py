@@ -1102,10 +1102,10 @@ async def get_public_profile(name: str, db: AsyncSession = Depends(get_db)):
         "last_matches":      matches_data,
         "achievement_count": achievement_count,
         "combat": {
-            "atk": combat.get("eff_atk", char.atk),
-            "def": combat.get("eff_def", char.def_),
-            "spd": combat.get("eff_spd", char.spd),
+            "atk": combat.get("eff_atk", 0),
+            "def": combat.get("eff_def", 0),
+            "spd": combat.get("eff_spd", 0),
             "hp":  combat.get("hp_max",  char.hp_max),
-            "mp":  combat.get("mp_max",  char.mp_max),
+            "mp":  combat.get("mp_max",  0),
         },
     }

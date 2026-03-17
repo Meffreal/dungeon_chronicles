@@ -27,6 +27,7 @@ from game.combat_engine import (
     CombatantConfig, BossPhase, simulate_unified_combat,
     events_to_dict_list,
 )
+from game.combatant_builder import build_combatant_config
 
 router = APIRouter(prefix="/boss", tags=["boss"])
 
@@ -207,14 +208,7 @@ async def attack_boss(
 
     # Simuluj souboj hráče vs boss (jen aktuální HP bosse)
     boss_cfg = _build_boss_config(boss)
-    player_cfg = CombatantConfig(
-        name=char.name,
-        hp=char.hp_max, atk=char.atk, def_=char.def_,
-        spd=char.spd, luck=char.luck, level=char.level,
-        cls=char.cls, mp=char.mp_max,
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-    )
+    player_cfg = await build_combatant_config(char, db)
 
     combat_result = simulate_unified_combat(player_cfg, boss_cfg, max_rounds=20)
 

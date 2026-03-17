@@ -90,9 +90,6 @@ def _apply_equipment_bonuses(char: Character, inv_items: list):
         if item is None:
             continue
         mult = UPGRADE_STAT_MULT[min(ul, MAX_UPGRADE_LEVEL)] * _dur_mult(dur)
-        char.atk    += max(0, int(item.bonus_atk * mult)) if item.bonus_atk else 0
-        char.def_   += max(0, int(item.bonus_def * mult)) if item.bonus_def else 0
-        char.spd    += max(0, int(item.bonus_spd * mult)) if item.bonus_spd else 0
         char.hp_max += max(0, int(item.bonus_hp  * mult)) if item.bonus_hp  else 0
 
 async def recalculate_with_gear(char: Character, db: AsyncSession):

@@ -107,10 +107,7 @@ async def _trigger_permadeath(
             "subclass":  char.subclass,
             "prestige":  char.prestige_level,
             "talent_t2": char.talent_t2_key,
-            "atk":       char.atk,
-            "def":       char.def_,
             "hp_max":    char.hp_max,
-            "spd":       char.spd,
         },
     )
     db.add(hall_entry)
@@ -408,8 +405,8 @@ async def enter_dungeon(
     enemy_cfg   = _build_stage_enemy(req.dungeon_id, stage_def, char.level, modifier=modifier)
 
     # Aplikuj modifikátor na hráčské stats
-    _p_hp, _p_atk, _p_def, _p_spd, _p_mp = apply_modifier_to_player(
-        modifier, char.hp_max, char.atk, char.def_, char.spd, char.mp_max
+    _p_hp, *_ = apply_modifier_to_player(
+        modifier, char.hp_max, 0, 0, 0
     )
     player_cfg = await build_combatant_config(char, db)
     player_cfg.hp              = _p_hp
@@ -573,8 +570,8 @@ async def next_stage(
                                     secret_mult=_SECRET_ENEMY_MULT if is_secret else 1.0)
 
     # Aplikuj modifikátor na hráčské stats (HP přenos zůstává, ale ostatní stats se škálují)
-    _p_hp, _p_atk, _p_def, _p_spd, _p_mp = apply_modifier_to_player(
-        modifier, char.hp_max, char.atk, char.def_, char.spd, char.mp_max
+    _p_hp, *_ = apply_modifier_to_player(
+        modifier, char.hp_max, 0, 0, 0
     )
     # HP se přenáší z předchozího stage — škálujeme poměrem
     _hp_ratio = run.player_hp_current / max(1, run.player_hp_max)
