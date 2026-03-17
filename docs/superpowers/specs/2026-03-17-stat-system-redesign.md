@@ -126,8 +126,12 @@ Crit damage = +100% (2× celkový damage)
 
 ### Runosmith a Fateweaver
 
-- `runosmith.py` — odstraní se všechny efekty generující `bonus_spd` a `bonus_mp`; nahradí se ekvivalentními bonusy (např. `bonus_str`/`bonus_dex`/`bonus_int`)
-- `fateweaver.py` — odstraní se efekt `bonus_mp_flat: 40`
+- `runosmith.py` — odstraní se efekty s `bonus_spd` a `bonus_mp`; konkrétní náhrada:
+  - `bonus_spd` efekty → nahradit `bonus_dex` (tematicky nejbližší — rychlost = obratnost)
+  - `bonus_mp` efekty → nahradit `bonus_luck` (mana byla caster resource, luck je univerzální bonus)
+- `fateweaver.py` — odstraní se efekt `{"bonus_mp_flat": 40, "bonus_spell_pct": 10}` celý; `bonus_spell_pct` je mrtvý kód (nikde se nečte v combat enginu)
+- `game/seed.py` — odstraní se parametry `bonus_spd=` a `bonus_mp=` z volání item konstruktorů (řádky 210–233)
+- `game/dungeon_modifiers.py` — odstraní se `enemy_spd_mult` a `player_mp_mult` modifikátory a jejich aplikace
 
 ### Item upgrade systém
 
@@ -176,6 +180,7 @@ def _calc_damage(weapon_dmg, primary_stat, sec_a, sec_b,
 - `COMBAT_STRATEGIES` dict — **kompletně odstraněn**
 - `strategy` field z `CombatantConfig`
 - MP tracking (`self.mp`, `self.mp_max`, `mp_cost_pct` logika)
+- `check_mage_opening_crit(mage_spd, enemy_spd)` v `game/class_mechanics.py` — závislá na SPD, odstraní se
 
 ### Combat strategies — kompletní odstranění
 
@@ -194,8 +199,10 @@ def _calc_damage(weapon_dmg, primary_stat, sec_a, sec_b,
 | `frontend/js/arena.js` | Odstraní se `strategy: getStrategy()` z API volání |
 | `frontend/js/quest.js` | Odstraní se `strategy: getStrategy()` z API volání |
 | `frontend/js/dungeons.js` | Odstraní se `strategy: getStrategy()` z API volání |
-| `frontend/js/guild.js` | Odstraní se `strategy` z API volání |
-| `localStorage` | Klíč `combat_strategy` se přestane ukládat |
+| `frontend/js/guild.js` | Odstraní se `strategy` z API volání (`localStorage.getItem('combatStrategy')`) |
+| `frontend/js/build.js` | Odstraní se volání `getStrategy()` (řádek 63) |
+| `localStorage` | Klíče `combat_strategy` i `combatStrategy` se přestanou ukládat (obě varianty) |
+| `backend/tests/test_strategies_talents.py` | Smazat celý soubor — testuje pouze odstraněné COMBAT_STRATEGIES |
 
 Poznámka: `defensive` strategie měla `start_status: "shield"` — tento efekt zaniká spolu se strategiemi.
 
@@ -242,7 +249,7 @@ Subclassy `elementalist` a `necromancer` ztratí `mp_mult` — nahradí je `dmg_
 
 ## DB Migrace
 
-**Soubor:** `backend/alembic/versions/0046_stat_system_redesign.py`
+**Soubor:** `backend/alembic/versions/0047_stat_system_redesign.py`
 
 Operace (vše s idempotentním guard):
 
