@@ -46,3 +46,51 @@ def test_rallying_cry_values_reduced():
     rc = next(t for t in TALENT_T2_TREE["warrior"] if t["key"] == "rallying_cry")
     assert rc["effect"]["heal_pct"] == 0.10
     assert rc["effect"]["shield_pct"] == 0.15
+
+
+def _ranger_vs_tank():
+    """Ranger vs. tuhý tank — Ranger přežije 10+ kol."""
+    ranger = CombatantConfig(
+        name="Ranger", cls="ranger", level=20,
+        hp=500, weapon_dmg=30, armor_value=20,
+        primary_stat=16, secondary_a=9, secondary_b=8,
+        luck=5,
+    )
+    tank = CombatantConfig(
+        name="Tank", cls="warrior", level=20,
+        hp=5000, weapon_dmg=5, armor_value=60,
+        primary_stat=15, secondary_a=8, secondary_b=5,
+        luck=5,
+    )
+    return ranger, tank
+
+
+def test_ranger_multi_hit_round_3():
+    """Ranger musí útočit 2× v kole 3 (multi-hit kolo)."""
+    from game.combat_engine import simulate_unified_combat
+    ranger, tank = _ranger_vs_tank()
+    result = simulate_unified_combat(ranger, tank, seed=99)
+    attack_events_round3 = [
+        e for e in result.events
+        if e.round == 3
+        and e.type in ("attack", "crit", "multi_hit", "ability")
+        and e.actor == "Ranger"
+    ]
+    assert len(attack_events_round3) >= 2, (
+        f"Ranger musí útočit 2× v kole 3 (multi-hit), "
+        f"ale měl jen {len(attack_events_round3)} event"
+    )
+
+
+def test_ranger_chain_hit_or_multi_fires_over_10_rounds():
+    """Za 10 kol musí existovat aspoň jeden chain_hit nebo multi_hit event od Rangera."""
+    from game.combat_engine import simulate_unified_combat
+    ranger, tank = _ranger_vs_tank()
+    result = simulate_unified_combat(ranger, tank, seed=42)
+    chain_events = [
+        e for e in result.events
+        if e.type in ("chain_hit", "multi_hit") and e.actor == "Ranger"
+    ]
+    assert len(chain_events) > 0, (
+        "Za 10+ kol musí Ranger mít aspoň jeden chain/multi-hit event"
+    )

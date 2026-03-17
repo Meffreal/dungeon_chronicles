@@ -1529,6 +1529,47 @@ def _execute_attack(
     return total_dmg
 
 
+def _ranger_chain_or_multi_attack(
+    attacker: "_FighterState",
+    defender: "_FighterState",
+    round_num: int,
+    events: list,
+    log: list,
+) -> int:
+    """
+    Ranger class mechanic: chain hit nebo multi-hit kolo.
+    - Multi-hit: každé 3. kolo → zaručený druhý útok (priorita)
+    - Chain hit: 25% šance po primárním hitu
+    Vrací způsobený damage (0 pokud se neaktivoval).
+    Voláno ihned po primárním _execute_attack pokud útočník je Ranger a přežívá.
+    """
+    if attacker.cfg.cls != "ranger":
+        return 0
+    if check_multi_hit_round(round_num):
+        txt = f"  🏹 {attacker.cfg.name}: Multi-hit kolo! (kolo {round_num})"
+        log.append(txt)
+        events.append(CombatEvent(
+            type="multi_hit", round=round_num,
+            actor=attacker.cfg.name, target=defender.cfg.name,
+            actor_hp=attacker.hp, target_hp=defender.hp,
+            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+            text=txt,
+        ))
+        return _execute_attack(attacker, defender, round_num, events, log)
+    elif check_chain_hit(random.random()):
+        txt = f"  🔗 {attacker.cfg.name}: Chain hit!"
+        log.append(txt)
+        events.append(CombatEvent(
+            type="chain_hit", round=round_num,
+            actor=attacker.cfg.name, target=defender.cfg.name,
+            actor_hp=attacker.hp, target_hp=defender.hp,
+            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+            text=txt,
+        ))
+        return _execute_attack(attacker, defender, round_num, events, log)
+    return 0
+
+
 # ── Hlavní funkce ──────────────────────────────────────────────────────────────
 
 def simulate_unified_combat(
@@ -1621,12 +1662,18 @@ def simulate_unified_combat(
             total_dmg_by_attacker += dmg
             if defender.hp <= 0:
                 break
+            total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
+            if defender.hp <= 0:
+                break
             # F.1 Warrior Berserker Burst pro obránce (pokud jde druhý)
             if defender.cfg.cls == "warrior" and defender.rage >= 100:
                 _warrior_berserker_burst(defender, attacker, round_num, events, log)
                 if attacker.hp <= 0:
                     break
             _execute_attack(defender, attacker, round_num, events, log)
+            if attacker.hp <= 0:
+                break
+            _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
                 break
         else:
@@ -1638,6 +1685,9 @@ def simulate_unified_combat(
             _execute_attack(defender, attacker, round_num, events, log)
             if attacker.hp <= 0:
                 break
+            _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
+            if attacker.hp <= 0:
+                break
             # F.1 Warrior Berserker Burst pro útočníka (jde druhý v tomto pořadí)
             if attacker.cfg.cls == "warrior" and attacker.rage >= 100:
                 _warrior_berserker_burst(attacker, defender, round_num, events, log)
@@ -1645,6 +1695,9 @@ def simulate_unified_combat(
                     break
             dmg = _execute_attack(attacker, defender, round_num, events, log)
             total_dmg_by_attacker += dmg
+            if defender.hp <= 0:
+                break
+            total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
             if defender.hp <= 0:
                 break
 
