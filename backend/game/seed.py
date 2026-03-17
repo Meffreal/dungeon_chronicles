@@ -42,9 +42,9 @@ SEED_ITEMS = [
     ("Chaos hůl",        "weapon", "epic",      "Hůl překypující chaotickou mocí.",  "💜", 28, 0, 5,30, 0, 0,0,22,0,0,12, 380),
     ("Stínový luk",      "weapon", "epic",      "Luk z temné energie utkaný.",       "🌑", 34, 0, 5,20, 0, 0,18,0,0,11,12, 390),
     # Legendary
-    ("Excalibur",        "weapon", "legendary", "Legendární meč krále Artuše.",      "✨", 65,13, 8,15,20,16,8, 0,11,7,20,2000),
-    ("Žezlo věčnosti",   "weapon", "legendary", "Artefakt staré civilizace.",        "⚡", 45, 5,10,60,30, 0,0,30,0,0,20,1800),
-    ("Luk osudu",        "weapon", "legendary", "Střela tohoto luku nikdy nechybí.", "🌟", 55,10, 8,25,25, 0,26,7,0,20,20,1900),
+    ("Excalibur",        "weapon", "legendary", "Legendární meč krále Artuše.",      "✨", 65,13, 8,15, 0,16,8, 0,11,7,20,2000),
+    ("Žezlo věčnosti",   "weapon", "legendary", "Artefakt staré civilizace.",        "⚡", 45, 5,10,60, 0, 0,0,30,0,0,20,1800),
+    ("Luk osudu",        "weapon", "legendary", "Střela tohoto luku nikdy nechybí.", "🌟", 55,10, 8,25, 0, 0,26,7,0,20,20,1900),
 
     # ── ARMOR ────────────────────────────────────────────────────────────────
     # Common
@@ -54,17 +54,17 @@ SEED_ITEMS = [
     ("Pletivo",          "armor",  "uncommon",  "Ochranné kroužkové brnění.",        "🛡️",  0,17, 0, 0, 0, 0,0,0,5,0, 3, 50),
     ("Enchantovaný plášť","armor", "uncommon",  "Magicky posílený plášť.",           "✨",  0,10, 0,24, 0, 0,0,5,4,0, 3, 45),
     # Rare
-    ("Plátové brnění",   "armor",  "rare",      "Těžké plátové brnění rytíře.",      "⚔️",  0,28, 0, 0,35, 6,0,0,10,0, 6, 180),
+    ("Plátové brnění",   "armor",  "rare",      "Těžké plátové brnění rytíře.",      "⚔️",  0,28, 0, 0, 0, 6,0,0,10,0, 6, 180),
     ("Runový plášť",     "armor",  "rare",      "Plášť pokrytý runami moci.",        "🔮",  0,15, 0,40,25, 0,0,9,5,0, 6, 165),
     # Epic & Legendary
-    ("Brnění draka",     "armor",  "epic",      "Zkované z šupin draka.",            "🐲",  0,44,12, 0,70,12,0,8,15,0,12, 650),
-    ("Nebeská zbroj",    "armor",  "legendary", "Dar samotných bohů.",               "🌤️",  0,65,15,20,95,15,8,12,18,13,20,3000),
+    ("Brnění draka",     "armor",  "epic",      "Zkované z šupin draka.",            "🐲",  0,44,12, 0, 0,12,0,8,15,0,12, 650),
+    ("Nebeská zbroj",    "armor",  "legendary", "Dar samotných bohů.",               "🌤️",  0,65,15,20, 0,15,8,12,18,13,20,3000),
 
     # ── HELMETS ──────────────────────────────────────────────────────────────
     ("Kožená čapka",     "helmet", "common",    "Jednoduchá kožená ochrana hlavy.",  "🪖",  0, 3, 0, 0, 0, 0,0,0,1,0, 1,  6),
-    ("Železná helma",    "helmet", "uncommon",  "Solidní železná helma.",            "⛑️",  0,11, 0, 0,18, 3,0,0,3,0, 3, 42),
-    ("Arkanická koruna", "helmet", "rare",      "Koruna zasvěcená magii.",           "👑",  0, 7, 0,28,12, 0,0,10,3,3, 6, 160),
-    ("Korunka draka",    "helmet", "epic",      "Koruna z drakovy lebky.",           "🐉",  0,20, 5,18,30, 6,4,10,7,4,12, 550),
+    ("Železná helma",    "helmet", "uncommon",  "Solidní železná helma.",            "⛑️",  0,11, 0, 0, 0, 3,0,0,3,0, 3, 42),
+    ("Arkanická koruna", "helmet", "rare",      "Koruna zasvěcená magii.",           "👑",  0, 7, 0,28, 0, 0,0,10,3,3, 6, 160),
+    ("Korunka draka",    "helmet", "epic",      "Koruna z drakovy lebky.",           "🐉",  0,20, 5,18, 0, 6,4,10,7,4,12, 550),
 
     # ── BOOTS ────────────────────────────────────────────────────────────────
     ("Kožené boty",      "boots",  "common",    "Pohodlné kožené boty.",             "👢",  0, 2, 2, 0, 0, 0,1,0,0,0, 1,  5),
@@ -76,40 +76,59 @@ SEED_ITEMS = [
     ("Prsten magie",     "ring",   "uncommon",  "Zesiluje magické schopnosti.",      "🔮",  0, 0, 0,14, 0, 0,0,6,0,0, 3, 36),
     ("Prsten štěstí",    "ring",   "rare",      "Přináší štěstí nositeli.",          "🍀",  0, 0, 3, 8, 0, 0,3,0,0,12, 6, 130),
     ("Amulet ochrany",   "amulet", "uncommon",  "Chrání nositele před zlem.",        "🧿",  0, 7, 0, 8,14, 0,0,4,3,3, 3, 44),
-    ("Amulet draka",     "amulet", "legendary", "Dává moc prastarého draka.",        "🐲",  0,18, 8,25,60,10,8,10,12,8,20,2500),
+    ("Amulet draka",     "amulet", "legendary", "Dává moc prastarého draka.",        "🐲",  0,18, 8,25, 0,10,8,10,12,8,20,2500),
 
     # ── GLOVES ───────────────────────────────────────────────────────────────
     ("Kožené rukavice",  "gloves", "common",    "Chrání ruce v boji.",               "🧤",  0, 2, 0, 0, 0, 2,0,0,0,0, 1,  5),
-    ("Bojové rukavice",  "gloves", "uncommon",  "Rukavice ostřílených bojovníků.",   "👊",  0, 5, 0, 0, 7, 6,0,0,2,0, 3, 38),
-    ("Runové rukavice",  "gloves", "rare",      "Runy na nich zesilují kouzla.",     "✨",  0, 4, 0,18, 7, 0,0,7,2,2, 6, 145),
+    ("Bojové rukavice",  "gloves", "uncommon",  "Rukavice ostřílených bojovníků.",   "👊",  0, 5, 0, 0, 0, 6,0,0,2,0, 3, 38),
+    ("Runové rukavice",  "gloves", "rare",      "Runy na nich zesilují kouzla.",     "✨",  0, 4, 0,18, 0, 0,0,7,2,2, 6, 145),
     ("Rukavice vraha",   "gloves", "epic",      "Rukavice skrz něž proudí tma.",     "🩸",  0, 7, 7, 0, 0, 8,10,0,0,6,12, 480),
-    ("Rukavice titána",  "gloves", "legendary", "Kdysi patřily titánovi válek.",     "⚡",  0,10,10,38,18,16,8,0,7,7,20,2200),
+    ("Rukavice titána",  "gloves", "legendary", "Kdysi patřily titánovi válek.",     "⚡",  0,10,10,38, 0,16,8,0,7,7,20,2200),
 
     # ── WEAPONS (rozšíření) ───────────────────────────────────────────────────
     ("Krvavá šavle",     "weapon", "rare",      "Čepel napitá krví nepřátel.",       "🩸", 23, 0, 4, 0, 0, 7,3,0,0,4, 7, 125),
     ("Duševní zlomitel", "weapon", "epic",      "Hůl roztrhávající mysl protivníka.","💀", 22, 0, 3,25, 0, 0,0,26,0,0,13, 420),
-    ("Hrom a blesk",     "weapon", "legendary", "Zbraň kovaná z blesku samotného.",  "⚡", 60, 7,12,22,28,13,12,8,7,11,20,2100),
+    ("Hrom a blesk",     "weapon", "legendary", "Zbraň kovaná z blesku samotného.",  "⚡", 60, 7,12,22, 0,13,12,8,7,11,20,2100),
 
     # ── ARMOR (rozšíření) ─────────────────────────────────────────────────────
     ("Elfské roucho",    "armor",  "rare",      "Lehké roucho tkané elfy.",          "🌿",  0,12, 5,28, 0, 0,6,7,3,4, 7, 170),
-    ("Titanské brnění",  "armor",  "epic",      "Brnění z kovu titan, neprůstřelné.","🏔️",  0,54,10, 0,85,16,0,0,18,0,13, 700),
+    ("Titanské brnění",  "armor",  "epic",      "Brnění z kovu titan, neprůstřelné.","🏔️",  0,54,10, 0, 0,16,0,0,18,0,13, 700),
 
     # ── HELMETS (rozšíření) ───────────────────────────────────────────────────
-    ("Druidská čelenka", "helmet", "rare",      "Čelenka s magií přírody.",          "🌿",  0, 8, 4,24,12, 0,4,8,3,5, 7, 155),
-    ("Stínová maska",    "helmet", "epic",      "Skrývá tvář i duši nositele.",      "🎭",  0,18, 6, 0,20, 5,10,3,6,7,13, 560),
-    ("Koruna věčnosti",  "helmet", "legendary", "Korunuje toho, kdo přežil vše.",    "👑",  0,30,10,36,48,13,9,14,11,11,20,3200),
+    ("Druidská čelenka", "helmet", "rare",      "Čelenka s magií přírody.",          "🌿",  0, 8, 4,24, 0, 0,4,8,3,5, 7, 155),
+    ("Stínová maska",    "helmet", "epic",      "Skrývá tvář i duši nositele.",      "🎭",  0,18, 6, 0, 0, 5,10,3,6,7,13, 560),
+    ("Koruna věčnosti",  "helmet", "legendary", "Korunuje toho, kdo přežil vše.",    "👑",  0,30,10,36, 0,13,9,14,11,11,20,3200),
 
     # ── BOOTS (rozšíření) ─────────────────────────────────────────────────────
     ("Démonické boty",   "boots",  "epic",      "Boty z kůže démona. Rychlé.",       "😈",  0,10,22, 0, 0, 0,14,0,0,8,13, 510),
-    ("Boty boha větru",  "boots",  "legendary", "Nositel se pohybuje jako vítr.",    "💨",  0,10,38,25,12, 0,20,0,0,13,20,2300),
+    ("Boty boha větru",  "boots",  "legendary", "Nositel se pohybuje jako vítr.",    "💨",  0,10,38,25, 0, 0,20,0,0,13,20,2300),
 
     # ── RINGS (rozšíření) ─────────────────────────────────────────────────────
     ("Prsten krve",      "ring",   "epic",      "Saje životní sílu nepřátel.",       "🩸",  0, 0, 3,25, 0,12,0,0,0,6,13, 430),
-    ("Prsten věčnosti",  "ring",   "legendary", "Kdo ho nosí, je blíže nesmrtelnosti.","⚡", 0,10,10,50,35, 9,9,9,8,14,20,2400),
+    ("Prsten věčnosti",  "ring",   "legendary", "Kdo ho nosí, je blíže nesmrtelnosti.","⚡", 0,10,10,50, 0, 9,9,9,8,14,20,2400),
 
     # ── AMULETS (rozšíření) ───────────────────────────────────────────────────
-    ("Přívěsek lesa",    "amulet", "rare",      "Lesní magie chrání nositele.",      "🌿",  0,10, 6,20,30, 0,5,7,5,7, 7, 160),
-    ("Amulet bouře",     "amulet", "epic",      "Přívěsek nabíjený bleskem.",        "⛈️",  0, 8, 8,20,25, 7,7,12,4,6,13, 520),
+    ("Přívěsek lesa",    "amulet", "rare",      "Lesní magie chrání nositele.",      "🌿",  0,10, 6,20, 0, 0,5,7,5,7, 7, 160),
+    ("Amulet bouře",     "amulet", "epic",      "Přívěsek nabíjený bleskem.",        "⛈️",  0, 8, 8,20, 0, 7,7,12,4,6,13, 520),
+
+    # ── INT / MAGE ITEMS (doplnění chybějících slotů) ─────────────────────────
+    # Common
+    ("Čelenka studenta",      "helmet", "common",    "Jednoduchá čelenka začínajícího mága.",       "🎓",  0, 2, 0, 0, 0, 0,0,2,1,1, 1,  7),
+    ("Říza novice",           "armor",  "common",    "Lehká říza pro začátečníky v magii.",          "👘",  0, 3, 0, 3, 0, 0,0,2,1,0, 1,  9),
+    # Uncommon
+    ("Mystické boty",         "boots",  "uncommon",  "Boty posílené magickými runami.",              "✨",  0, 3, 5, 0, 0, 0,0,3,1,1, 3, 38),
+    ("Rukavice mága",         "gloves", "uncommon",  "Tenké rukavice zesilující magii.",             "🌟",  0, 3, 0, 0, 0, 0,0,4,1,1, 3, 36),
+    # Rare
+    ("Runové boty",           "boots",  "rare",      "Boty pokryté runami staré magie.",             "🔮",  0, 5, 8, 0, 0, 0,2,7,2,2, 6, 138),
+    ("Prsten myslitele",      "ring",   "rare",      "Prsten zostřující mysl svého nositele.",       "💙",  0, 0, 0,12, 0, 0,0,8,0,3, 6, 128),
+    # Epic
+    ("Arkanické boty",        "boots",  "epic",      "Boty prosycené arkánnou energií.",             "💜",  0, 8,16, 0, 0, 0,4,12,2,2,12, 490),
+    ("Prsten arcána",         "ring",   "epic",      "Prsten koncentrující magickou sílu.",          "🔵",  0, 0, 0,20, 0, 0,0,16,0,4,12, 420),
+    ("Rukavice čaroděje",     "gloves", "epic",      "Rukavice starověkých čarodějů.",               "🌌",  0, 6, 5, 0, 0, 0,3,16,2,2,12, 470),
+    # Legendary
+    ("Boty věčné moudrosti",  "boots",  "legendary", "Boty nesoucí moudrost tisíce mágů.",           "🌠",  0,10,28,22, 0, 0,5,20,4,6,20,2250),
+    ("Prsten Velekouzlíka",   "ring",   "legendary", "Prsten Velekouzlíka z dávných věků.",          "💎",  0, 0, 0,40, 0, 0,0,24,0,8,20,2350),
+    ("Rukavice Velekouzlíka", "gloves", "legendary", "Rukavice naplněné silou největšího mága.",     "⚡",  0,10, 8,28, 0, 0,5,24,5,6,20,2150),
 
     # ── POTIONS / SCROLLS / ELIXIRS ──────────────────────────────────────────
     # bonus_xp = XP okamžitě při použití (svitky)
