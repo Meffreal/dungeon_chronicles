@@ -46,7 +46,7 @@ def test_armor_pct_no_division_by_zero():
 
 def test_crit_chance_new():
     from game.combat_stats import calc_crit_chance
-    # LCK=10, enemy_level=10 → 10*5/(10*2) = 0.25
+    # LCK=10, enemy_level=10 → 10/(10*4) = 0.25
     assert calc_crit_chance(luck=10, enemy_level=10) == pytest.approx(0.25)
 
 def test_crit_chance_capped():
