@@ -141,7 +141,7 @@ async function confirmPrestige() {
     const ok = confirm(
         `⚠️ PRESTIGE — Nevratná akce!\n\n` +
         `Tvůj level se resetuje na 1 a ztratíš:\n` +
-        `• Level a XP\n• Stat body\n• Primary stats (vrátí se na základ třídy)\n• Talenthy (odemknou se znovu při levelování)\n\n` +
+        `• Level a XP\n• Stat body\n• Primary stats (vrátí se na základ třídy)\n• Talenty (odemknou se znovu při levelování)\n\n` +
         `Zachováš: gold, inventář, equipment, guild, specializaci, arena rank.\n\n` +
         `Odměna: +${_prestigeData?.crystal_reward ?? 150} Crystalů + permanentní bonusy ke statům.\n\n` +
         `Opravdu chceš provést Prestige?`
