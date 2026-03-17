@@ -6,7 +6,7 @@ Create Date: 2026-03-17
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy import inspect
 
 revision = '0046'
 down_revision = '0045'
@@ -16,7 +16,7 @@ depends_on = None
 
 def upgrade():
     bind = op.get_bind()
-    insp = Inspector.from_engine(bind)
+    insp = inspect(bind)
     cols = [c['name'] for c in insp.get_columns('market_listings')]
     if 'upgrade_level' not in cols:
         op.add_column(
