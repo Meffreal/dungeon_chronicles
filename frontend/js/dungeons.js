@@ -67,7 +67,7 @@ async function enterDungeonRun(dungeonKey, btnEl) {
   const btn = btnEl instanceof HTMLElement ? btnEl : null;
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Vstupuji...'; }
   try {
-    const result = await api('POST', '/dungeon/enter', { dungeon_key: dungeonKey, strategy: getStrategy() });
+    const result = await api('POST', '/dungeon/enter', { dungeon_key: dungeonKey });
     if (typeof _showStageReplay === 'function') {
       _showStageReplay(result, 1);
     } else {
