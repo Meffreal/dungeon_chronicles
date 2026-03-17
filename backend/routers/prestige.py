@@ -93,7 +93,7 @@ async def prestige_info(
         "upcoming_title":  upcoming_title,
         "upcoming_frame":  upcoming_frame,
         "prestige_portrait_frame": char.prestige_portrait_frame,
-        "resets": ["level → 1", "XP → 0", "Stat body → 0", "Primary stats → základ třídy", "Talenthy → znovu odemčeny při levelování"],
+        "resets": ["level → 1", "XP → 0", "Stat body → 0", "Primary stats → základ třídy", "Talenty → znovu odemčeny při levelování"],
         "keeps":  ["Gold", "Inventář & equipment", "Guild", "Frakce", "Specializace (subclass)", "Arena rank", "Crystaly + odměna"],
         "history": [
             {
@@ -128,7 +128,7 @@ async def prestige_ascend(
     char.level      = 1
     char.xp         = 0
     char.stat_points = 0
-    char.talents_json = None  # talenthy se znovu odemknou při levelování
+    char.talents_json = None  # talenty se znovu odemknou při levelování
 
     # Reset primary stats na base hodnoty třídy
     base = PRESTIGE_CLASS_BASE_STATS.get(char.cls, {})
