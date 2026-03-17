@@ -693,8 +693,7 @@ function renderWarOpponents(d, wrap) {
 async function warAttack(defenderId, defenderName) {
     if (!confirm(`Zaútočit na ${defenderName}?`)) return;
     try {
-        const strategy = localStorage.getItem('combatStrategy') || 'balanced';
-        const d = await api('POST', '/guild/war/attack', { defender_id: defenderId, strategy });
+        const d = await api('POST', '/guild/war/attack', { defender_id: defenderId });
         const outcome = d.won ? '✅ Výhra' : '❌ Prohra';
         toast(`${outcome} vs ${defenderName} — získáno ${d.points_earned} bodů!`, d.won ? 's' : 'i', 4000);
         await loadGuildWar();

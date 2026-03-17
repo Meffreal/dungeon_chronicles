@@ -276,7 +276,7 @@ async function doAttack(defenderId, defenderName) {
   toast(`⚔ Útočíš na ${esc(defenderName)}...`, 'i', 2000);
 
   try {
-    const d = await api('POST', `/arena/attack/${defenderId}`, { strategy: getStrategy() });
+    const d = await api('POST', `/arena/attack/${defenderId}`, {});
     const won = d.attacker_won;
     lastBattleLog     = d.battle_log   || [];
     lastArenaEvents   = d.events       || null;
@@ -329,7 +329,7 @@ async function doAttack(defenderId, defenderName) {
       showCombatInsights('arena-insights', lastArenaEvents, won,
         (typeof char !== 'undefined' ? char?.name : null) || 'Hráč',
         typeof char !== 'undefined' ? char?.cls : null,
-        getStrategy());
+        null);
     }
 
     updateUI(d.character);

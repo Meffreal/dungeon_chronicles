@@ -30,12 +30,6 @@ const BUILD_SUBCLASSES = {
   shadowblade:  { name:'Stínová Čepel', cls:'ranger',  emoji:'🌑', mults:[{stat:'SPD',v:+35},{stat:'ATK',v:-5},{stat:'DEF',v:-10}] },
 };
 
-const BUILD_STRAT_FX = {
-  balanced:  { atk:0,   def:0,   spd:0,   mp:0   },
-  aggro:     { atk:+25, def:-15, spd:+10, mp:0   },
-  defensive: { atk:-10, def:+30, spd:0,   mp:0   },
-  burst:     { atk:+10, def:0,   spd:0,   mp:+50 },
-};
 
 const BUILD_RADAR_AXES = [
   { key:'atk',  lbl:'ATK',  max:200 },
@@ -60,7 +54,6 @@ function _renderBuild(modRes) {
   if (!root || !char) { if (root) root.innerHTML = '<div class="empty-state">🔒 Nejprve vytvoř postavu.</div>'; return; }
 
   const c       = char;
-  const strat   = getStrategy();
   const talents = c.talents || [];
   const sub     = c.subclass ? BUILD_SUBCLASSES[c.subclass] : null;
   const combat  = c.combat  || {};
@@ -98,7 +91,7 @@ function _renderBuild(modRes) {
 
     <div class="build-section">
       <div class="build-sec-title">⚡ Efektivní statistiky v souboji</div>
-      ${_bEffStats(combat, strat)}
+      ${_bEffStats(combat)}
     </div>
 
     ${Object.keys(sets).length ? `<div class="build-section">${_bSetBonuses(sets)}</div>` : ''}
@@ -106,27 +99,10 @@ function _renderBuild(modRes) {
 
     <div class="build-section build-summary-sec">
       <div class="build-sec-title">💡 Co to znamená v boji</div>
-      <p class="build-summary-text">${_bSummary(c, strat, talents, sub)}</p>
+      <p class="build-summary-text">${_bSummary(c, talents, sub)}</p>
     </div>`;
 }
 
-// ── Strategie: efekty ──────────────────────────────────────────────────────
-function _bStratEffects(strat) {
-  const fx = BUILD_STRAT_FX[strat] || {};
-  const rows = [
-    { lbl:'ATK', v: fx.atk || 0 },
-    { lbl:'DEF', v: fx.def || 0 },
-    { lbl:'SPD', v: fx.spd || 0 },
-    { lbl:'MP',  v: fx.mp  || 0 },
-  ].filter(r => r.v !== 0);
-  if (!rows.length) return '<div class="build-strat-neutral">Vyvážená strategie — bez bonusů ani postihů.</div>';
-  return `<div class="build-fx-list">${rows.map(r =>
-    `<div class="build-fx-row">
-      <span class="build-fx-lbl">${r.lbl}</span>
-      <span class="build-fx-val ${r.v > 0 ? 'pos' : 'neg'}">${r.v > 0 ? '+' : ''}${r.v}%</span>
-    </div>`
-  ).join('')}</div>`;
-}
 
 // ── Specializace karta ─────────────────────────────────────────────────────
 function _bSubclassCard(sub, cls, level) {
@@ -176,25 +152,21 @@ function _bTalentTree(cls, level, unlocked) {
 }
 
 // ── Efektivní statistiky ───────────────────────────────────────────────────
-function _bEffStats(combat, strat) {
-  const fx = BUILD_STRAT_FX[strat] || {};
+function _bEffStats(combat) {
   const rows = [
-    { ico:'⚔',  lbl:'Útok (ATK)',    raw: combat.atk    ?? 0, eff: combat.eff_atk ?? combat.atk ?? 0, fx: fx.atk || 0 },
-    { ico:'🛡',  lbl:'Obrana (DEF)',  raw: combat.def    ?? 0, eff: combat.eff_def ?? combat.def ?? 0, fx: fx.def || 0 },
-    { ico:'💨',  lbl:'Rychlost (SPD)',raw: combat.spd    ?? 0, eff: combat.eff_spd ?? combat.spd ?? 0, fx: fx.spd || 0 },
-    { ico:'❤',   lbl:'Max HP',        raw: combat.hp_max ?? 0, eff: combat.hp_max  ?? 0,               fx: 0 },
-    { ico:'💙',  lbl:'Max MP',        raw: combat.mp_max ?? 0, eff: combat.mp_max  ?? 0,               fx: fx.mp || 0 },
-    { ico:'🍀',  lbl:'Štěstí (LUCK)', raw: combat.luck   ?? 0, eff: combat.luck    ?? 0,               fx: 0 },
+    { ico:'⚔',  lbl:'Útok (ATK)',    raw: combat.atk    ?? 0, eff: combat.eff_atk ?? combat.atk ?? 0 },
+    { ico:'🛡',  lbl:'Obrana (DEF)',  raw: combat.def    ?? 0, eff: combat.eff_def ?? combat.def ?? 0 },
+    { ico:'💨',  lbl:'Rychlost (SPD)',raw: combat.spd    ?? 0, eff: combat.eff_spd ?? combat.spd ?? 0 },
+    { ico:'❤',   lbl:'Max HP',        raw: combat.hp_max ?? 0, eff: combat.hp_max  ?? 0 },
+    { ico:'🍀',  lbl:'Štěstí (LUCK)', raw: combat.luck   ?? 0, eff: combat.luck    ?? 0 },
   ];
   return `<div class="build-stats-grid">${rows.map(r => {
     const capped = r.eff < r.raw;
-    const final  = r.fx !== 0 ? Math.round(r.eff * (1 + r.fx / 100)) : null;
     return `<div class="build-stat-row">
       <span class="bsr-ico">${r.ico}</span>
       <span class="bsr-lbl">${r.lbl}</span>
       <span class="bsr-raw">${r.raw}</span>
       ${capped ? `<span class="bsr-sep">→ cap:</span><span class="bsr-eff">${r.eff}</span>` : ''}
-      ${final !== null ? `<span class="bsr-sep">${r.fx > 0 ? '+' : ''}${r.fx}% →</span><span class="bsr-final ${r.fx > 0 ? 'pos' : 'neg'}">${final}</span>` : ''}
     </div>`;
   }).join('')}</div>`;
 }
@@ -269,9 +241,8 @@ function _bRadarSvg(stats) {
 }
 
 // ── Plain-language shrnutí ─────────────────────────────────────────────────
-function _bSummary(c, strat, talents, sub) {
+function _bSummary(c, talents, sub) {
   const clsName = CLS_N[c.cls] || c.cls;
-  const stratLabel = { balanced:'vyvážená', aggro:'Aggro', defensive:'obranná', burst:'Burst' }[strat] || strat;
   const subName = sub?.name || null;
 
   const tFx = [];
@@ -286,21 +257,20 @@ function _bSummary(c, strat, talents, sub) {
   if (talents.includes('hunters_mark')) tFx.push('smrtící první útok');
 
   let text = subName
-    ? `Tvůj <strong>${clsName}</strong> (${subName}) bojuje <strong>${stratLabel}</strong> strategií.`
-    : `Tvůj <strong>${clsName}</strong> bojuje <strong>${stratLabel}</strong> strategií.`;
+    ? `Tvůj <strong>${clsName}</strong> (${subName}).`
+    : `Tvůj <strong>${clsName}</strong>.`;
   if (tFx.length) text += ` Talenty přidávají: ${tFx.join(', ')}.`;
 
   // Specifické kombinace
-  const combo = `${c.subclass || ''}_${strat}`;
-  if (combo === 'guardian_defensive' && talents.includes('iron_skin'))
-    text += ' ⚠️ Strážce + Obranná + Železná Kůže = extrémně tvrdá kombinace. Útok bude nízký, ale přežiješ skoro vše.';
-  else if (combo === 'berserker_aggro')
-    text += ' 🔥 Berserkr + Aggro = maximální útok. Způsobíš hodně, ale i dostaneš hodně.';
-  else if (combo === 'elementalist_burst')
-    text += ' ⚡ Elementalista + Burst využije Manu naplno — ideální pro rychlé ukončení souboje.';
-  else if (combo === 'shadowblade_aggro')
-    text += ' 🌑 Stínová Čepel + Aggro = bleskový první úder. Vysoká SPD zajišťuje první kolo.';
-  else if (combo === 'sharpshooter_balanced' && talents.includes('hunters_mark'))
+  if (c.subclass === 'guardian' && talents.includes('iron_skin'))
+    text += ' ⚠️ Strážce + Železná Kůže = extrémně tvrdá kombinace. Útok bude nízký, ale přežiješ skoro vše.';
+  else if (c.subclass === 'berserker')
+    text += ' 🔥 Berserkr = maximální útok. Způsobíš hodně, ale i dostaneš hodně.';
+  else if (c.subclass === 'elementalist')
+    text += ' ☄️ Elementalista — silné útočné schopnosti.';
+  else if (c.subclass === 'shadowblade')
+    text += ' 🌑 Stínová Čepel — vysoká rychlost zajišťuje první kolo.';
+  else if (c.subclass === 'sharpshooter' && talents.includes('hunters_mark'))
     text += ' 🎯 Ostrostřelec s Loveckou Značkou — první útok způsobí +75 % bonus. Smrtící sestava na jeden výstřel.';
 
   return text;
