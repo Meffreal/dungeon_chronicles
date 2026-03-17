@@ -94,7 +94,6 @@ def _apply_equipment_bonuses(char: Character, inv_items: list):
         char.def_   += max(0, int(item.bonus_def * mult)) if item.bonus_def else 0
         char.spd    += max(0, int(item.bonus_spd * mult)) if item.bonus_spd else 0
         char.hp_max += max(0, int(item.bonus_hp  * mult)) if item.bonus_hp  else 0
-        char.mp_max += max(0, int(item.bonus_mp  * mult)) if item.bonus_mp  else 0
 
 async def recalculate_with_gear(char: Character, db: AsyncSession):
     """Přepočítá stats postavy včetně všech nasazených itemů, set bonusů a upgrade levelů."""
@@ -422,8 +421,8 @@ async def use_item(
         if item.bonus_end:  stat_changes["endurance"]    = item.bonus_end
         if item.bonus_luck: stat_changes["luck"]         = item.bonus_luck
 
-    # bonus_mp = okamžitý XP (scrolly zkušeností)
-    gained_xp = item.bonus_mp or 0
+    # bonus_xp = okamžitý XP (scrolly zkušeností)
+    gained_xp = item.bonus_xp or 0
     if gained_xp:
         char.xp += gained_xp
 

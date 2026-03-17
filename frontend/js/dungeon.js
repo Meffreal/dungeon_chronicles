@@ -511,7 +511,7 @@ function _showStageReplay(result, stageNum) {
       if (typeof showCombatInsights === 'function' && _evts?.length) {
         setTimeout(() => {
           showCombatInsights('dng-stage-insights', _evts, _won,
-            char?.name || 'Hráč', char?.cls, getStrategy());
+            char?.name || 'Hráč', char?.cls, null);
         }, 50);
       }
     }

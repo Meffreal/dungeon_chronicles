@@ -47,14 +47,13 @@ class Item(Base):
     # Bonusy
     bonus_atk:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_def:  Mapped[int] = mapped_column(Integer, default=0)
-    bonus_spd:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_hp:   Mapped[int] = mapped_column(Integer, default=0)
-    bonus_mp:   Mapped[int] = mapped_column(Integer, default=0)
     bonus_str:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_dex:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_int:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_end:  Mapped[int] = mapped_column(Integer, default=0)
     bonus_luck: Mapped[int] = mapped_column(Integer, default=0)
+    bonus_xp:   Mapped[int] = mapped_column(Integer, default=0)
 
     min_level:  Mapped[int] = mapped_column(Integer, default=1)
     sell_price: Mapped[int] = mapped_column(Integer, default=10)
@@ -80,10 +79,10 @@ class Item(Base):
             "icon": self.icon,
             "bonuses": {
                 "atk": self.bonus_atk, "def": self.bonus_def,
-                "spd": self.bonus_spd, "hp":  self.bonus_hp,
-                "mp":  self.bonus_mp,  "str": self.bonus_str,
+                "hp":  self.bonus_hp,  "str": self.bonus_str,
                 "dex": self.bonus_dex, "int": self.bonus_int,
                 "end": self.bonus_end, "luck":self.bonus_luck,
+                "xp":  self.bonus_xp,
             },
             "min_level": self.min_level,
             "sell_price": self.sell_price,
@@ -126,7 +125,7 @@ class InventoryItem(Base):
         if ul > 0:
             mult = UPGRADE_STAT_MULT[min(ul, MAX_UPGRADE_LEVEL)]
             # Zvyš pouze přímé combat bonusy (ne primary stat bonusy — ty by se kumulovaly)
-            for bk in ("atk", "def", "spd", "hp", "mp"):
+            for bk in ("atk", "def", "hp"):
                 if d["bonuses"][bk]:
                     d["bonuses"][bk] = max(1, int(d["bonuses"][bk] * mult))
             # Posunutá rarity pro zobrazení

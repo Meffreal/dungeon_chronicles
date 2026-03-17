@@ -2,44 +2,7 @@
 let char = null, questTimer = null, selCls = null, clsData = {};
 let _prevGold = null, _prevXp = null, _prevLevel = null;
 
-// ── BOJOVÁ STRATEGIE ───────────────────────────────────────────────────────
-const _STRAT_DEFS = {
-  balanced:  { name: 'Vyvážená', emoji: '⚖️', desc: 'Bez bonusů ani postihů.' },
-  aggro:     { name: 'Aggro',    emoji: '⚔️', desc: '+25% ATK, +10% SPD, -15% DEF.' },
-  defensive: { name: 'Obranná', emoji: '🛡️', desc: '-10% ATK, +30% DEF, štít na startu.' },
-  burst:     { name: 'Burst',    emoji: '💥', desc: '+10% ATK, +50% MP (více schopností).' },
-};
 
-function getStrategy() {
-  return localStorage.getItem('combat_strategy') || 'balanced';
-}
-
-function setStrategy(strat) {
-  localStorage.setItem('combat_strategy', strat);
-  document.querySelectorAll('.strat-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.strat === strat)
-  );
-  const desc = document.getElementById('strat-desc');
-  if (desc) desc.textContent = _STRAT_DEFS[strat]?.desc || '';
-}
-
-function strategyPickerHtml() {
-  const cur   = getStrategy();
-  const strat = _STRAT_DEFS[cur] || _STRAT_DEFS.balanced;
-  const btns  = Object.entries(_STRAT_DEFS).map(([k, s]) =>
-    `<button class="strat-btn${k === cur ? ' active' : ''}" data-strat="${k}"
-        onclick="setStrategy('${k}')" title="${s.desc}">
-      ${s.emoji} ${s.name}
-    </button>`
-  ).join('');
-  return `<div class="strategy-bar">
-    <div class="strategy-bar-top">
-      <span class="strategy-label">Bojová strategie:</span>
-      <span class="strategy-desc" id="strat-desc">${strat.desc}</span>
-    </div>
-    <div class="strategy-btns">${btns}</div>
-  </div>`;
-}
 let invData = [], invFilter = 'all', invSort = 'rarity', sellInvId = null;
 let mktCurrentPage = 1, mktTotalPages = 1;
 let searchTimeout = null;
@@ -585,9 +548,6 @@ function updateUI(c) {
   // Dashboard XP bar
   const xpFill = document.getElementById('dash-xp-fill');
   if (xpFill) xpFill.style.width = `${Math.max(2, Math.min(100, (c.xp / c.xp_to_next) * 100))}%`;
-  // Dashboard combat stats
-  set('dash-atk', c.combat?.atk ?? '—');
-  set('dash-def', c.combat?.def ?? '—');
   // Pending actions
   _updateDashPending(c);
 

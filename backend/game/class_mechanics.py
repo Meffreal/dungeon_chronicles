@@ -110,13 +110,6 @@ MAGE_SPELL_BURN_PCT      = 0.03   # burn DoT za kolo = 3% z max HP nepřítele
 MAGE_SPIRIT_REVENGE_PCT  = 0.20   # Spirit Revenge škoda = 20% z max HP nepřítele
 
 
-def check_mage_opening_crit(mage_spd: int, enemy_spd: int) -> bool:
-    """
-    Mage dostane guaranteed critical v kole 1 pokud má vyšší SPD než nepřítel.
-    """
-    return mage_spd > enemy_spd
-
-
 def calculate_spell_burn_damage(enemy_hp_max: int) -> int:
     """
     Burn DoT aplikovaný po každém útoku mage.

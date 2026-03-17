@@ -25,7 +25,7 @@ from game.combat_engine import (
 from game.experiments import get_experiment_overrides, apply_overrides_to_engine, apply_overrides_to_router
 from game.loot import get_random_item_for_quest, get_dungeon_set_item
 from game.achievements import check_and_award
-from game.set_bonuses import get_char_set_combat_effects
+from game.combatant_builder import build_combatant_config
 from game.factions import REP_FROM_QUEST
 from game.professions import (
     add_resonance_to_equipped_runes,
@@ -50,13 +50,14 @@ def _quest_enemy_config(qdef: tuple, character_level: int) -> CombatantConfig:
     return CombatantConfig(
         name=f"[{qdef[1]}] Nepřítel",
         hp=int(50 * base_level * mult),
-        atk=int(8 * base_level * mult),
-        def_=int(4 * base_level * mult),
-        spd=int(6 * base_level * mult * 0.8),
+        weapon_dmg=int(8 * base_level * mult),
+        armor_value=int(4 * base_level * mult),
+        primary_stat=0,
+        secondary_a=0,
+        secondary_b=0,
         luck=int(3 * mult),
         level=base_level,
         cls="",
-        mp=0,
     )
 
 def _build_eligible_pool(char, disabled_ids: set) -> list:
@@ -128,9 +129,10 @@ def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set) -> dict | None
         return None
     enemy = _quest_enemy_config(qdef, char.level)
     player = CombatantConfig(
-        name=char.name, hp=char.hp_max, atk=char.atk,
-        def_=char.def_, spd=char.spd, luck=char.luck, level=char.level,
-        cls="", mp=0,
+        name=char.name, hp=char.hp_max,
+        weapon_dmg=char.atk, armor_value=char.def_,
+        primary_stat=0, secondary_a=0, secondary_b=0,
+        luck=char.luck, level=char.level, cls="",
     )
     gold_scale = 1.0 + char.level * 0.1
     return {
@@ -153,7 +155,6 @@ def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set) -> dict | None
 
 class StartQuestRequest(BaseModel):
     quest_id: int
-    strategy: str = "balanced"
     is_daily: bool = False
 
 async def _get_char_and_quest(user: User, db: AsyncSession):
@@ -210,9 +211,10 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
             continue
         enemy = _quest_enemy_config(qdef, char.level)
         player = CombatantConfig(
-            name=char.name, hp=char.hp_max, atk=char.atk,
-            def_=char.def_, spd=char.spd, luck=char.luck, level=char.level,
-            cls="", mp=0,
+            name=char.name, hp=char.hp_max,
+            weapon_dmg=char.atk, armor_value=char.def_,
+            primary_stat=0, secondary_a=0, secondary_b=0,
+            luck=char.luck, level=char.level, cls="",
         )
         ci    = QUEST_CHAIN_MAP[qid]
         chain = ci["chain"]
@@ -375,18 +377,8 @@ async def start_quest(
 
     # Simuluj boj
     enemy = _quest_enemy_config(qdef, char.level)
-    _set_fx = await get_char_set_combat_effects(char, db)
-    player_cfg = CombatantConfig(
-        name=char.name, hp=char.hp_max, atk=char.atk,
-        def_=char.def_, spd=char.spd, luck=char.luck, level=char.level,
-        cls=char.cls, mp=char.mp_max,
-        strategy=req.strategy,
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-        talent_t2=char.talent_t2_key or "",
-        set_bonuses=_set_fx,
-        experiment_overrides=_engine_ov,
-    )
+    player_cfg = await build_combatant_config(char, db)
+    player_cfg.experiment_overrides = _engine_ov
     combat_result = simulate_unified_combat(player_cfg, enemy)
 
     # Vypočítej odměnu — gold škáluje s levelem hráče (+ A/B xp_reward_mult)
@@ -775,9 +767,10 @@ async def get_daily_quests(
             continue
         enemy = _quest_enemy_config(qdef, char.level)
         player = CombatantConfig(
-            name=char.name, hp=char.hp_max, atk=char.atk,
-            def_=char.def_, spd=char.spd, luck=char.luck, level=char.level,
-            cls="", mp=0,
+            name=char.name, hp=char.hp_max,
+            weapon_dmg=char.atk, armor_value=char.def_,
+            primary_stat=0, secondary_a=0, secondary_b=0,
+            luck=char.luck, level=char.level, cls="",
         )
         win_chance = calculate_win_chance(player, enemy)
         gold_scale = 1.0 + char.level * 0.1

@@ -21,8 +21,13 @@ def _calc_elo_change(attacker_elo: int, defender_elo: int,
     return change_a, change_d
 
 
-def _fighter(name="Fighter", hp=200, atk=30, def_=15, spd=12, luck=10, level=5):
-    return CombatantConfig(name=name, hp=hp, atk=atk, def_=def_, spd=spd, luck=luck, level=level, cls="", mp=0)
+def _fighter(name="Fighter", hp=200, atk=30, def_=15, luck=10, level=5):
+    return CombatantConfig(
+        name=name, hp=hp,
+        weapon_dmg=atk, armor_value=def_,
+        primary_stat=atk, secondary_a=10, secondary_b=5,
+        luck=luck, level=level, cls="",
+    )
 
 
 # ── simulate_unified_combat (PvP) ─────────────────────────────────────────────
@@ -42,15 +47,15 @@ def test_pvp_fight_winner_is_bool():
 
 
 def test_pvp_fight_strong_attacker_wins():
-    goliath  = _fighter("Goliáš",  hp=2000, atk=500, def_=200, spd=5)
-    weakling = _fighter("Slaboch", hp=10,   atk=1,   def_=0,   spd=3)
+    goliath  = _fighter("Goliáš",  hp=2000, atk=500, def_=200)
+    weakling = _fighter("Slaboch", hp=10,   atk=1,   def_=0)
     result   = simulate_unified_combat(goliath, weakling, max_rounds=20)
     assert result.attacker_won is True
 
 
 def test_pvp_fight_weak_attacker_loses():
-    weakling = _fighter("Slaboch", hp=10,   atk=1,   def_=0,   spd=3)
-    goliath  = _fighter("Goliáš",  hp=2000, atk=500, def_=200, spd=5)
+    weakling = _fighter("Slaboch", hp=10,   atk=1,   def_=0)
+    goliath  = _fighter("Goliáš",  hp=2000, atk=500, def_=200)
     result   = simulate_unified_combat(weakling, goliath, max_rounds=20)
     assert result.attacker_won is False
 

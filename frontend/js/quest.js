@@ -657,7 +657,7 @@ function _questFlash() {
 // ── Start quest ──
 async function startQuest(id, name, isDaily = false) {
   try {
-    const d = await api('POST', '/quest/start', { quest_id: id, strategy: getStrategy(), is_daily: isDaily });
+    const d = await api('POST', '/quest/start', { quest_id: id, is_daily: isDaily });
     _questFlash();
     toast(`Quest "${name}" zahájen! ${d.success?'✅ Výhra předpovězena':'⚠ Bude to těžké'}`, 's', 3500);
     addAct(`⚔ Zahájen: ${name}`);
@@ -772,7 +772,7 @@ async function collectQuest() {
           document.getElementById('ov-log-wrap').after(insightsEl);
         }
         showCombatInsights('quest-insights', d.battle_events, success,
-          char?.name || 'Hráč', char?.cls, getStrategy());
+          char?.name || 'Hráč', char?.cls, null);
       }
     }
     updateUI(d.character);

@@ -40,7 +40,7 @@ from game.dungeon_modifiers import (
     scale_rewards,
     DUNGEON_MODIFIERS,
 )
-from game.set_bonuses import get_char_set_combat_effects
+from game.combatant_builder import build_combatant_config
 from models.hall_of_fallen import HallOfFallen
 from game.bloodline import award_death_bloodline_xp
 from models.guild import Guild
@@ -241,13 +241,14 @@ def _build_stage_enemy(
     return CombatantConfig(
         name=stage_def["enemy_name"],
         hp=hp,
-        atk=atk,
-        def_=def_,
-        spd=spd,
+        weapon_dmg=atk,
+        armor_value=def_,
+        primary_stat=0,
+        secondary_a=0,
+        secondary_b=0,
         luck=int(3 * mult),
         level=base_lvl,
         cls="",
-        mp=0,
         is_boss=is_boss,
         phases=phases,
         special_abilities=specials,
@@ -346,7 +347,6 @@ async def list_dungeons(
 class EnterDungeonRequest(BaseModel):
     dungeon_id: str | None = None   # preferovaný způsob výběru dungeonu
     dungeon_key: str | None = None  # deprecated — zpětná kompatibilita
-    strategy: str = "balanced"
 
     @model_validator(mode="after")
     def resolve_dungeon_id(self) -> "EnterDungeonRequest":
@@ -411,18 +411,10 @@ async def enter_dungeon(
     _p_hp, _p_atk, _p_def, _p_spd, _p_mp = apply_modifier_to_player(
         modifier, char.hp_max, char.atk, char.def_, char.spd, char.mp_max
     )
-    _set_fx = await get_char_set_combat_effects(char, db)
-    player_cfg  = CombatantConfig(
-        name=char.name, hp=_p_hp, atk=_p_atk, def_=_p_def,
-        spd=_p_spd, luck=char.luck, level=char.level, cls=char.cls, mp=_p_mp,
-        hp_max_override=_p_hp,
-        strategy=req.strategy,
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-        modifier_statuses=[mod_statuses["player"]] if mod_statuses["player"] else [],
-        talent_t2=char.talent_t2_key or "",
-        set_bonuses=_set_fx,
-    )
+    player_cfg = await build_combatant_config(char, db)
+    player_cfg.hp              = _p_hp
+    player_cfg.hp_max_override = _p_hp
+    player_cfg.modifier_statuses = [mod_statuses["player"]] if mod_statuses["player"] else []
 
     combat = simulate_unified_combat(player_cfg, enemy_cfg, max_rounds=20)
 
@@ -589,19 +581,10 @@ async def next_stage(
     _carried_hp = max(1, int(_p_hp * _hp_ratio))
 
     # Hráč vstupuje s přeneseným HP (přenos z předchozího stage)
-    _set_fx = await get_char_set_combat_effects(char, db)
-    player_cfg = CombatantConfig(
-        name=char.name,
-        hp=_carried_hp,              # přenesené HP (škálované)!
-        atk=_p_atk, def_=_p_def,
-        spd=_p_spd, luck=char.luck, level=char.level, cls=char.cls, mp=_p_mp,
-        hp_max_override=_p_hp,       # max HP pro HP bar (škálované)
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-        modifier_statuses=[mod_statuses["player"]] if mod_statuses["player"] else [],
-        talent_t2=char.talent_t2_key or "",
-        set_bonuses=_set_fx,
-    )
+    player_cfg = await build_combatant_config(char, db)
+    player_cfg.hp              = _carried_hp      # přenesené HP (škálované)!
+    player_cfg.hp_max_override = _p_hp            # max HP pro HP bar (škálované)
+    player_cfg.modifier_statuses = [mod_statuses["player"]] if mod_statuses["player"] else []
 
     combat = simulate_unified_combat(player_cfg, enemy_cfg, max_rounds=20)
 

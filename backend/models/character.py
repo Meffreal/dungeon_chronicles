@@ -51,6 +51,13 @@ CLASS_BASE_STATS = {
     },
 }
 
+# ── HP multiplikátory per třída (nová formule: END × mult × (level+1)) ───────
+CLASS_HP_MULT = {
+    CharacterClass.WARRIOR: 5,
+    CharacterClass.MAGE:    2,
+    CharacterClass.RANGER:  4,
+}
+
 # ── XP křivka ─────────────────────────────────────────────────────────────────
 def xp_for_level(level: int) -> int:
     """Kolik XP celkem je potřeba pro daný level."""
@@ -79,12 +86,13 @@ class Character(Base):
     endurance:    Mapped[int] = mapped_column(Integer, default=5)
     luck:         Mapped[int] = mapped_column(Integer, default=5)
 
-    # Derived / combat stats (přepočítávají se při equipu)
-    hp_max:  Mapped[int] = mapped_column(Integer, default=100)
-    mp_max:  Mapped[int] = mapped_column(Integer, default=50)
-    atk:     Mapped[int] = mapped_column(Integer, default=10)
-    def_:    Mapped[int] = mapped_column(Integer, default=5)
-    spd:     Mapped[int] = mapped_column(Integer, default=8)
+    # Derived / combat stats — hp_max přepočítáváno recalculate_stats()
+    # atk, def_, spd, mp_max jsou deprecated (odstraněny v stat redesign)
+    hp_max:  Mapped[int]       = mapped_column(Integer, default=100)
+    mp_max:  Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    atk:     Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    def_:    Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    spd:     Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
 
     # Equip sloty (item ID nebo null)
     eq_weapon:  Mapped[int | None] = mapped_column(Integer, ForeignKey("items.id"), nullable=True)
@@ -233,77 +241,55 @@ class Character(Base):
         return totals
 
     def recalculate_stats(self):
-        """Přepočítá combat stats z primary stats + buffů + level bonusů."""
+        """Přepočítá hp_max z primary stats + level.
+
+        Nová formule: END × class_mult × (level + 1), min 10
+        atk / def_ / spd / mp_max jsou deprecated — tato metoda je NENASTAVUJE.
+        """
         bt  = self.buff_totals()
         lvl = self.level
+        cls = CharacterClass(self.cls)
 
-        eff_str = self.strength     + bt["strength"]
-        eff_dex = self.dexterity    + bt["dexterity"]
-        eff_int = self.intelligence + bt["intelligence"]
-        eff_end = self.endurance    + bt["endurance"]
-        eff_lck = self.luck         + bt["luck"]
+        eff_end = self.endurance + bt.get("endurance", 0)
 
-        self.hp_max  = self.hp_base  + eff_end * 8  + lvl * 5
-        self.mp_max  = self.mp_base  + eff_int * 4  + lvl * 2
-        self.atk     = self.atk_base + eff_str * 2  + eff_dex + lvl * 2
-        self.def_    = self.def_base + eff_end * 2  + lvl
-        self.spd     = self.spd_base + eff_dex * 2  + eff_lck // 2
-        # Talent bonusy (Fortitude +15% HP, Mana Surge +25% MP)
+        # HP: END × class_mult × (level + 1), min 10
+        hp_mult = CLASS_HP_MULT[cls]
+        self.hp_max = max(10, eff_end * hp_mult * (lvl + 1))
+
+        # Talent fortitude: +15% HP
         _talents = self.get_talents()
         if "fortitude" in _talents:
             self.hp_max = int(self.hp_max * 1.15)
-        if "mana_surge" in _talents:
-            self.mp_max = int(self.mp_max * 1.25)
-        # Prestige bonusy (kumulativní — každý prestige level přidá %)
+
+        # Bonus HP z itemů (fallback — plný bonus aplikován v recalculate_with_gear())
+        self.hp_max += self._equipped_hp_bonus()
+
+        # Prestige: pouze HP bonus
         _pl = self.prestige_level or 0
         if _pl > 0:
             from models.prestige import prestige_bonus_mult
             _pmult = prestige_bonus_mult(_pl)
-            self.hp_max = max(1, int(self.hp_max * _pmult["hp"]))
-            self.mp_max = max(0, int(self.mp_max * _pmult["mp"]))
-            self.atk    = max(1, int(self.atk    * _pmult["atk"]))
-            self.def_   = max(0, int(self.def_   * _pmult["def"]))
-        # Subclass stat mults (trvalé — zobrazují se i v character sheetu)
+            self.hp_max = max(10, int(self.hp_max * _pmult["hp"]))
+
+        # Subclass hp_mult
         if self.subclass:
             from models.subclass import SUBCLASS_DEFINITIONS
-            _sdef = SUBCLASS_DEFINITIONS.get(self.subclass, {})
-            _mults = _sdef.get("stat_mults", {})
-            if "hp_mult"  in _mults: self.hp_max = max(1, int(self.hp_max * _mults["hp_mult"]))
-            if "mp_mult"  in _mults: self.mp_max = max(0, int(self.mp_max * _mults["mp_mult"]))
-            if "atk_mult" in _mults: self.atk    = max(1, int(self.atk    * _mults["atk_mult"]))
-            if "def_mult" in _mults: self.def_   = max(0, int(self.def_   * _mults["def_mult"]))
-            if "spd_mult" in _mults: self.spd    = max(1, int(self.spd    * _mults["spd_mult"]))
+            _mults = SUBCLASS_DEFINITIONS.get(self.subclass, {}).get("stat_mults", {})
+            if "hp_mult" in _mults:
+                self.hp_max = max(10, int(self.hp_max * _mults["hp_mult"]))
 
-    @property
-    def hp_base(self) -> int:
-        return CLASS_BASE_STATS[CharacterClass(self.cls)]["hp_base"]
-
-    @property
-    def mp_base(self) -> int:
-        return CLASS_BASE_STATS[CharacterClass(self.cls)]["mp_base"]
-
-    @property
-    def atk_base(self) -> int:
-        return CLASS_BASE_STATS[CharacterClass(self.cls)]["atk_base"]
-
-    @property
-    def def_base(self) -> int:
-        return CLASS_BASE_STATS[CharacterClass(self.cls)]["def_base"]
-
-    @property
-    def spd_base(self) -> int:
-        return CLASS_BASE_STATS[CharacterClass(self.cls)]["spd_base"]
+    def _equipped_hp_bonus(self) -> int:
+        """Fallback — plný bonus_hp se aplikuje v inventory.py::recalculate_with_gear()."""
+        return 0
 
     @property
     def xp_to_next_level(self) -> int:
         return xp_to_next(self.level)
 
     def to_dict(self) -> dict:
-        from game.combat_engine import _crit_chance, _dodge_chance, soft_cap_stat
+        from game.combat_stats import calc_crit_chance as _crit_chance_fn
         bt = self.buff_totals()
-        eff_lck = self.luck + bt["luck"]
-        # Dodge počítáme vůči průměrnému nepříteli stejného levelu
-        avg_enemy_spd = max(1, self.level * 4)
+        eff_lck = self.luck + bt.get("luck", 0)
         return {
             "id": self.id,
             "name": self.name,
@@ -313,25 +299,16 @@ class Character(Base):
             "xp_to_next": self.xp_to_next_level,
             "gold": self.gold,
             "stats": {
-                "strength":     self.strength     + bt["strength"],
-                "dexterity":    self.dexterity    + bt["dexterity"],
-                "intelligence": self.intelligence + bt["intelligence"],
-                "endurance":    self.endurance    + bt["endurance"],
-                "luck":         self.luck         + bt["luck"],
+                "strength":     self.strength     + bt.get("strength", 0),
+                "dexterity":    self.dexterity    + bt.get("dexterity", 0),
+                "intelligence": self.intelligence + bt.get("intelligence", 0),
+                "endurance":    self.endurance    + bt.get("endurance", 0),
+                "luck":         self.luck         + bt.get("luck", 0),
             },
             "active_buffs": self.get_active_buffs(),
             "combat": {
                 "hp_max":    self.hp_max,
-                "mp_max":    self.mp_max,
-                "atk":       self.atk,
-                "def":       self.def_,
-                "spd":       self.spd,
-                # Efektivní hodnoty v souboji (po soft cap — pro UI info)
-                "eff_atk":   soft_cap_stat(self.atk),
-                "eff_def":   soft_cap_stat(self.def_),
-                "eff_spd":   soft_cap_stat(self.spd),
-                "crit_pct":  round(_crit_chance(eff_lck) * 100, 1),
-                "dodge_pct": round(_dodge_chance(self.spd, avg_enemy_spd) * 100, 1),
+                "crit_pct":  round(_crit_chance_fn(eff_lck, self.level) * 100, 1),
                 "crit_mult": 175,
             },
             "stat_points": self.stat_points or 0,

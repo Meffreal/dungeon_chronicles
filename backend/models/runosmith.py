@@ -18,7 +18,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 50,  "evolves_to": "rune_fire_2"},
 
     {"key": "rune_shadow_1",  "name": "Stínová runa I",    "tier": 1, "rank_required": 1, "icon": "🌑",
-     "effect": {"bonus_spd": 3},
+     "effect": {"bonus_dex": 3},
      "resonance_to_evolve": 50,  "evolves_to": "rune_shadow_2"},
 
     {"key": "rune_void_1",    "name": "Runa Prázdna I",    "tier": 1, "rank_required": 1, "icon": "💜",
@@ -35,7 +35,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 150, "evolves_to": "rune_fire_3"},
 
     {"key": "rune_shadow_2",  "name": "Stínová runa II",   "tier": 2, "rank_required": 2, "icon": "🌑",
-     "effect": {"bonus_spd": 8, "bonus_dex": 2},
+     "effect": {"bonus_dex": 10},
      "resonance_to_evolve": 150, "evolves_to": "rune_shadow_3"},
 
     {"key": "rune_void_2",    "name": "Runa Prázdna II",   "tier": 2, "rank_required": 2, "icon": "💜",
@@ -52,7 +52,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 350, "evolves_to": "rune_fire_4"},
 
     {"key": "rune_shadow_3",  "name": "Stínová runa III",  "tier": 3, "rank_required": 3, "icon": "🌑",
-     "effect": {"bonus_spd": 16, "bonus_dex": 5, "bonus_luck": 2},
+     "effect": {"bonus_dex": 21, "bonus_luck": 2},
      "resonance_to_evolve": 350, "evolves_to": "rune_shadow_4"},
 
     {"key": "rune_void_3",    "name": "Runa Prázdna III",  "tier": 3, "rank_required": 3, "icon": "💜",
@@ -60,7 +60,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 350, "evolves_to": "rune_void_4"},
 
     {"key": "rune_arcane_3",  "name": "Arkánní runa III",  "tier": 3, "rank_required": 3, "icon": "⚡",
-     "effect": {"bonus_mp": 60, "bonus_int": 5},
+     "effect": {"bonus_luck": 60, "bonus_int": 5},
      "resonance_to_evolve": 350, "evolves_to": "rune_arcane_4"},
 
     # ── Tier 4 (Rank: 4) ────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 700, "evolves_to": "rune_fire_5"},
 
     {"key": "rune_shadow_4",  "name": "Stínová runa IV",   "tier": 4, "rank_required": 4, "icon": "🌑",
-     "effect": {"bonus_spd": 28, "bonus_dex": 9, "bonus_luck": 4},
+     "effect": {"bonus_dex": 37, "bonus_luck": 4},
      "resonance_to_evolve": 700, "evolves_to": "rune_shadow_5"},
 
     {"key": "rune_void_4",    "name": "Runa Prázdna IV",   "tier": 4, "rank_required": 4, "icon": "💜",
@@ -77,7 +77,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": 700, "evolves_to": "rune_void_5"},
 
     {"key": "rune_arcane_4",  "name": "Arkánní runa IV",   "tier": 4, "rank_required": 4, "icon": "⚡",
-     "effect": {"bonus_mp": 120, "bonus_int": 9, "bonus_luck": 3},
+     "effect": {"bonus_luck": 123, "bonus_int": 9},
      "resonance_to_evolve": 700, "evolves_to": "rune_arcane_5"},
 
     # ── Tier 5 – Legendární (Rank: 5) ────────────────────────────────────────
@@ -86,7 +86,7 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": None, "evolves_to": None},
 
     {"key": "rune_shadow_5",  "name": "Stín Věčnosti",     "tier": 5, "rank_required": 5, "icon": "🌑",
-     "effect": {"bonus_spd": 45, "bonus_dex": 14, "bonus_luck": 7},
+     "effect": {"bonus_dex": 59, "bonus_luck": 7},
      "resonance_to_evolve": None, "evolves_to": None},
 
     {"key": "rune_void_5",    "name": "Prázdnota",         "tier": 5, "rank_required": 5, "icon": "💜",
@@ -94,11 +94,11 @@ RUNE_DEFINITIONS = [
      "resonance_to_evolve": None, "evolves_to": None},
 
     {"key": "rune_arcane_5",  "name": "Arkánní Singularita","tier": 5, "rank_required": 5, "icon": "⚡",
-     "effect": {"bonus_mp": 200, "bonus_int": 14, "bonus_atk": 15},
+     "effect": {"bonus_luck": 200, "bonus_int": 14, "bonus_atk": 15},
      "resonance_to_evolve": None, "evolves_to": None},
 
     {"key": "rune_soul",      "name": "Runa Duše",          "tier": 5, "rank_required": 5, "icon": "⭐",
-     "effect": {"bonus_atk": 20, "bonus_def": 20, "bonus_spd": 20, "bonus_luck": 10},
+     "effect": {"bonus_atk": 20, "bonus_def": 20, "bonus_dex": 20, "bonus_luck": 10},
      "resonance_to_evolve": None, "evolves_to": None},
 ]
 
@@ -118,16 +118,16 @@ RUNE_COMBINATIONS = [
      "description": "Životní plamen: +5 ATK a +20 HP navíc."},
 
     {"rune_a": "rune_void_2",   "rune_b": "rune_shadow_2", "type": "synergy",
-     "bonus": {"bonus_spd": 6, "bonus_def": 4},
-     "description": "Prázdnota stínů: +6 SPD a +4 DEF navíc."},
+     "bonus": {"bonus_dex": 6, "bonus_def": 4},
+     "description": "Prázdnota stínů: +6 DEX a +4 DEF navíc."},
 
     {"rune_a": "rune_arcane_3", "rune_b": "rune_life_3",   "type": "synergy",
-     "bonus": {"bonus_mp": 40, "bonus_hp": 40},
-     "description": "Arkánní vitalita: +40 MP a +40 HP navíc."},
+     "bonus": {"bonus_luck": 40, "bonus_hp": 40},
+     "description": "Arkánní vitalita: +40 LUCK a +40 HP navíc."},
 
     {"rune_a": "rune_fire_4",   "rune_b": "rune_shadow_4", "type": "synergy",
-     "bonus": {"bonus_atk": 15, "bonus_spd": 10, "bonus_luck": 5},
-     "description": "Hořící stín: +15 ATK, +10 SPD, +5 LUCK navíc."},
+     "bonus": {"bonus_atk": 15, "bonus_dex": 10, "bonus_luck": 5},
+     "description": "Hořící stín: +15 ATK, +10 DEX, +5 LUCK navíc."},
 ]
 
 RUNE_COMBINATION_LOOKUP: dict[tuple[str, str], dict] = {}

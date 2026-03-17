@@ -39,8 +39,8 @@ TALENT_TREE: dict = {
     "mana_surge": {
         "class": "mage", "level_req": 20,
         "name": "Příval Many", "emoji": "💧",
-        "desc": "+25 % maximální many.",
-        "effect": {"mp_pct": 0.25},
+        "desc": "+15 % poškození.",
+        "effect": {"dmg_bonus_pct": 0.15},
     },
     "spell_echo": {
         "class": "mage", "level_req": 30,
@@ -58,8 +58,8 @@ TALENT_TREE: dict = {
     "evasion": {
         "class": "ranger", "level_req": 20,
         "name": "Úskok", "emoji": "💨",
-        "desc": "+10 % základní šance na vyhnutí.",
-        "effect": {"dodge_bonus_pct": 0.10},
+        "desc": "+10 % šance na kritický zásah.",
+        "effect": {"crit_bonus_pct": 0.10},
     },
     "hunters_mark": {
         "class": "ranger", "level_req": 30,
@@ -126,8 +126,8 @@ TALENT_T2_TREE: dict = {
             "name": "Prázdnota Many",
             "emoji": "🕳",
             "level_req": 25,
-            "desc": "Každé 4. kolo: vysaje 30% aktuální many protivníka. Bez many selže jeho schopnost.",
-            "effect": {"drain_pct": 0.30},
+            "desc": "Každé 4. kolo: aplikuje Oslabení na nepřítele (2 kola).",
+            "effect": {"apply_status": "weaken", "rounds": 2},
         },
         {
             "key": "time_warp",
@@ -152,8 +152,8 @@ TALENT_T2_TREE: dict = {
             "name": "Stínový Krok",
             "emoji": "👤",
             "level_req": 25,
-            "desc": "Každé 4. kolo: 80% šance vyhnout se útoku + protiútok za 1× ATK.",
-            "effect": {"dodge_chance": 0.80, "counter_dmg_mult": 1.0},
+            "desc": "Každé 4. kolo: garantovaný protiútok za 1.5× poškození + krvácení.",
+            "effect": {"counter_dmg_mult": 1.5, "apply_bleed": True},
         },
         {
             "key": "mark_for_death",

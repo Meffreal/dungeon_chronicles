@@ -30,7 +30,6 @@ ANCIENT_BLESSING = DM["ancient_blessing"]
 DOUBLE_LOOT      = DM["double_loot"]
 WEAKENED_ENEMIES = DM["weakened_enemies"]
 BLOODMOON        = DM["bloodmoon"]
-MANA_VOID        = DM["mana_void"]
 FORTIFIED_BOSSES = DM["fortified_bosses"]
 BLESSED_WARRIORS = DM["blessed_warriors"]
 CHAOS_WEEK       = DM["chaos_week"]
@@ -61,11 +60,11 @@ def test_enemy_berserker_rage_atk_and_def():
     assert hp   == 100  # nezměněno
 
 
-def test_enemy_swift_predators_spd_and_atk():
-    """Swift Predators: +35 % SPD, +15 % ATK."""
+def test_enemy_swift_predators_atk():
+    """Swift Predators: +15 % ATK. SPD není modifikováno."""
     hp, atk, def_, spd = apply_modifier_to_enemy(SWIFT_PREDATORS, 100, 20, 10, 15)
-    assert spd == int(15 * 1.35)
     assert atk == int(20 * 1.15)
+    assert spd == 15    # SPD beze změny
     assert hp  == 100
     assert def_ == 10
 
@@ -79,12 +78,12 @@ def test_enemy_weakened_enemies():
 
 
 def test_enemy_chaos_week_all_stats():
-    """Chaos Week: +20 % ATK, DEF, HP, SPD."""
+    """Chaos Week: +20 % ATK, DEF, HP. SPD není modifikováno."""
     hp, atk, def_, spd = apply_modifier_to_enemy(CHAOS_WEEK, 100, 20, 10, 15)
     assert hp   == int(100 * 1.20)
     assert atk  == int(20  * 1.20)
     assert def_ == int(10  * 1.20)
-    assert spd  == int(15  * 1.20)
+    assert spd  == 15   # SPD beze změny
 
 
 def test_enemy_no_modifier_means_no_change():
@@ -133,52 +132,42 @@ def test_enemy_returns_integers():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def test_player_none_modifier_returns_original():
-    assert apply_modifier_to_player(None, 200, 30, 15, 20, 100) == (200, 30, 15, 20, 100)
+    assert apply_modifier_to_player(None, 200, 30, 15, 20) == (200, 30, 15, 20)
 
 
 def test_player_ancient_blessing_hp_and_atk():
     """Ancient Blessing: +20 % HP, +10 % ATK."""
-    hp, atk, def_, spd, mp = apply_modifier_to_player(ANCIENT_BLESSING, 200, 30, 15, 20, 100)
+    hp, atk, def_, spd = apply_modifier_to_player(ANCIENT_BLESSING, 200, 30, 15, 20)
     assert hp  == int(200 * 1.20)
     assert atk == int(30  * 1.10)
     assert spd == 20    # SPD nikdy nemodifikováno
-    assert mp  == 100   # MP nezměněno
-
-
-def test_player_mana_void_halves_mp():
-    """Mana Void: 50 % MP."""
-    hp, atk, def_, spd, mp = apply_modifier_to_player(MANA_VOID, 200, 30, 15, 20, 100)
-    assert mp  == int(100 * 0.50)
-    assert hp  == 200   # nezměněno
-    assert atk == 30    # nezměněno
 
 
 def test_player_chaos_week_all_stats():
-    """Chaos Week: +20 % HP, ATK, DEF (SPD a MP beze změny — chaos_week nemá player_mp_mult)."""
-    hp, atk, def_, spd, mp = apply_modifier_to_player(CHAOS_WEEK, 200, 30, 15, 20, 100)
+    """Chaos Week: +20 % HP, ATK, DEF (SPD beze změny)."""
+    hp, atk, def_, spd = apply_modifier_to_player(CHAOS_WEEK, 200, 30, 15, 20)
     assert hp   == int(200 * 1.20)
     assert atk  == int(30  * 1.20)
     assert def_ == int(15  * 1.20)
     assert spd  == 20    # SPD beze změny
-    assert mp   == 100   # chaos_week nemá player_mp_mult → beze změny
 
 
 def test_player_spd_never_modified():
     """SPD hráče se nikdy nemodifikuje bez ohledu na modifikátor."""
     for key, mod in DUNGEON_MODIFIERS.items():
-        _, _, _, spd, _ = apply_modifier_to_player(mod, 200, 30, 15, 42, 100)
+        _, _, _, spd = apply_modifier_to_player(mod, 200, 30, 15, 42)
         assert spd == 42, f"Modifikátor '{key}' nesprávně změnil SPD hráče!"
 
 
 def test_player_double_loot_no_stat_change():
     """Double Loot nemá player_XXX klíče → stats beze změny."""
-    hp, atk, def_, spd, mp = apply_modifier_to_player(DOUBLE_LOOT, 200, 30, 15, 20, 100)
-    assert (hp, atk, def_, spd, mp) == (200, 30, 15, 20, 100)
+    hp, atk, def_, spd = apply_modifier_to_player(DOUBLE_LOOT, 200, 30, 15, 20)
+    assert (hp, atk, def_, spd) == (200, 30, 15, 20)
 
 
 def test_player_returns_integers():
     """Výsledky jsou celá čísla."""
-    result = apply_modifier_to_player(CHAOS_WEEK, 200, 30, 15, 20, 100)
+    result = apply_modifier_to_player(CHAOS_WEEK, 200, 30, 15, 20)
     assert all(isinstance(v, int) for v in result)
 
 
@@ -327,9 +316,9 @@ def test_all_modifiers_type_valid():
 def test_all_modifier_mult_values_positive():
     """Všechny _mult hodnoty musí být kladná čísla."""
     mult_keys = [
-        "enemy_hp_mult", "enemy_atk_mult", "enemy_def_mult", "enemy_spd_mult",
+        "enemy_hp_mult", "enemy_atk_mult", "enemy_def_mult",
         "boss_hp_mult",  "boss_def_mult",
-        "player_hp_mult","player_atk_mult","player_def_mult","player_mp_mult",
+        "player_hp_mult","player_atk_mult","player_def_mult",
         "reward_xp_mult","reward_gold_mult",
     ]
     for key, mod in DUNGEON_MODIFIERS.items():

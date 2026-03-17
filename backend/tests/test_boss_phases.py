@@ -24,8 +24,10 @@ from game.combat_engine import (
 
 def _boss(hp=1000, atk=40, def_=20, spd=10, phases=None, specials=None):
     return CombatantConfig(
-        name="Drak", hp=hp, atk=atk, def_=def_, spd=spd,
-        luck=5, level=20, cls="", mp=0,
+        name="Drak", hp=hp,
+        weapon_dmg=atk, armor_value=def_,
+        primary_stat=atk, secondary_a=spd, secondary_b=5,
+        luck=5, level=20, cls="",
         is_boss=True,
         phases=phases or [],
         special_abilities=specials or [],
@@ -34,7 +36,10 @@ def _boss(hp=1000, atk=40, def_=20, spd=10, phases=None, specials=None):
 
 def _player(hp=500, atk=30):
     return CombatantConfig(
-        name="Hrdina", hp=hp, atk=atk, def_=10, spd=12, luck=5, level=10, cls="", mp=0,
+        name="Hrdina", hp=hp,
+        weapon_dmg=atk, armor_value=10,
+        primary_stat=atk, secondary_a=12, secondary_b=5,
+        luck=5, level=10, cls="",
     )
 
 
@@ -93,13 +98,14 @@ def test_phase_applies_atk_multiplier():
     )
     boss   = _make_boss_state(hp_current=400, hp_max=1000, phases=[phase])
     target = _FighterState(_player())
-    atk_before = boss.atk
+    dmg_mult_before = boss.dmg_mult
 
     _check_boss_phases(boss, target, 1, [], [])
-    assert boss.atk == int(atk_before * 2.0)
+    assert boss.dmg_mult == pytest.approx(dmg_mult_before * 2.0)
 
 
 def test_phase_applies_spd_multiplier():
+    """SPD multiplier je nyni ignorovan (novy stat system)."""
     phase = BossPhase(
         phase_num=1, trigger_hp_pct=0.50, message="Zrychlení!",
         stat_multipliers={"spd": 1.5},
@@ -109,7 +115,8 @@ def test_phase_applies_spd_multiplier():
     spd_before = boss.spd
 
     _check_boss_phases(boss, target, 1, [], [])
-    assert boss.spd == int(spd_before * 1.5)
+    # SPD is now ignored in phase multipliers
+    assert boss.spd == spd_before
 
 
 def test_phase_applies_def_multiplier():
@@ -119,10 +126,10 @@ def test_phase_applies_def_multiplier():
     )
     boss   = _make_boss_state(hp_current=400, hp_max=1000, phases=[phase])
     target = _FighterState(_player())
-    def_before = boss.def_
+    armor_mult_before = boss.armor_mult
 
     _check_boss_phases(boss, target, 1, [], [])
-    assert boss.def_ == int(def_before * 1.8)
+    assert boss.armor_mult == pytest.approx(armor_mult_before * 1.8)
 
 
 def test_phase_applies_dmg_bonus():
@@ -142,16 +149,16 @@ def test_phase_applies_dmg_bonus():
 def test_phase_multiple_stat_multipliers():
     phase = BossPhase(
         phase_num=1, trigger_hp_pct=0.50, message="Multi buff!",
-        stat_multipliers={"atk": 1.5, "spd": 1.3},
+        stat_multipliers={"atk": 1.5, "def": 1.3},
     )
     boss   = _make_boss_state(hp_current=400, hp_max=1000, phases=[phase])
     target = _FighterState(_player())
-    atk_before = boss.atk
-    spd_before = boss.spd
+    dmg_mult_before = boss.dmg_mult
+    armor_mult_before = boss.armor_mult
 
     _check_boss_phases(boss, target, 1, [], [])
-    assert boss.atk == int(atk_before * 1.5)
-    assert boss.spd == int(spd_before * 1.3)
+    assert boss.dmg_mult == pytest.approx(dmg_mult_before * 1.5)
+    assert boss.armor_mult == pytest.approx(armor_mult_before * 1.3)
 
 
 # ── Léčení bosse při fázi ─────────────────────────────────────────────────────
@@ -270,12 +277,12 @@ def test_phase_triggers_only_once():
     atk_after_first = None
 
     _check_boss_phases(boss, target, 1, events, log)   # Trigger
-    atk_after_first = boss.atk
+    dmg_mult_after_first = boss.dmg_mult
     assert len(events) == 1
 
     _check_boss_phases(boss, target, 2, events, log)   # Druhý pokus
-    assert boss.atk == atk_after_first  # ATK se nezměnil
-    assert len(events) == 1             # Stále jen 1 event
+    assert boss.dmg_mult == dmg_mult_after_first  # dmg_mult se nezměnil
+    assert len(events) == 1                       # Stále jen 1 event
 
 
 # ── Více fází ─────────────────────────────────────────────────────────────────
@@ -303,7 +310,10 @@ def test_multiple_phases_trigger_independently():
 def test_non_boss_no_phase_trigger():
     """Non-boss fighter nespustí žádnou fázi."""
     cfg = CombatantConfig(
-        name="Skřet", hp=100, atk=10, def_=5, spd=5, luck=0, level=1, cls="", mp=0,
+        name="Skřet", hp=100,
+        weapon_dmg=10, armor_value=5,
+        primary_stat=10, secondary_a=5, secondary_b=3,
+        luck=0, level=1, cls="",
         is_boss=False,
         phases=[BossPhase(1, 0.50, "Fáze 2!")],
     )

@@ -20,8 +20,8 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "flavor":      "Krev za krev. Vítěz bere vše.",
         # Stat multiplikátory (aplikují se v recalculate_stats)
         "stat_mults": {
-            "atk_mult": 1.30,   # +30 % ATK
-            "def_mult": 0.85,   # −15 % DEF
+            "dmg_mult":   1.30,   # +30 % DMG
+            "armor_mult": 0.85,   # −15 % armor
         },
         "unlock_level": 10,
     },
@@ -36,9 +36,9 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Nikdo neprojde, dokud dýchám.",
         "stat_mults": {
-            "def_mult": 1.35,   # +35 % DEF
-            "hp_mult":  1.20,   # +20 % HP
-            "atk_mult": 0.90,   # −10 % ATK
+            "armor_mult": 1.35,   # +35 % armor
+            "hp_mult":    1.20,   # +20 % HP
+            "dmg_mult":   0.90,   # −10 % DMG
         },
         "unlock_level": 10,
     },
@@ -54,9 +54,8 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Příroda je zbraň. Já jsem spouštěč.",
         "stat_mults": {
-            "atk_mult": 1.25,   # +25 % ATK
-            "mp_mult":  1.15,   # +15 % MP
-            "def_mult": 0.90,   # −10 % DEF
+            "dmg_mult":   1.25,   # +25 % DMG
+            "armor_mult": 0.90,   # −10 % armor
         },
         "unlock_level": 10,
     },
@@ -71,9 +70,7 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Smrt není konec. Je to nástroj.",
         "stat_mults": {
-            "mp_mult":  1.30,   # +30 % MP
-            "spd_mult": 1.10,   # +10 % SPD
-            "atk_mult": 0.85,   # −15 % ATK
+            "dmg_mult": 0.85,   # −15 % DMG
         },
         "unlock_level": 10,
     },
@@ -89,9 +86,9 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Jeden výstřel. Jeden cíl. Konec.",
         "stat_mults": {
-            "atk_mult":  1.20,  # +20 % ATK
-            "luck_mult": 1.30,  # +30 % LUCK (combat only — v _FighterState)
-            "def_mult":  0.90,  # −10 % DEF
+            "dmg_mult":   1.20,  # +20 % DMG
+            "luck_mult":  1.30,  # +30 % LUCK (combat only — v _FighterState)
+            "armor_mult": 0.90,  # −10 % armor
         },
         "unlock_level": 10,
     },
@@ -106,9 +103,9 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Nevidíš mě. Dokud není pozdě.",
         "stat_mults": {
-            "spd_mult": 1.35,   # +35 % SPD
-            "def_mult": 0.90,   # −10 % DEF
-            "atk_mult": 0.95,   # −5 % ATK
+            "armor_mult": 0.90,  # −10 % armor
+            "dmg_mult":   0.95,  # −5 % DMG
+            "crit_mult":  1.35,  # +35 % crit damage
         },
         "unlock_level": 10,
     },

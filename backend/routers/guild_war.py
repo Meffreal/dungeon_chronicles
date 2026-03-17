@@ -19,7 +19,8 @@ from models.guild_war import (
     WAR_DURATION_HOURS, MAX_ATTACKS_PER_WAR,
     POINTS_WIN, POINTS_LOSS, REWARD_XP_WIN, REWARD_XP_LOSS,
 )
-from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list
+from game.combat_engine import simulate_unified_combat, events_to_dict_list
+from game.combatant_builder import build_combatant_config
 from routers.auth import get_current_user
 
 log = get_logger(__name__)
@@ -341,7 +342,6 @@ async def get_opponents(
 
 class WarAttackReq(BaseModel):
     defender_id: int
-    strategy: str = "balanced"
 
 
 @router.post("/attack")
@@ -385,20 +385,8 @@ async def war_attack(
         raise HTTPException(400, "Nemůžeš útočit sám na sebe.")
 
     # Simuluj souboj
-    atk_cfg = CombatantConfig(
-        name=char.name, hp=char.hp_max, atk=char.atk, def_=char.def_,
-        spd=char.spd, luck=char.luck, level=char.level,
-        cls=char.cls, mp=char.mp_max,
-        strategy=req.strategy,
-        talents=char.get_talents(),
-        subclass=char.subclass or "",
-    )
-    def_cfg = CombatantConfig(
-        name=defender.name, hp=defender.hp_max, atk=defender.atk, def_=defender.def_,
-        spd=defender.spd, luck=defender.luck, level=defender.level,
-        cls=defender.cls, mp=defender.mp_max,
-        subclass=defender.subclass or "",
-    )
+    atk_cfg = await build_combatant_config(char, db)
+    def_cfg = await build_combatant_config(defender, db)
     result = simulate_unified_combat(atk_cfg, def_cfg, max_rounds=20)
     won = result.attacker_won
     pts = POINTS_WIN if won else POINTS_LOSS
