@@ -40,15 +40,15 @@ from game.class_mechanics import (
     calculate_spirit_revenge_damage,
     get_class_mechanics,
 )
-# CLASS_MECHANICS_TODO: integrace do _FighterState a _execute_attack:
-#   Warrior: přidat rage_stacks + base_atk atributy; volat apply_rage_on_hit_received()
-#            po každém přijatém hitu; check_berserk_mode() v effective_atk/effective_def;
-#            warrior_is_stun_immune() v add_status("stun").
-#   Ranger:  check_chain_hit(random.random()) po primárním hitu → bonus _execute_attack;
-#            check_multi_hit_round(round_num) → druhý útok bez chain;
-#            ranger_first_round_first_strike() → přeskočit SPD sort v kole 1.
-#   Mage:    calculate_spell_burn_damage(enemy.hp_max) → add_status("burn") po každém útoku;
-#            check_spirit_revenge_trigger(round) → calculate_spirit_revenge_damage() při smrti.
+# CLASS_MECHANICS stav integrace:
+#   Warrior: Rage Burst (rage >= 100 → 2× DMG + stun) — IMPLEMENTOVÁNO v simulate_unified_combat
+#            Rage stacks per hit (apply_rage_on_hit_received) — zatím neimplementováno
+#            Berserk Mode HP threshold (check_berserk_mode) — zatím neimplementováno
+#            Stun imunita (warrior_is_stun_immune) — zatím neimplementováno
+#   Ranger:  chain_hit (25 % bonus hit) + multi_hit (každé 3. kolo) — IMPLEMENTOVÁNO v _ranger_chain_or_multi_attack
+#            First strike kolo 1 — IMPLEMENTOVÁNO (has_class_first_strike)
+#   Mage:    Spell Burn DoT (3 % max HP/kolo) — IMPLEMENTOVÁNO v _execute_attack
+#            Spirit Revenge (20 % max HP při smrti v kole 1) — IMPLEMENTOVÁNO v _maybe_spirit_revenge
 
 # ── Konstanty ──────────────────────────────────────────────────────────────────
 MAX_ROUNDS_DEFAULT    = 30
