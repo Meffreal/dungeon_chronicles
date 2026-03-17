@@ -87,12 +87,7 @@ class Character(Base):
     luck:         Mapped[int] = mapped_column(Integer, default=5)
 
     # Derived / combat stats — hp_max přepočítáváno recalculate_stats()
-    # atk, def_, spd, mp_max jsou deprecated (odstraněny v stat redesign)
-    hp_max:  Mapped[int]       = mapped_column(Integer, default=100)
-    mp_max:  Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
-    atk:     Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
-    def_:    Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
-    spd:     Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
+    hp_max:  Mapped[int] = mapped_column(Integer, default=100)
 
     # Equip sloty (item ID nebo null)
     eq_weapon:  Mapped[int | None] = mapped_column(Integer, ForeignKey("items.id"), nullable=True)
