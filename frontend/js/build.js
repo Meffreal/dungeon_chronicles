@@ -15,9 +15,9 @@ const BUILD_TALENTS = {
     { key:'spell_echo',   lvl:30, emoji:'✨', name:'Ozvěna Kouzla',       desc:'25 % šance zopakovat schopnost za 60 % poškození' },
   ],
   ranger: [
-    { key:'eagle_eye',    lvl:10, emoji:'🦅', name:'Eagle Eye',       desc:'+8 LUCK (šance na kritický zásah)' },
-    { key:'evasion',      lvl:20, emoji:'💨', name:'Evasion',            desc:'+10 % základní šance na vyhnutí' },
-    { key:'hunters_mark', lvl:30, emoji:'🎯', name:"Hunter's Mark",  desc:'+75 % poškození prvním útokem v souboji' },
+    { key:'eagle_eye',    lvl:10, emoji:'🦅', name:'Orlí Zrak',       desc:'+8 LUCK (šance na kritický zásah)' },
+    { key:'evasion',      lvl:20, emoji:'💨', name:'Úskok',            desc:'+10 % základní šance na vyhnutí' },
+    { key:'hunters_mark', lvl:30, emoji:'🎯', name:'Lovecká Značka',  desc:'+75 % poškození prvním útokem v souboji' },
   ],
 };
 

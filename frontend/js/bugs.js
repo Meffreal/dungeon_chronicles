@@ -26,7 +26,7 @@ async function submitBugReport() {
       severity,
       page_context: pageContext || null,
     });
-    toast('Díky za report! Budeme se tím zabývat.', 's');
+    toast('Díky za report! Budu se tím zabývat.', 's');
     _resetBugReportForm();
     closeModal('modal-bug-report');
   } catch (e) {
