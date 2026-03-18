@@ -24,7 +24,7 @@
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="tb-logo">⚔ DC</div>
+  <div class="tb-logo">DUNGEON CHRONICLES</div>
   <div class="tb-sep"></div>
   <div class="tb-char" id="tb-char" style="display:none">
     <div class="tb-avatar" id="tb-avatar">⚔</div>
@@ -254,7 +254,7 @@
             <rect width="800" height="180" fill="url(#hp-fog)"/>
           </svg>
           <div class="hub-panorama-identity">
-            <div class="hub-city-name">Ashenveil</div>
+            <div class="hub-city-name">The Ashenveil City</div>
             <div id="hub-char-tagline" class="hub-char-tagline">Tvoje základna operací</div>
           </div>
           <div id="dash-pending-actions" class="hub-pending-inline"></div>
@@ -352,8 +352,8 @@
       <!-- QUESTY -->
       <div class="page" id="page-quests">
         <div class="page-hdr">
-          <div class="page-hdr-title">⚔ Questy</div>
-          <div class="page-hdr-sub">Vyber si zadavatele a vyraz na dobrodružství</div>
+          <div class="page-hdr-title">Quests</div>
+          <div class="page-hdr-sub">Choose a quest and go on an adventure</div>
         </div>
         <div id="strategy-bar-quest"></div>
         <div id="aq-wrap"></div>
@@ -365,8 +365,8 @@
       <!-- VYBAVENÍ -->
       <div class="page" id="page-equipment">
         <div class="page-hdr">
-          <div class="page-hdr-title">🛡 Vybavení</div>
-          <div class="page-hdr-sub">Spravuj výbavu a statistiky hrdiny</div>
+          <div class="page-hdr-title">Equipment</div>
+          <div class="page-hdr-sub">Manage equipment and attributes</div>
         </div>
         <div class="equip-layout" id="equip-layout"></div>
 
@@ -375,9 +375,9 @@
 
           <!-- Taby: Statistiky | Kouzla | Talenty -->
           <div class="sp-tabs">
-            <button class="sp-tab sp-tab-active" onclick="switchSpTab('stats',this)">⚔ Statistiky</button>
-            <button class="sp-tab" onclick="switchSpTab('spells',this)">✨ Kouzla</button>
-            <button class="sp-tab" onclick="switchSpTab('talents',this)">🌟 Talenty</button>
+            <button class="sp-tab sp-tab-active" onclick="switchSpTab('stats',this)">Attributes</button>
+            <button class="sp-tab" onclick="switchSpTab('spells',this)">✨ Spells</button>
+            <button class="sp-tab" onclick="switchSpTab('talents',this)">🌟 Talents</button>
           </div>
 
           <!-- TAB: Statistiky -->
@@ -386,22 +386,21 @@
           <!-- ① ZDROJE -->
           <div class="sp-sect">
             <div class="sp-sect-hdr">
-              <span class="sp-sect-ico">💧</span>
-              <span>Zdroje</span>
+              <span>Sources</span>
             </div>
             <div class="sp-resources">
 
               <div class="sp-res sp-res-hp">
                 <div class="sp-res-row">
-                  <span class="sp-res-ico">❤</span>
-                  <span class="sp-res-lbl">Max HP</span>
+                  <span class="sp-res-ico"></span>
+                  <span class="sp-res-lbl">Health</span>
                   <span class="sp-res-val" id="sp-hp-val">—</span>
                 </div>
                 <div class="sp-res-track">
                   <div class="sp-res-fill sp-fill-hp" id="sp-hp-fill" style="width:100%"></div>
                 </div>
                 <div class="sp-bd">
-                  <span class="sp-bd-base">Základ <strong id="sp-hp-base">—</strong></span>
+                  <span class="sp-bd-base">Base <strong id="sp-hp-base">—</strong></span>
                   <span class="sp-bd-eq" id="sp-hp-eq"></span>
                 </div>
               </div>
@@ -415,8 +414,8 @@
           <!-- ② ZÁKLADNÍ ATRIBUTY -->
           <div class="sp-sect">
             <div class="sp-sect-hdr">
-              <span class="sp-sect-ico">⚡</span>
-              <span>Základní atributy</span>
+              <span class="sp-sect-ico"></span>
+              <span>Attributes</span>
             </div>
             <!-- Vyplní JS: .sp-attr-card[.primary-attr] > .sp-attr-top + .sp-bd -->
             <div class="sp-attrs" id="sp-attrs"></div>
@@ -427,8 +426,8 @@
           <!-- ③ BOJOVÉ STATISTIKY -->
           <div class="sp-sect">
             <div class="sp-sect-hdr">
-              <span class="sp-sect-ico">⚔</span>
-              <span>Bojové statistiky</span>
+              <span class="sp-sect-ico"></span>
+              <span>Combat</span>
             </div>
             <div class="sp-combat" id="sp-combat"></div>
           </div>
@@ -440,16 +439,16 @@
             <div class="sp-sect">
               <div class="sp-sect-hdr">
                 <span class="sp-sect-ico">✨</span>
-                <span>Kouzla</span>
-                <span class="sp-coming-soon">Brzy</span>
+                <span>Spells</span>
+                <span class="sp-coming-soon">Soon</span>
               </div>
               <div class="sp-slots-grid" id="sp-spells">
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Kouzlo 1</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Kouzlo 2</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Kouzlo 3</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Kouzlo 4</div></div>
+                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 1</div></div>
+                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 2</div></div>
+                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 3</div></div>
+                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 4</div></div>
               </div>
-              <div class="sp-coming-msg">Systém kouzel je ve vývoji. Každá třída dostane unikátní sadu kouzel spotřebovávajících MP.</div>
+              <div class="sp-coming-msg">System is still in progress.</div>
             </div>
           </div><!-- /sp-tab-spells -->
 
@@ -458,7 +457,7 @@
             <div class="sp-sect">
               <div class="sp-sect-hdr">
                 <span class="sp-sect-ico">🌟</span>
-                <span>Talenty — Tier 1</span>
+                <span>Talents — Tier 1</span>
               </div>
               <div id="sp-talents"></div>
               <div id="sp-t2-section"></div>
@@ -471,7 +470,7 @@
       <!-- INVENTÁŘ -->
       <div class="page" id="page-inventory">
         <div class="page-hdr">
-          <div class="page-hdr-title">🎒 Inventář
+          <div class="page-hdr-title">Inventory
             <button class="btn btn-sm btn-repair" onclick="repairAll()" style="margin-left:auto;font-size:.68rem;padding:3px 10px;letter-spacing:.5px">🔧 Opravit vše</button>
           </div>
           <div class="page-hdr-sub">Předměty ve tvém batohu</div>
@@ -502,7 +501,7 @@
       <!-- TRŽIŠTĚ -->
       <div class="page" id="page-market">
         <div class="page-hdr">
-          <div class="page-hdr-title">🛒 Tržiště</div>
+          <div class="page-hdr-title">Auction House</div>
         </div>
         <div class="market-layout">
           <div class="market-main">
@@ -580,12 +579,9 @@
       <!-- ARÉNA -->
       <div class="page" id="page-arena">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏟 Aréna</div>
-          <div class="page-hdr-sub">PvP souboje s ostatními hrdiny</div>
+          <div class="page-hdr-title">Arena</div>
+          <div class="page-hdr-sub">Dominate the ladder!</div>
         </div>
-
-        <!-- B.6 — Arena safety label -->
-        <div class="arena-safety-badge">⚔️ Boj bez sázky o život — ELO &amp; gold only</div>
 
         <!-- Season banner -->
         <div id="season-banner"></div>
@@ -659,7 +655,7 @@
       <!-- ACHIEVEMENTY -->
       <div class="page" id="page-achievements">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏆 Odznaky</div>
+          <div class="page-hdr-title">Achievements</div>
         </div>
         <div id="ach-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -669,8 +665,8 @@
       <!-- NPC OBCHOD -->
       <div class="page" id="page-shop">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏪 NPC Obchod</div>
-          <div class="page-hdr-sub">Nakup u místních obchodníků</div>
+          <div class="page-hdr-title">Traders</div>
+          <div class="page-hdr-sub">Buy from local traders</div>
         </div>
         <div class="shop-rotation" id="shop-rotation-bar">
           <span class="shop-rot-icon">⏱</span>
@@ -685,8 +681,8 @@
       <!-- CECH -->
       <div class="page" id="page-guild">
         <div class="page-hdr">
-          <div class="page-hdr-title">⚜ Gildy</div>
-          <div class="page-hdr-sub">Cechy a kooperace</div>
+          <div class="page-hdr-title">Guilds</div>
+          <div class="page-hdr-sub">Find someone to fight along with</div>
         </div>
         <div id="guild-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -696,7 +692,7 @@
       <!-- FRAKCE -->
       <div class="page" id="page-faction">
         <div class="page-hdr">
-          <div class="page-hdr-title">⚜ Frakce</div>
+          <div class="page-hdr-title">Factions</div>
         </div>
         <div id="faction-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -706,7 +702,7 @@
       <!-- WORLD BOSS -->
       <div class="page" id="page-boss">
         <div class="page-hdr">
-          <div class="page-hdr-title">💀 World Boss</div>
+          <div class="page-hdr-title">World Boss</div>
         </div>
         <div id="boss-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -716,8 +712,8 @@
       <!-- DUNGEONY -->
       <div class="page" id="page-dungeons">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏰 Dungeony</div>
-          <div class="page-hdr-sub">Multi-stage výpravy s přenosem HP</div>
+          <div class="page-hdr-title">Dungeons</div>
+          <div class="page-hdr-sub">Multi-stage dungeon combat.</div>
         </div>
         <div id="dungeon-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -737,7 +733,7 @@
       <!-- ATTUNEMENT -->
       <div class="page" id="page-attunement">
         <div class="page-hdr">
-          <div class="page-hdr-title">🔑 Attunement — Vstupenky do Dungeonů</div>
+          <div class="page-hdr-title">Attunement</div>
         </div>
         <div id="att-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -747,7 +743,7 @@
       <!-- SEASON PASS -->
       <div class="page" id="page-season">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏅 Sezónní Progression — Free Track</div>
+          <div class="page-hdr-title"> Seasonal Progression</div>
         </div>
         <div id="season-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -776,7 +772,7 @@
       <!-- WORLD EVENTS -->
       <div class="page" id="page-world-events">
         <div class="page-hdr">
-          <div class="page-hdr-title">🌍 World Events</div>
+          <div class="page-hdr-title">World Events</div>
         </div>
         <div id="we-root">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -793,7 +789,7 @@
       <!-- WEEKLY QUEST BOARD -->
       <div class="page" id="page-weekly">
         <div class="page-hdr">
-          <div class="page-hdr-title">📋 Týdenní nástěnka questů</div>
+          <div class="page-hdr-title">Weekly quest board</div>
         </div>
         <div id="weekly-board">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -817,8 +813,8 @@
       <!-- BLOODLINE — Krevní linie -->
       <div class="page" id="page-bloodline">
         <div class="page-hdr">
-          <div class="page-hdr-title">🩸 Krevní linie</div>
-          <div class="page-hdr-sub">Meta-progrese přes všechny runy</div>
+          <div class="page-hdr-title">Bloodline</div>
+          <div class="page-hdr-sub">Progress through your death</div>
         </div>
         <div id="bloodline-root">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -828,8 +824,8 @@
       <!-- HALL OF THE FALLEN -->
       <div class="page" id="page-hall">
         <div class="page-hdr">
-          <div class="page-hdr-title">🏛 Hall of the Fallen</div>
-          <div class="page-hdr-sub">Památník padlých hrdinů</div>
+          <div class="page-hdr-title">Hall of the Fallen</div>
+          <div class="page-hdr-sub">Monument to the fallen heroes</div>
         </div>
         <div class="hall-tabs">
           <button class="hall-tab hall-tab--active" id="hall-tab-fallen" onclick="switchHallTab('fallen')">⚔ Padlí hrdinové</button>
