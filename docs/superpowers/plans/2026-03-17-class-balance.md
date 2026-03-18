@@ -1,8 +1,8 @@
 # Class Balance Implementation Plan
 
-> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+**Status:** Draft implementation plan for the class balance patch.
 
-**Goal:** Opravit nerovnováhu tříd — Warrior je OP, Mage/Ranger mají neimplementované mechaniky.
+**Goal:** Opravit nerovnováhu tříd — Warrior je výrazně silnější než ostatní a Mage/Ranger stále nemají plně zapojené class mechaniky.
 
 **Architecture:** Změny ve třech vrstvách: (1) konstanty v `combat_stats.py` a `talents.py`, (2) hardcoded hodnoty v `combat_engine.py`, (3) integrace chybějících tříd mechanik z `class_mechanics.py` do hlavní smyčky v `combat_engine.py`.
 
@@ -25,10 +25,10 @@
 | Rallying Cry heal příliš silný | `combat_engine.py:939` | 0.15 | **0.10** |
 | Rallying Cry štít příliš silný | `combat_engine.py:946/950` | 0.20 | **0.15** |
 | Dračí Šupiny 5pc regen příliš dlouhý | `combat_engine.py:450` | 30 kol | **10 kol** |
-| Ranger chain_hit není integrován | `combat_engine.py` | TODO | implementovat |
-| Ranger multi_hit není integrován | `combat_engine.py` | TODO | implementovat |
-| Mage spell_burn není integrován | `combat_engine.py` | TODO | implementovat |
-| Mage spirit_revenge není integrováno | `combat_engine.py` | TODO | implementovat |
+| Ranger chain_hit není integrován | `combat_engine.py` | chybí implementace | doplnit do hlavní smyčky boje |
+| Ranger multi_hit není integrován | `combat_engine.py` | chybí implementace | doplnit do hlavní smyčky boje |
+| Mage spell_burn není integrován | `combat_engine.py` | chybí implementace | aplikovat po útoku mága |
+| Mage spirit_revenge není integrováno | `combat_engine.py` | chybí implementace | spouštět při smrti mága v 1. kole |
 
 ---
 

@@ -1,6 +1,6 @@
 # Bug Report System — Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+**Status:** Draft implementation plan for a full bug report workflow.
 
 **Goal:** Přidat systém bug reportů — tlačítko v topbaru hry otevře modal, hráč vyplní report, admin ho vidí v novém tabu admin panelu se stavovým workflow.
 
@@ -862,7 +862,7 @@ git commit -m "feat: Bug Report System — kompletní implementace"
 
 ---
 
-## Poznámky pro implementátora
+## Implementační poznámky
 
 - `adminFetch` je helper v `admin.html` — používej ho pro všechna volání
 - `char_class` sloupec je na `Character` modelu — zkontroluj přesný název atributu (může být `char_class` nebo `character_class`)
