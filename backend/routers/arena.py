@@ -25,6 +25,7 @@ from game.season import process_expired_season, ensure_active_season
 from game.professions import add_resonance_to_equipped_runes
 from routers.auth import get_current_user
 from routers.character import char_dict_with_equipment
+from routers.world_event import add_world_event_contribution
 
 router = APIRouter(prefix="/arena", tags=["arena"])
 
@@ -287,6 +288,10 @@ async def attack(
     rune_evolutions: list[dict] = []
     if attacker_won:
         rune_evolutions = await add_resonance_to_equipped_runes(char, 5, db)
+
+    # World Event příspěvek — PvP kill
+    if attacker_won:
+        await add_world_event_contribution("kills", char.id, 1, db)
 
     # Individuální Weekly Board hook — arena výhry
     _wq_arena_new: list[dict] = []
