@@ -92,7 +92,7 @@
     </div>
     <div class="lnav">
       <!-- Hub — standalone, vždy viditelný -->
-      <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')"><span class="ni">🏙</span> Město</button>
+      <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')"><span class="ni">🏤</span>  City Hub</button>
 
       <!-- ⚔️ BOJ -->
       <div class="nav-group" id="ng-combat">
@@ -101,10 +101,10 @@
           <span class="ng-label">Combat</span>
         </button>
         <div class="nav-group-body" id="ngbody-combat">
-          <button class="nav-btn" id="nav-quests"   onclick="showPage('quests')">   <span class="ni">⚔</span>  Questy</button>
-          <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🏟</span> Aréna</button>
-          <button class="nav-btn" id="nav-boss"     onclick="showBossPage()" style="display:none">       <span class="ni">💀</span> World Boss</button>
-          <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">🏰</span> Dungeony</button>
+          <button class="nav-btn" id="nav-quests"   onclick="showPage('quests')">   <span class="ni">⚠️</span>  Quests</button>
+          <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🗡️</span> Arena</button>
+          <button class="nav-btn" id="nav-boss"     onclick="showBossPage()">        <span class="ni">💀</span> World Boss</button>
+          <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">☠️</span> Dungeons</button>
           <button class="nav-btn" id="nav-build"    onclick="showPage('build')" style="display:none"><span class="ni">🏗</span> Bojový Build</button>
         </div>
       </div>
@@ -113,16 +113,17 @@
       <div class="nav-group" id="ng-progression">
         <button class="nav-group-header" id="ngh-progression" onclick="toggleNavGroup('progression')">
           <span class="ng-arrow">▶</span><span class="ng-icon">🎯</span>
-          <span class="ng-label">Postava</span>
+          <span class="ng-label">Character</span>
           <span class="ng-notif" id="ngn-progression" style="display:none"></span>
         </button>
         <div class="nav-group-body" id="ngbody-progression">
-          <button class="nav-btn" id="nav-equipment"   onclick="showPage('equipment')"> <span class="ni">🛡</span> Vybavení<span class="sp-nav-badge" id="sp-nav-badge"></span></button>
-          <button class="nav-btn" id="nav-inventory"   onclick="showPage('inventory')"> <span class="ni">🎒</span> Inventář</button>
-          <button class="nav-btn" id="nav-subclass"    onclick="showPage('subclass');loadSubclass()"><span class="ni">🌟</span> Specializace</button>
-          <button class="nav-btn" id="nav-prestige"    onclick="showPage('prestige');loadPrestige()"><span class="ni">✦</span>  Prestige</button>
-          <button class="nav-btn" id="nav-professions" onclick="showPage('professions')"><span class="ni">⚗</span>  Profese</button>
+          <button class="nav-btn" id="nav-equipment"   onclick="showPage('equipment')"> <span class="ni">🔆</span> Equipment<span class="sp-nav-badge" id="sp-nav-badge"></span></button>
+          <button class="nav-btn" id="nav-inventory"   onclick="showPage('inventory')"> <span class="ni">🎒</span> Inventory</button>
+          <button class="nav-btn" id="nav-subclass"    onclick="showPage('subclass');loadSubclass()"><span class="ni">🌟</span> Specialization</button>
+          <button class="nav-btn" id="nav-prestige"    onclick="showPage('prestige');loadPrestige()"><span class="ni">🏅</span>  Prestige</button>
+          <button class="nav-btn" id="nav-professions" onclick="showPage('professions')" style="display:none"<span class="ni">⚗</span>  Profese</button>
           <button class="nav-btn" id="nav-attunement"  onclick="showPage('attunement')"><span class="ni">🔑</span> Attunement</button>
+          <button class="nav-btn" id="nav-bloodline" onclick="showPage('bloodline');loadBloodline()"><span class="ni">🩸</span> Bloodline</button>
         </div>
       </div>
 
@@ -130,13 +131,13 @@
       <div class="nav-group" id="ng-social">
         <button class="nav-group-header" id="ngh-social" onclick="toggleNavGroup('social')">
           <span class="ng-arrow">▶</span><span class="ng-icon">👥</span>
-          <span class="ng-label">Sociální</span>
+          <span class="ng-label">Social & Trade</span>
         </button>
         <div class="nav-group-body" id="ngbody-social">
-          <button class="nav-btn" id="nav-guild"   onclick="showPage('guild')">  <span class="ni">⚜</span> Cech</button>
-          <button class="nav-btn" id="nav-faction" onclick="showPage('faction')"><span class="ni">⚜</span> Frakce</button>
-          <button class="nav-btn" id="nav-market"  onclick="showPage('market')"> <span class="ni">🛒</span> Tržiště</button>
-          <button class="nav-btn" id="nav-shop"    onclick="showPage('shop')">   <span class="ni">🏪</span> Obchod</button>
+          <button class="nav-btn" id="nav-guild"   onclick="showPage('guild')">  <span class="ni">⚜</span> Guild</button>
+          <button class="nav-btn" id="nav-faction" onclick="showPage('faction')"><span class="ni">⚜</span> Faction</button>
+          <button class="nav-btn" id="nav-market"  onclick="showPage('market')"> <span class="ni">🛒</span> Market</button>
+          <button class="nav-btn" id="nav-shop"    onclick="showPage('shop')">   <span class="ni">🏪</span> Traders</button>
           <button class="nav-btn" id="nav-hall"    onclick="showPage('hall');loadHall()"><span class="ni">🏛</span> Hall of the Fallen</button>
         </div>
       </div>
@@ -145,13 +146,13 @@
       <div class="nav-group" id="ng-seasonal">
         <button class="nav-group-header" id="ngh-seasonal" onclick="toggleNavGroup('seasonal')">
           <span class="ng-arrow">▶</span><span class="ng-icon">🌟</span>
-          <span class="ng-label">Sezónní</span>
+          <span class="ng-label">Seasonal</span>
         </button>
         <div class="nav-group-body" id="ngbody-seasonal">
           <button class="nav-btn" id="nav-weekly"       onclick="showPage('weekly');loadWeekly()">             <span class="ni">📋</span> Weekly</button>
-          <button class="nav-btn" id="nav-season"       onclick="showPage('season');loadSeasonPass()">          <span class="ni">🏅</span> Sezóna</button>
+          <button class="nav-btn" id="nav-season"       onclick="showPage('season');loadSeasonPass()">          <span class="ni">🏅</span> Season</button>
           <button class="nav-btn" id="nav-world-events" onclick="showPage('world-events');loadWorldEvent()">    <span class="ni">🌍</span> World Events</button>
-          <button class="nav-btn" id="nav-achievements" onclick="showPage('achievements')">                     <span class="ni">🏆</span> Odznaky</button>
+          <button class="nav-btn" id="nav-achievements" onclick="showPage('achievements')">                     <span class="ni">🏆</span> Achievements</button>
         </div>
       </div>
 
@@ -159,12 +160,11 @@
       <div class="nav-group" id="ng-cosmetics">
         <button class="nav-group-header" id="ngh-cosmetics" onclick="toggleNavGroup('cosmetics')">
           <span class="ng-arrow">▶</span><span class="ng-icon">🎨</span>
-          <span class="ng-label">Kosmetika</span>
+          <span class="ng-label">Cosmetic</span>
         </button>
         <div class="nav-group-body" id="ngbody-cosmetics">
-          <button class="nav-btn" id="nav-crystals" onclick="showPage('crystals');loadCrystals()"><span class="ni">💎</span> Crystaly</button>
-          <button class="nav-btn" id="nav-bloodline" onclick="showPage('bloodline');loadBloodline()"><span class="ni">🩸</span> Krevní linie</button>
-          <button class="nav-btn" id="nav-support" onclick="showPage('support');loadSupport()"><span class="ni">💚</span> Podpora hry</button>
+          <button class="nav-btn" id="nav-crystals" onclick="showPage('crystals');loadCrystals()"><span class="ni">💎</span> Blood Crystals</button>
+          <button class="nav-btn" id="nav-support" onclick="showPage('support');loadSupport()"><span class="ni">💚</span> About the Game</button>
         </div>
       </div>
 
