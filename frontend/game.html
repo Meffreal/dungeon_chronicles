@@ -92,7 +92,7 @@
     </div>
     <div class="lnav">
       <!-- Hub — standalone, vždy viditelný -->
-      <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')"><span class="ni">🏤</span> City Hub</button>
+      <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')"><span class="ni">🏙</span> Město</button>
 
       <!-- ⚔️ BOJ -->
       <div class="nav-group" id="ng-combat">
@@ -101,10 +101,10 @@
           <span class="ng-label">Combat</span>
         </button>
         <div class="nav-group-body" id="ngbody-combat">
-          <button class="nav-btn" id="nav-quests"   onclick="showPage('quests')">   <span class="ni">🎯</span>  Quest</button>
-          <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🗡️</span> Arena</button>
+          <button class="nav-btn" id="nav-quests"   onclick="showPage('quests')">   <span class="ni">⚔</span>  Questy</button>
+          <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🏟</span> Aréna</button>
           <button class="nav-btn" id="nav-boss"     onclick="showBossPage()" style="display:none">       <span class="ni">💀</span> World Boss</button>
-          <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">☠️</span> Dungeons</button>
+          <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">🏰</span> Dungeony</button>
           <button class="nav-btn" id="nav-build"    onclick="showPage('build')" style="display:none"><span class="ni">🏗</span> Bojový Build</button>
         </div>
       </div>
@@ -117,11 +117,7 @@
           <span class="ng-notif" id="ngn-progression" style="display:none"></span>
         </button>
         <div class="nav-group-body" id="ngbody-progression">
-          <div class="nav-group-body" id="ngbody-progression">
-        <button class="nav-btn" id="nav-equipment" onclick="showPage('equipment')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v16H4V4z"/></svg>
-          Vybavení
-        </button>
+          <button class="nav-btn" id="nav-equipment"   onclick="showPage('equipment')"> <span class="ni">🛡</span> Vybavení<span class="sp-nav-badge" id="sp-nav-badge"></span></button>
           <button class="nav-btn" id="nav-inventory"   onclick="showPage('inventory')"> <span class="ni">🎒</span> Inventář</button>
           <button class="nav-btn" id="nav-subclass"    onclick="showPage('subclass');loadSubclass()"><span class="ni">🌟</span> Specializace</button>
           <button class="nav-btn" id="nav-prestige"    onclick="showPage('prestige');loadPrestige()"><span class="ni">✦</span>  Prestige</button>
