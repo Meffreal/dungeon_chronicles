@@ -280,7 +280,7 @@ async def playtest_choose_node(
 
     # ── Rest node ─────────────────────────────────────────────────────────────
     if node_type == "rest":
-        healed = int(run.hp_max * 0.30)
+        healed = int(run.hp_max * 0.25)
         run.hp_current = min(run.hp_current + healed, run.hp_max)
         unlock_successors(mdata, body.node_id)
         run.set_map(mdata)
@@ -333,7 +333,7 @@ async def playtest_choose_node(
             }
         shop_items = [
             {"id": "heal",          "name": "Léčení",          "cost": 50,  "desc": "Obnov 40% HP"},
-            {"id": "atk_boost",     "name": "Síla hrdinů",      "cost": 80,  "desc": "+20% ATK do konce runu"},
+            {"id": "atk_boost",     "name": "Síla hrdinů",      "cost": 80,  "desc": "+10% ATK do konce runu"},
             {"id": "relic_refresh", "name": "Refresh reliců",   "cost": 120, "desc": "Nové 3 relic nabídky"},
         ]
         run.set_map(mdata)
@@ -389,16 +389,13 @@ async def playtest_choose_node(
         run.set_pending_relics(pending)
 
         if is_boss:
-            run.status = "completed"
             run.cooldown_until = now + timedelta(hours=cfg["cooldown_hours"])
-        # Successors unlocked via /choose-relic
+        # Successors unlocked via /choose-relic (status set to "completed" there for boss)
 
         run.set_map(mdata)
 
         # Per-combat hooks
         await _fire_combat_hooks(char, db)
-        if is_boss:
-            await _fire_completion_hooks(char, db, run.dungeon_key)
 
         try:
             await db.commit()
@@ -481,7 +478,7 @@ async def playtest_choose_event(
 
     mdata = run.get_map()
     node  = mdata["nodes"].get(run.current_node_id, {})
-    if node.get("type") != "event":
+    if node.get("status") != "pending_event":
         raise HTTPException(400, "Aktuální uzel není event")
 
     event_id = node.get("event_id")
@@ -559,10 +556,16 @@ async def playtest_choose_relic(
     # Clear pending relics
     run.set_pending_relics([])
 
-    # Unlock successors — this is when map advances after combat
-    if run.current_node_id and run.status == "active":
+    # Check if current node is boss — if so, complete the run; otherwise unlock successors
+    if run.current_node_id:
         mdata = run.get_map()
-        unlock_successors(mdata, run.current_node_id)
+        current_node = mdata["nodes"].get(run.current_node_id, {})
+        if current_node.get("type") == "boss":
+            run.status = "completed"
+            await _fire_completion_hooks(char, db, run.dungeon_key)
+        else:
+            if run.status == "active":
+                unlock_successors(mdata, run.current_node_id)
         run.set_map(mdata)
 
     try:
@@ -637,8 +640,8 @@ async def playtest_shop_buy(
             "id":         "shop_atk_boost",
             "name":       "Síla hrdinů",
             "effect_key": "atk_pct",
-            "value":      0.20,
-            "desc":       "+20% ATK (shop)",
+            "value":      0.10,
+            "desc":       "+10% ATK (shop)",
         }
         relics = run.get_relics()
         relics.append(boost)
@@ -677,8 +680,13 @@ async def playtest_shop_buy(
 
 # ── POST /collect ─────────────────────────────────────────────────────────────
 
+class CollectRequest(BaseModel):
+    run_id: int
+
+
 @router.post("/collect")
 async def playtest_collect(
+    req: CollectRequest,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -690,12 +698,11 @@ async def playtest_collect(
 
     run = (await db.execute(
         select(PlaytestRun).where(
+            PlaytestRun.id == req.run_id,
             PlaytestRun.char_id == char.id,
             PlaytestRun.status.in_(["completed", "failed"]),
             PlaytestRun.reward_claimed == False,
         )
-        .order_by(PlaytestRun.created_at.desc())
-        .limit(1)
     )).scalar_one_or_none()
     if not run:
         raise HTTPException(404, "Žádný run čeká na vyzvednutí")
@@ -705,10 +712,11 @@ async def playtest_collect(
 
     char.xp   += xp_gained
     char.gold += gold_to_pay
-    await log_gold(
-        db, char, gold_to_pay, GoldReason.DUNGEON_REWARD,
-        {"playtest_run_id": run.id, "dungeon_key": run.dungeon_key},
-    )
+    if gold_to_pay > 0:
+        await log_gold(
+            db, char, gold_to_pay, GoldReason.DUNGEON_REWARD,
+            {"playtest_run_id": run.id, "dungeon_key": run.dungeon_key},
+        )
 
     # Level-up loop
     leveled_up = []
@@ -721,15 +729,10 @@ async def playtest_collect(
         from routers.inventory import recalculate_with_gear
         await recalculate_with_gear(char, db)
 
-    # World Event contribution on completion
-    if run.status == "completed":
-        from routers.world_event import add_world_event_contribution
-        await add_world_event_contribution("dungeon_clears", char.id, 1, db)
-
     # Boss loot drop on completion
     gained_item = None
     if run.status == "completed":
-        drop_item = await get_random_item_for_quest(db, "boss", char.level)
+        drop_item = await get_random_item_for_quest(db, "hard", char.level)
         if drop_item:
             inv_result = await db.execute(
                 select(InventoryItem).where(
@@ -772,8 +775,13 @@ async def playtest_collect(
 
 # ── POST /abandon ─────────────────────────────────────────────────────────────
 
+class AbandonRequest(BaseModel):
+    run_id: int
+
+
 @router.post("/abandon")
 async def playtest_abandon(
+    req: AbandonRequest,
     current_user=Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -785,10 +793,10 @@ async def playtest_abandon(
 
     run = (await db.execute(
         select(PlaytestRun).where(
+            PlaytestRun.id == req.run_id,
             PlaytestRun.char_id == char.id,
             PlaytestRun.status == "active",
         )
-        .limit(1)
     )).scalar_one_or_none()
     if not run:
         raise HTTPException(404, "Žádný aktivní run")
@@ -800,6 +808,8 @@ async def playtest_abandon(
     # 50% XP partial payout
     run.reward_xp   = run.reward_xp // 2
     run.status      = "failed"
+    run.run_gold    = 0
+    run.reward_gold = 0
     run.cooldown_until = now + timedelta(hours=max(1, cd_hours // 4))
 
     try:
@@ -865,5 +875,11 @@ async def _fire_completion_hooks(
     try:
         from routers.season_pass import add_season_xp
         await add_season_xp(char.id, "dungeon_complete", db)
+    except Exception:
+        pass
+
+    try:
+        from routers.world_event import add_world_event_contribution
+        await add_world_event_contribution("dungeon_clears", char.id, 1, db)
     except Exception:
         pass
