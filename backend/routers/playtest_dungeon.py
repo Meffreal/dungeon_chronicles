@@ -298,6 +298,7 @@ async def playtest_choose_node(
 
     # ── Event node ────────────────────────────────────────────────────────────
     if node_type == "event":
+        node["status"] = "pending_event"   # override — awaiting player choice
         event_id = node.get("event_id")
         events_list = DUNGEON_EVENTS.get(run.dungeon_key, DUNGEON_EVENTS["pt_tomb"])
         event = next((e for e in events_list if e["id"] == event_id), None)
