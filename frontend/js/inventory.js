@@ -1,5 +1,5 @@
 // ── INVENTÁŘ ──────────────────────────────────────────────────────────────
-console.log('[Inventory] script start');
+console.error('[Inventory] script start - IF YOU SEE THIS IT IS RUNNING');
 const _RARITY_ORDER = {set:0, legendary:1, epic:2, rare:3, uncommon:4, common:5};
 const _TYPE_ORDER   = {weapon:0, helmet:1, armor:2, gloves:3, boots:4, ring:5, amulet:6, potion:7};
 
@@ -17,7 +17,7 @@ async function loadInventory() {
   try { _initInvTooltip(); } catch(e) { console.error('[Inventory] tooltip init error:', e); }
 }
 window.loadInventory = loadInventory;
-console.log('[Inventory] script done, window.loadInventory =', typeof window.loadInventory);
+console.error('[Inventory] script done, window.loadInventory =', typeof window.loadInventory);
 
 function filterInv(filter, btn) {
   invFilter = filter;
