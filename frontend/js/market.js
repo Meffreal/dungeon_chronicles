@@ -51,7 +51,7 @@ function renderMarketTable(listings, total) {
         ${listings.map(l => {
           const rc = RARITY_COL[l.item?.rarity] || '#9d9d9d';
           const myChar = char && l.seller === char.name;
-          return `<tr>
+          return `<tr data-item="${JSON.stringify(l.item||{}).replace(/"/g,'&quot;')}" data-mkt-price="${l.price}">
             <td>
               <div class="mkt-item-cell">
                 <div class="mkt-item-icon">${l.item?.icon||'📦'}</div>
@@ -73,6 +73,14 @@ function renderMarketTable(listings, total) {
         }).join('')}
       </tbody>
     </table>`;
+  _registerTipContainer('mkt-table-wrap', 'tr[data-item]', row => {
+    try {
+      const item = JSON.parse(row.dataset.item.replace(/&quot;/g, '"'));
+      if (!item?.name) return null;
+      const price = parseInt(row.dataset.mktPrice) || item.sell_price || 0;
+      return { item: { ...item, sell_price: price }, upgrade_level: 0, durability: 100 };
+    } catch { return null; }
+  });
 }
 
 async function buyListing(id, name, total) {

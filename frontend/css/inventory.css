@@ -520,88 +520,228 @@
 .inv-drag-ghost.rarity-legendary { box-shadow: var(--rarity-legendary-glow); border: 1px solid var(--rarity-legendary); background: rgba(192,57,43,0.14);   }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   ITEM TOOLTIP (hover card)
+   ITEM TOOLTIP — Haunted Scroll (Variant D)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.inv-tooltip {
+#inv-tip {
   position: fixed;
   z-index: 450;
-  width: 240px;
-  background:
-    linear-gradient(160deg, rgba(30, 22, 8, 0.98) 0%, rgba(13, 13, 20, 0.98) 100%);
-  border: 1px solid rgba(201, 168, 76, 0.30);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  width: 250px;
   pointer-events: none;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.6),
-    0 0 16px rgba(0, 0, 0, 0.4);
   opacity: 0;
   transform: translateY(4px);
-  transition:
-    opacity var(--transition-fast),
-    transform var(--transition-fast);
+  transition: opacity 0.22s, transform 0.22s ease-out;
 }
 
-.inv-tooltip.visible {
+#inv-tip.visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-.inv-tooltip-name {
+/* rarity color token */
+#inv-tip                { --rc: #9d9d9d; }
+#inv-tip.r-uncommon     { --rc: #1eff00; }
+#inv-tip.r-rare         { --rc: #0070dd; }
+#inv-tip.r-epic         { --rc: #a335ee; }
+#inv-tip.r-legendary    { --rc: #ff8000; }
+#inv-tip.r-set          { --rc: #00d4ff; }
+
+.inv-tip-inner {
+  background:
+    radial-gradient(ellipse 100% 50% at 50% 0%,
+      color-mix(in srgb, var(--rc) 10%, transparent), transparent 60%),
+    linear-gradient(180deg, #141218 0%, #0f0d16 40%, #0b0a12 100%);
+  border: 1px solid color-mix(in srgb, var(--rc) 25%, rgba(201,168,76,0.15));
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.7),
+    0 16px 48px rgba(0,0,0,0.95),
+    0 0 50px color-mix(in srgb, var(--rc) 10%, transparent);
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.inv-tip-glow-band {
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--rc) 30%, var(--rc) 70%, transparent 100%);
+  opacity: 0.7;
+}
+
+.inv-tip-body { padding: 11px 13px 9px; }
+
+.inv-tip-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.inv-tip-ico {
+  font-size: 1.9rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--rc) 50%, transparent));
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.inv-tip-info { flex: 1; min-width: 0; }
+
+.inv-tip-name {
   font-family: var(--font-heading);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: var(--ls-base);
-  margin-bottom: var(--space-1);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--rc);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--rc) 50%, transparent);
+  line-height: 1.2;
 }
 
-/* name color by rarity */
-.inv-tooltip-name.rarity-common    { color: rgba(200, 200, 220, 0.9); }
-.inv-tooltip-name.rarity-uncommon  { color: var(--clr-soul-bright); }
-.inv-tooltip-name.rarity-rare      { color: var(--clr-gold); }
-.inv-tooltip-name.rarity-epic      { color: #b06fe0; }
-.inv-tooltip-name.rarity-legendary { color: var(--clr-crimson); }
+.inv-tip-rarity-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+}
 
-.inv-tooltip-type {
-  font-family: var(--font-ui);
-  font-size: 0.62rem;
-  letter-spacing: var(--ls-wide);
+.inv-tip-gem {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--rc);
+  box-shadow: 0 0 6px var(--rc);
+  flex-shrink: 0;
+}
+
+.inv-tip-rarity-label {
+  font-family: var(--font-heading);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.30);
-  margin-bottom: var(--space-2);
+  color: color-mix(in srgb, var(--rc) 80%, white 20%);
 }
 
-.inv-tooltip-divider {
+.inv-tip-slot {
+  font-family: var(--font-ui);
+  font-size: 0.63rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.38);
+  margin-top: 2px;
+}
+
+.inv-tip-upgrade {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  color: var(--clr-gold);
+  text-shadow: 0 0 8px rgba(201,168,76,0.5);
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 1px;
+}
+
+/* ornament divider */
+.inv-tip-hr {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.inv-tip-hr-line {
+  flex: 1;
   height: 1px;
-  background: rgba(201, 168, 76, 0.15);
-  margin: var(--space-2) 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07) 50%, transparent);
 }
 
-.inv-tooltip-stat {
+.inv-tip-hr-gem {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--rc) 50%, transparent);
+}
+
+/* stats 2-column grid */
+.inv-tip-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+  margin-bottom: 8px;
+}
+
+.inv-tip-stat {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.inv-tip-sk {
   font-family: var(--font-ui);
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.55);
-  line-height: 1.7;
-}
-
-.inv-tooltip-stat-val {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 600;
-}
-
-.inv-tooltip-stat-val.positive { color: var(--clr-poison); }
-.inv-tooltip-stat-val.negative { color: var(--clr-crimson); }
-
-.inv-tooltip-desc {
-  font-family: var(--font-body);
+  font-size: 0.63rem;
   font-style: italic;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.38);
-  margin-top: var(--space-2);
-  line-height: 1.5;
+  color: rgba(216,200,184,0.42);
+}
+
+.inv-tip-sv {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #d4b868;
+  text-align: right;
+}
+
+/* set info */
+.inv-tip-set {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+
+.inv-tip-set-gem {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #00d4ff;
+  box-shadow: 0 0 5px #00d4ff;
+  flex-shrink: 0;
+}
+
+.inv-tip-set-name {
+  font-family: var(--font-heading);
+  font-size: 0.61rem;
+  color: #00d4ff;
+  letter-spacing: 0.07em;
+}
+
+.inv-tip-desc {
+  font-family: var(--font-lore);
+  font-size: 0.7rem;
+  font-style: italic;
+  color: rgba(216,200,184,0.46);
+  line-height: 1.45;
+}
+
+.inv-tip-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 13px 7px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: rgba(0,0,0,0.2);
+}
+
+.inv-tip-lvl {
+  font-family: var(--font-heading);
+  font-size: 0.59rem;
+  color: rgba(216,200,184,0.28);
+  letter-spacing: 0.07em;
+}
+
+.inv-tip-price {
+  font-family: var(--font-heading);
+  font-size: 0.63rem;
+  color: var(--clr-gold);
+  opacity: 0.78;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

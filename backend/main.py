@@ -191,7 +191,10 @@ if os.path.exists(frontend_path):
 
     @app.get("/game")
     async def serve_game():
-        return FileResponse(os.path.join(frontend_path, "game.html"))
+        return FileResponse(
+            os.path.join(frontend_path, "game.html"),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
 
     @app.get("/admin-panel")
     async def serve_admin():

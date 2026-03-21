@@ -75,6 +75,7 @@ async function renderEquip() {
       : '';
 
     return `<div class="eq-slot eq-mslot-${s.k} ${has?'filled':''} ${hasTmog?'eq-slot-transmogged':''}" style="--slot-rc:${rc}"
+              data-slot-key="${s.k}"
               onclick="${has ? `openEquippedItemDetail('${s.k}')` : ''}"
               title="${has ? `${hasTmog ? '[TRANSMOG] '+tmog.name+' → ' : ''}${item.name} · Klikni pro detail` : 'Prázdný slot'}">
       <div class="eq-slot-icon" style="${has ? `filter:drop-shadow(0 3px 10px ${rc}88)` : ''}">${has ? (hasTmog ? tmog.icon : item.icon) : SLOT_ICONS[s.k]}</div>
@@ -103,6 +104,7 @@ async function renderEquip() {
     const name = has ? esc(hasTmog ? tmog.name : item.name) : '';
     return `<div class="altar-slot altar-slot-${sk} ${has?'filled':''} ${hasTmog?'altar-slot-transmogged':''}"
       style="--slot-rc:${rc}"
+      data-slot-key="${sk}"
       onclick="${has ? `openEquippedItemDetail('${sk}')` : ''}"
       title="${has ? `${esc(item.name)} · Klikni pro detail` : `${SLOT_CZ[sk]} — prázdný`}">
       <div class="altar-slot-frame">
@@ -248,6 +250,16 @@ async function renderEquip() {
       if (fallback) fallback.style.display = 'none';
     };
   }
+
+  _registerTipContainer('equip-layout', '.eq-slot.filled, .altar-slot.filled', card => {
+    const sk = card.dataset.slotKey;
+    if (!sk) return null;
+    const item = char?.equipment?.[sk];
+    if (!item) return null;
+    const inv = (typeof invData !== 'undefined' ? invData : []).find(i => i.equipped && i.item?.type === sk)
+      || { item, upgrade_level: 0, durability: 100 };
+    return inv;
+  });
 }
 
 // ── STAT PANEL renderer ────────────────────────────────────────────────────

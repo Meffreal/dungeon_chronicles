@@ -5,9 +5,15 @@ const _TYPE_ORDER   = {weapon:0, helmet:1, armor:2, gloves:3, boots:4, ring:5, a
 async function loadInventory() {
   try {
     const d = await api('GET', '/inventory/');
-    invData = d.items;
+    invData = d.items || [];
     renderInv();
-  } catch(e) { toast(e.message, 'e'); }
+  } catch(e) {
+    console.error('[Inventory] loadInventory error:', e);
+    toast(e.message || 'Chyba načítání inventáře', 'e', 5000);
+    const grid = document.getElementById('inv-grid');
+    if (grid) grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Chyba načítání</div><div class="empty-state-hint">${e.message || 'Zkus obnovit stránku (F5)'}</div></div>`;
+  }
+  try { _initInvTooltip(); } catch(e) { console.error('[Inventory] tooltip init error:', e); }
 }
 
 function filterInv(filter, btn) {
@@ -57,7 +63,7 @@ function _sortedInv(items) {
 }
 
 function renderInv() {
-  renderEquipStrip();
+  try { renderEquipStrip(); } catch(e) { console.error('[Inventory] renderEquipStrip error:', e); }
 
   const other = ['gloves','boots','ring','amulet'];
   let filtered = invFilter === 'all'   ? invData
@@ -312,4 +318,145 @@ async function repairAll() {
     renderEquip();
     await loadInventory();
   } catch(e) { toast(e.message, 'e'); }
+}
+
+// ── ITEM HOVER TOOLTIP (Haunted Scroll) ────────────────────────────────────
+const _TIP_BONUS_LBL = {
+  atk:'ATK', def:'ARMOR', spd:'SPD', str:'STR',
+  dex:'AQI', int:'INT', end:'HP', luck:'LUCK', hp:'HP', mp:'MP'
+};
+const _UPGRADE_STARS = ['','★','★★','★★★'];
+
+let _tipEl = null;
+let _tipTarget = null;
+const _tipRegistered = new Set();
+
+function _ensureTipEl() {
+  if (_tipEl) return;
+  _tipEl = document.createElement('div');
+  _tipEl.id = 'inv-tip';
+  _tipEl.innerHTML = '<div class="inv-tip-inner"></div>';
+  document.body.appendChild(_tipEl);
+  document.addEventListener('mousemove', _moveTip, { passive: true });
+  document.addEventListener('scroll', _hideTip, { passive: true, capture: true });
+}
+
+function _registerTipContainer(containerId, cardSelector, getInvFn) {
+  _ensureTipEl();
+  if (_tipRegistered.has(containerId)) return;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  _tipRegistered.add(containerId);
+  container.addEventListener('mouseover', e => {
+    const card = e.target.closest(cardSelector);
+    if (!card) { _hideTip(); return; }
+    if (card === _tipTarget) return;
+    _tipTarget = card;
+    const inv = getInvFn(card);
+    if (!inv?.item) { _hideTip(); return; }
+    _buildTip(inv);
+    _tipEl.classList.add('visible');
+  }, { passive: true });
+  container.addEventListener('mouseleave', _hideTip, { passive: true });
+}
+
+function _initInvTooltip() {
+  _registerTipContainer('inv-grid', '.inv-card', card => {
+    const rarity = card.dataset.rarity;
+    const name   = card.querySelector('.inv-card-name')?.textContent?.trim();
+    return invData?.find(i => i.item?.name === name && i.item?.rarity === rarity) || null;
+  });
+  _registerTipContainer('inv-equip-strip', '.inv-strip-slot.inv-strip-slot-filled', card => {
+    const slotKey = card.dataset.slot;
+    return invData?.find(i => i.equipped && i.item?.type === slotKey) || null;
+  });
+}
+
+function _hideTip() {
+  if (_tipEl) _tipEl.classList.remove('visible');
+  _tipTarget = null;
+}
+
+function _moveTip(e) {
+  if (!_tipEl?.classList.contains('visible')) return;
+  const gap = 14;
+  const tw = _tipEl.offsetWidth  || 250;
+  const th = _tipEl.offsetHeight || 200;
+  let x = e.clientX + gap;
+  let y = e.clientY - th / 2;
+  if (x + tw > window.innerWidth  - 8) x = e.clientX - tw - gap;
+  if (y < 8)                           y = 8;
+  if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+  _tipEl.style.left = x + 'px';
+  _tipEl.style.top  = y + 'px';
+}
+
+function _buildTip(inv) {
+  const item = inv.item;
+  const rarity = item.rarity || 'common';
+  const ul = inv.upgrade_level || 0;
+  const bonuses = Object.entries(item.bonuses || {}).filter(([,v]) => v > 0);
+
+  // rarity class
+  _tipEl.className = 'r-' + rarity;
+
+  // set info
+  const isSet = rarity === 'set';
+  let setHtml = '';
+  if (isSet && item.set_name) {
+    const sb = char?.set_bonuses?.active
+      ? Object.values(char.set_bonuses.active).find(s => s.set_name === item.set_name)
+      : null;
+    const pieces = sb?.pieces_equipped ?? 0;
+    const total  = 5;
+    setHtml = `
+      <div class="inv-tip-set">
+        <div class="inv-tip-set-gem"></div>
+        <span class="inv-tip-set-name">${esc(item.set_name)} (${pieces}/${total} kusů)</span>
+      </div>`;
+  }
+
+  // stats grid
+  const statsHtml = bonuses.map(([k,v]) =>
+    `<div class="inv-tip-stat">
+      <span class="inv-tip-sk">${_TIP_BONUS_LBL[k] || k.toUpperCase()}</span>
+      <span class="inv-tip-sv">+${v}</span>
+    </div>`
+  ).join('');
+
+  // description/flavor
+  const descHtml = item.description
+    ? `<div class="inv-tip-desc">"${esc(item.description)}"</div>`
+    : '';
+
+  _tipEl.querySelector('.inv-tip-inner').innerHTML = `
+    <div class="inv-tip-glow-band"></div>
+    <div class="inv-tip-body">
+      <div class="inv-tip-head">
+        <div class="inv-tip-ico">${item.icon || '📦'}</div>
+        <div class="inv-tip-info">
+          <div class="inv-tip-name">${esc(item.name)}</div>
+          <div class="inv-tip-rarity-row">
+            <div class="inv-tip-gem"></div>
+            <span class="inv-tip-rarity-label">${RARITY_CZ[rarity] || rarity}</span>
+          </div>
+          <div class="inv-tip-slot">${SLOT_CZ[item.type] || item.type || ''}</div>
+        </div>
+        ${ul > 0 ? `<div class="inv-tip-upgrade">${_UPGRADE_STARS[ul]}</div>` : ''}
+      </div>
+      ${bonuses.length ? `
+        <div class="inv-tip-hr">
+          <div class="inv-tip-hr-line"></div>
+          <div class="inv-tip-hr-gem"></div>
+          <div class="inv-tip-hr-line"></div>
+        </div>
+        <div class="inv-tip-stats">${statsHtml}</div>
+      ` : ''}
+      ${setHtml}
+      ${descHtml}
+    </div>
+    <div class="inv-tip-foot">
+      <span class="inv-tip-lvl">Lv. ${item.min_level || 1}+</span>
+      <span class="inv-tip-price">${item.sell_price ? item.sell_price + ' G' : ''}</span>
+    </div>`;
 }
