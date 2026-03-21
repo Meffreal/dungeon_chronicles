@@ -101,7 +101,7 @@ function renderInv() {
     const dur = inv.durability ?? 100;
     const durCol = dur >= 50 ? '#1eff00' : dur >= 25 ? '#ff8c00' : '#ff4040';
     const durBar = equippable ? `<div class="inv-dur-bar"><div class="inv-dur-fill" style="width:${dur}%;background:${durCol}"></div></div>` : '';
-    return `<div class="inv-card ${inv.equipped?'equipped':''} ${isSet?'inv-card-set':''}" style="--rc:${rc}" data-rarity="${item?.rarity||''}"
+    return `<div class="inv-card ${inv.equipped?'equipped':''} ${isSet?'inv-card-set':''}" style="--rc:${rc}" data-rarity="${item?.rarity||''}" data-inv-id="${inv.id}"
               onclick="openItemDetail(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
       ${isSet ? `<div class="inv-set-glow"></div>` : ''}
       <div class="inv-card-icon">${item?.icon || '📦'}</div>
@@ -361,9 +361,8 @@ function _registerTipContainer(containerId, cardSelector, getInvFn) {
 
 function _initInvTooltip() {
   _registerTipContainer('inv-grid', '.inv-card', card => {
-    const rarity = card.dataset.rarity;
-    const name   = card.querySelector('.inv-card-name')?.textContent?.trim();
-    return invData?.find(i => i.item?.name === name && i.item?.rarity === rarity) || null;
+    const invId = parseInt(card.dataset.invId, 10);
+    return invData?.find(i => i.id === invId) || null;
   });
   _registerTipContainer('inv-equip-strip', '.inv-strip-slot.inv-strip-slot-filled', card => {
     const slotKey = card.dataset.slot;

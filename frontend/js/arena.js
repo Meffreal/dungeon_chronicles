@@ -58,7 +58,7 @@ function _tickArenaCooldown() {
     arenaCooldownTimer = null;
     arenaCooldownUntil = null;
     wrap.style.display = 'none';
-    document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+    document.querySelectorAll('.arena-opp-card').forEach(c => c.classList.remove('disabled-card'));
     return;
   }
 
@@ -78,7 +78,7 @@ function _tickArenaCooldown() {
         <div class="arena-cd-fill" style="width:${pctVal}%"></div>
       </div>
     </div>`;
-  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+  document.querySelectorAll('.arena-opp-card').forEach(c => c.classList.add('disabled-card'));
 }
 
 async function loadArena() {
@@ -208,27 +208,32 @@ function renderArenaStats(data) {
   const pct   = Math.min(100, Math.round(today / cap * 100));
   const capColor = pct >= 100 ? '#f06878' : pct >= 80 ? '#c89010' : 'var(--gold2)';
   document.getElementById('arena-my-stats').innerHTML = `
-    <div class="arena-stat-card">
-      <div class="arena-stat-val c-purple">${data.my_rank}</div>
-      <div class="arena-stat-lbl">ELO Rating</div>
-    </div>
-    <div class="arena-stat-card">
-      <div class="arena-stat-val c-green">${data.my_wins}W <span style="color:var(--accent2);font-size:1.2rem">${data.my_losses}L</span></div>
-      <div class="arena-stat-lbl">Výsledky</div>
-    </div>
-    <div class="arena-stat-card">
-      <div class="arena-stat-val c-gold">${wr}%</div>
-      <div class="arena-stat-lbl">Win Rate</div>
-    </div>
-    <div class="arena-stat-card arena-gold-cap-card" style="grid-column:1/-1">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:.72rem;color:var(--text3)">💰 Denní limit arény</span>
-        <span style="font-size:.8rem;color:${capColor};font-weight:700">${today} / ${cap} G</span>
+    <div class="arena-stats-row">
+      <div class="arena-mstat">
+        <div class="arena-mstat-val c-accent">${data.my_rank}</div>
+        <div class="arena-mstat-lbl">ELO</div>
       </div>
-      <div class="arena-cap-track">
-        <div class="arena-cap-fill" style="width:${pct}%;background:${capColor}"></div>
+      <div class="arena-mstat-sep"></div>
+      <div class="arena-mstat">
+        <div class="arena-mstat-val"><span class="c-green">${data.my_wins}W</span> <span style="color:var(--accent2)">${data.my_losses}L</span></div>
+        <div class="arena-mstat-lbl">Výsledky</div>
       </div>
-      ${pct >= 100 ? '<div style="font-size:.68rem;color:#f06878;margin-top:3px">⛔ Denní limit dosažen — zítra se resetuje</div>' : ''}
+      <div class="arena-mstat-sep"></div>
+      <div class="arena-mstat">
+        <div class="arena-mstat-val c-gold">${wr}%</div>
+        <div class="arena-mstat-lbl">Win Rate</div>
+      </div>
+      <div class="arena-mstat-sep"></div>
+      <div class="arena-mstat arena-mstat-cap">
+        <div class="arena-mstat-cap-row">
+          <span>💰 Denní limit</span>
+          <span style="color:${capColor};font-weight:700">${today} / ${cap} G</span>
+        </div>
+        <div class="arena-cap-track">
+          <div class="arena-cap-fill" style="width:${pct}%;background:${capColor}"></div>
+        </div>
+        ${pct >= 100 ? '<div style="font-size:.60rem;color:#f06878;margin-top:3px">⛔ Reset zítra</div>' : ''}
+      </div>
     </div>`;
 }
 
@@ -236,6 +241,7 @@ function renderOpponents(opponents) {
   _arenaOpponents = opponents;
   const el = document.getElementById('arena-opponents');
   if (!opponents.length) {
+    el.className = '';
     el.innerHTML = `
       <div class="empty-state">
         <div class="empty-state-icon">⚔️</div>
@@ -244,26 +250,70 @@ function renderOpponents(opponents) {
       </div>`;
     return;
   }
-  el.innerHTML = opponents.map(o => {
-    const wc = Math.round(o.win_chance * 100);
-    const wcc = wc >= 60 ? '#30a848' : wc >= 40 ? '#c89010' : '#b82030';
-    const eloDiff = o.arena_rank - (char?.arena?.rank || 1000);
+  el.className = 'arena-challengers';
+  const myElo = char?.arena?.rank || 1000;
+
+  // Zobraz jen 3 soupeře nejbližší hráčově ELO ratingu
+  const display = [...opponents]
+    .sort((a, b) => Math.abs(a.arena_rank - myElo) - Math.abs(b.arena_rank - myElo))
+    .slice(0, 3);
+  el.innerHTML = display.map((o, idx) => {
+    const wc      = Math.round(o.win_chance * 100);
+    const wcc     = wc >= 60 ? '#30a848' : wc >= 40 ? '#c89010' : '#b82030';
+    const eloDiff = o.arena_rank - myElo;
     const eloDiffStr = eloDiff > 0 ? `+${eloDiff}` : `${eloDiff}`;
+    const eloDiffCol = eloDiff >= 0 ? '#e06060' : '#60d080';
+    // ELO bar: 2000 ELO = 100% — shows how powerful the opponent is
+    const powerPct = Math.min(100, Math.round((o.arena_rank / 2000) * 100));
+    const onClickName = `event.stopPropagation();showPlayerProfile('${o.name.replace(/'/g,"\\'")}')`;
+    const featuredClass = idx === 1 ? ' featured' : '';
+
+    // Portrait: avatar image or emoji fallback
+    let portraitHtml;
+    if (o.appearance && typeof buildAvatarUrl === 'function') {
+      const url = buildAvatarUrl(o.appearance, o.id || 'opp');
+      portraitHtml = `<img src="${url}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="arena-opp-portrait-emoji" style="display:none">${o.cls_emoji || '⚔'}</div>`;
+    } else {
+      portraitHtml = `<div class="arena-opp-portrait-emoji">${o.cls_emoji || '⚔'}</div>`;
+    }
+
     return `
-      <div class="opponent-card">
-        <div class="opp-avatar">${_arenaAvatarHtml(o)}</div>
-        <div>
-          <div class="opp-name player-name-link" onclick="showPlayerProfile('${o.name}')">${esc(o.name)}</div>
-          <div class="opp-meta">Lv.${o.level} ${o.cls_name} · ${o.wins}W/${o.losses}L</div>
-          <div class="opp-elo">ELO: ${o.arena_rank} <span style="color:${eloDiff>=0?'#e06060':'#60d080'};font-size:.65rem">(${eloDiffStr})</span></div>
-          <div class="opp-wc-bar"><div class="opp-wc-fill" style="width:${wc}%;background:${wcc}"></div></div>
-          <div style="font-size:.65rem;color:${wcc};margin-top:2px">Šance na výhru: ${wc}%</div>
+      <div class="arena-opp-card${featuredClass}" id="opp-card-${o.id}" onclick="doAttack(${o.id},'${o.name.replace(/'/g,"\\'")}')">
+        <div class="arena-opp-portrait">
+          ${portraitHtml}
+          <div class="arena-opp-elo-badge">${o.arena_rank}</div>
         </div>
-        <button class="attack-btn" id="atk-${o.id}" onclick="doAttack(${o.id},'${esc(o.name)}')">
-          ⚔ Útok
-        </button>
+        <div class="arena-opp-namebox">
+          <div class="arena-opp-pname" onclick="${onClickName}">${esc(o.name)}</div>
+          <div class="arena-opp-pmeta">Lv.${o.level} · ${esc(o.cls_name || '')}</div>
+        </div>
+        <div class="arena-opp-power">
+          <div class="arena-opp-power-fill" style="width:${powerPct}%"></div>
+          <span class="arena-opp-power-num">${o.arena_rank} ELO</span>
+        </div>
+        <div class="arena-opp-stats">
+          <div class="arena-opp-statitem">
+            <span class="arena-opp-statk">Výsledky</span>
+            <span class="arena-opp-statv">${o.wins}W · ${o.losses}L</span>
+          </div>
+          <div class="arena-opp-statitem">
+            <span class="arena-opp-statk">ELO rozdíl</span>
+            <span class="arena-opp-statv" style="color:${eloDiffCol}">${eloDiffStr}</span>
+          </div>
+        </div>
+        <div class="arena-opp-wc-big" style="color:${wcc}">${wc}%</div>
+        <div class="arena-opp-wc-lbl">šance na výhru</div>
+        <div class="arena-opp-attack-overlay"><span>⚔ ÚTOČIT</span></div>
       </div>`;
   }).join('');
+}
+
+function switchArenaTab(tab, btn) {
+  document.querySelectorAll('.arena-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('arena-tab-history').style.display = tab === 'history' ? '' : 'none';
+  document.getElementById('arena-tab-lb').style.display      = tab === 'lb'      ? '' : 'none';
 }
 
 async function doAttack(defenderId, defenderName) {
@@ -272,7 +322,7 @@ async function doAttack(defenderId, defenderName) {
   const _oppData = _arenaOpponents.find(o => o.id === defenderId);
   lastArenaEnemyAppearance = _oppData?.appearance || null;
 
-  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+  document.querySelectorAll('.arena-opp-card').forEach(c => c.classList.add('disabled-card'));
   toast(`⚔ Útočíš na ${esc(defenderName)}...`, 'i', 2000);
 
   try {

@@ -521,59 +521,46 @@
       <!-- ARÉNA -->
       <div class="page" id="page-arena">
         <div class="page-hdr">
-          <div class="page-hdr-title">Arena</div>
-          <div class="page-hdr-sub">Dominate the ladder!</div>
+          <div class="page-hdr-title">⚔ Aréna</div>
+          <div class="page-hdr-sub">Dokaž svou sílu v souboji</div>
         </div>
 
-        <!-- Season banner -->
-        <div id="season-banner"></div>
+        <!-- Season banner (hidden) — data se stahují kvůli recap modalu -->
+        <div id="season-banner" style="display:none"></div>
 
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start">
+        <!-- Moje stats — kompaktní řádek -->
+        <div id="arena-my-stats"></div>
 
-          <!-- Hlavní panel - soupeři -->
-          <div>
-            <!-- Moje stats -->
-            <div id="arena-my-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+        <!-- Cooldown bar -->
+        <div id="arena-cooldown-wrap" style="display:none;margin-bottom:14px"></div>
 
-            <!-- Cooldown bar -->
-            <div id="arena-cooldown-wrap" style="display:none;margin-bottom:14px"></div>
+        <!-- Soupeři — 3 portrait karty -->
+        <div class="arena-opp-header">— Vyber svého soupeře —</div>
+        <div id="arena-opponents" class="arena-opp-grid">
+          <div style="grid-column:1/-1;color:var(--text2);font-style:italic;text-align:center;padding:20px">Načítám soupeře...</div>
+        </div>
 
-            <!-- Strategie -->
-            <div id="strategy-bar-arena" style="margin-bottom:14px"></div>
+        <!-- Výsledek posledního souboje (full width) -->
+        <div id="arena-result" style="display:none;margin-bottom:16px"></div>
 
-            <!-- Soupeři -->
-            <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">Dostupní soupeři</div>
-            <div id="arena-opponents">
-              <div style="color:var(--text2);font-style:italic;text-align:center;padding:20px">Načítám soupeře...</div>
-            </div>
+        <!-- Tabs: Historie | Žebříček -->
+        <div class="arena-tabs">
+          <button class="arena-tab active" onclick="switchArenaTab('history', this)">📜 Historie</button>
+          <button class="arena-tab" onclick="switchArenaTab('lb', this)">🏆 Žebříček</button>
+        </div>
+
+        <div id="arena-tab-history" class="arena-tab-panel" style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
+          <div id="arena-history">
+            <div style="color:var(--text3);font-size:0.76rem;font-style:italic">Zatím žádné zápasy...</div>
           </div>
-
-          <!-- Pravý panel - výsledek + historie -->
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <!-- Výsledek posledního souboje -->
-            <div id="arena-result" style="display:none"></div>
-
-            <!-- Historie zápasů -->
-            <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
-              <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px">Historie zápasů</div>
-              <div id="arena-history">
-                <div style="color:var(--text3);font-size:0.76rem;font-style:italic">Zatím žádné zápasy...</div>
-              </div>
-            </div>
-
-            <!-- ELO žebříček / Sezónní žebříček -->
-            <div style="background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2)">🏆 Sezónní žebříček</div>
-              </div>
-              <div id="arena-lb">
-                <div style="color:var(--text3);font-size:0.76rem">Načítám...</div>
-              </div>
-            </div>
+        </div>
+        <div id="arena-tab-lb" class="arena-tab-panel" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px">
+          <div id="arena-lb">
+            <div style="color:var(--text3);font-size:0.76rem">Načítám...</div>
           </div>
         </div>
 
-        <!-- Battle log modal -->
+        <!-- Battle log -->
         <div id="arena-log-wrap" style="display:none;margin-top:16px">
           <div style="font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:8px">Bojový log</div>
           <div class="blog" id="arena-log"></div>
@@ -654,8 +641,8 @@
       <!-- DUNGEONY -->
       <div class="page" id="page-dungeons">
         <div class="page-hdr">
-          <div class="page-hdr-title">Dungeons</div>
-          <div class="page-hdr-sub">Multi-stage dungeon combat.</div>
+          <div class="page-hdr-title">🏰 Dungeons</div>
+          <div class="page-hdr-sub">Prozkoumej dungeons, poraz bosse, získej kořist</div>
         </div>
         <div id="dungeon-content">
           <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
@@ -921,7 +908,7 @@
 <script src="/static/js/notifications.js" defer></script>
 <script src="/static/js/achievements.js" defer></script>
 <script src="/static/js/guild.js" defer></script>
-<script src="/static/js/dungeons.js?v=12" defer></script>
+<script src="/static/js/dungeons.js?v=14" defer></script>
 <script src="/static/js/attunement.js?v=2" defer></script>
 <script src="/static/js/professions.js" defer></script>
 <script src="/static/js/weekly.js" defer></script>

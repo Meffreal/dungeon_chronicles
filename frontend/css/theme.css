@@ -433,19 +433,109 @@
 .my-cancel-btn:hover{background:rgba(184,32,48,.15);}
 
 /* ── ARÉNA ───────────────────────────────────────────────────────────────── */
-.arena-stat-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;text-align:center;}
-.arena-stat-val{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:700;line-height:1;}
-.arena-stat-lbl{font-size:0.70rem;color:var(--text2);text-transform:uppercase;letter-spacing:var(--ls-base);font-family:'Cinzel',serif;margin-top:3px;}
 
-.opponent-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:12px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;cursor:pointer;transition:all .18s;margin-bottom:8px;}
-.opponent-card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.5);}
-.opp-avatar{width:48px;height:48px;background:var(--panel2);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;overflow:hidden;}
-.opp-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.opp-name{font-family:'Cinzel',serif;font-size:0.92rem;color:var(--text);margin-bottom:3px;}
-.opp-meta{font-size:0.82rem;color:var(--text2);}
-.opp-elo{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--purple2);}
-.opp-wc-bar{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-top:4px;}
-.opp-wc-fill{height:100%;border-radius:2px;}
+/* My stats compact row */
+.arena-stats-row{display:flex;align-items:center;background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:10px 16px;margin-bottom:14px;gap:0;}
+.arena-mstat{flex:1;text-align:center;padding:0 10px;}
+.arena-mstat-sep{width:1px;height:32px;background:var(--border);flex-shrink:0;}
+.arena-mstat-val{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;line-height:1;margin-bottom:3px;letter-spacing:.5px;}
+.arena-mstat-lbl{font-size:0.60rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:'Cinzel',serif;}
+.arena-mstat-cap{flex:2;text-align:left;padding-left:14px;}
+.arena-mstat-cap-row{display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text3);margin-bottom:5px;}
+
+/* Opponent section header */
+.arena-opp-header{font-family:'Cinzel',serif;font-size:0.60rem;letter-spacing:3px;text-transform:uppercase;color:var(--text2);text-align:center;margin-bottom:12px;text-shadow:0 0 20px rgba(184,32,48,.3);}
+
+/* 3-column opponent grid */
+.arena-opp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+@media(max-width:600px){.arena-opp-grid{grid-template-columns:1fr;}}
+
+/* Opponent card */
+.arena-opp-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s,box-shadow .2s;position:relative;}
+.arena-opp-card:hover{border-color:rgba(184,32,48,.65);transform:translateY(-3px);box-shadow:0 8px 28px rgba(184,32,48,.22);}
+.arena-opp-card:active{transform:translateY(-1px);}
+.arena-opp-card.disabled-card{opacity:.45;cursor:not-allowed;pointer-events:none;}
+
+/* Portrait */
+.arena-opp-portrait{width:100%;height:120px;background:linear-gradient(160deg,#1a1218,#0d0a10);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;border-bottom:1px solid var(--border);}
+.arena-opp-portrait img{width:100%;height:100%;object-fit:cover;display:block;}
+.arena-opp-portrait-emoji{font-size:3.6rem;line-height:1;}
+.arena-opp-portrait::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(0,0,0,.55) 0%,transparent 65%);pointer-events:none;}
+
+/* Name box */
+.arena-opp-namebox{padding:7px 10px 6px;border-bottom:1px solid var(--border);}
+.arena-opp-pname{font-family:'Cinzel',serif;font-size:0.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.arena-opp-pname:hover{color:var(--gold2);text-decoration:underline;}
+.arena-opp-pmeta{font-size:0.63rem;color:var(--text3);margin-top:2px;}
+
+/* Power (ELO) bar — red, Shakes-style */
+.arena-opp-power{margin:8px 10px;height:22px;background:rgba(0,0,0,.55);border:1px solid rgba(184,32,48,.3);border-radius:3px;overflow:hidden;position:relative;display:flex;align-items:center;}
+.arena-opp-power-fill{position:absolute;inset:0;background:linear-gradient(90deg,#6a0010,#b82030,#d84050);border-radius:2px;transition:width .5s ease;}
+.arena-opp-power-num{position:relative;z-index:1;width:100%;text-align:center;font-family:'Cinzel',serif;font-size:0.82rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9);letter-spacing:1px;}
+
+/* Stats list */
+.arena-opp-stats{padding:0 10px 4px;}
+.arena-opp-statitem{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:0.72rem;}
+.arena-opp-statitem:last-child{border-bottom:none;}
+.arena-opp-statk{color:var(--text3);font-size:0.67rem;}
+.arena-opp-statv{font-family:'Cinzel',serif;font-size:0.70rem;color:var(--text);}
+
+/* Win chance bar (thin, below stats) */
+.arena-opp-wc-track{height:3px;background:rgba(255,255,255,.05);margin:0 10px 6px;border-radius:2px;overflow:hidden;}
+.arena-opp-wc-fill{height:100%;border-radius:2px;transition:width .35s;}
+
+/* Attack hint — nahrazen overlayem */
+.arena-opp-attack-hint{display:none;}
+
+/* ── ARENA REDESIGN ─────────────────────────────────────────────────────── */
+.arena-challengers{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:10px;margin-bottom:20px;align-items:end;}
+@media(max-width:600px){.arena-challengers{grid-template-columns:1fr;}}
+
+.arena-opp-card.featured{box-shadow:0 0 0 1px rgba(184,32,48,.35),0 8px 32px rgba(184,32,48,.18);}
+.arena-opp-card.featured .arena-opp-portrait{height:180px;}
+
+.arena-opp-portrait{height:160px;}
+
+.arena-opp-elo-badge{
+  position:absolute;top:8px;right:8px;z-index:2;
+  background:rgba(0,0,0,.72);border:1px solid rgba(212,160,48,.5);
+  border-radius:3px;padding:2px 7px;
+  font-family:'Cinzel',serif;font-size:0.65rem;font-weight:700;
+  color:var(--gold2);letter-spacing:1px;
+  backdrop-filter:blur(4px);
+}
+
+.arena-opp-wc-big{
+  font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;
+  text-align:center;line-height:1;margin:8px 0 2px;
+}
+.arena-opp-wc-lbl{font-size:0.58rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;text-align:center;margin-bottom:8px;}
+
+.arena-opp-attack-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(transparent 35%,rgba(140,10,20,.88));
+  opacity:0;transition:opacity .2s;
+  pointer-events:none;
+  font-family:'Cinzel',serif;font-size:0.9rem;font-weight:700;
+  letter-spacing:3px;color:#fff;text-shadow:0 0 20px rgba(255,80,100,.8);
+}
+.arena-opp-card:hover .arena-opp-attack-overlay{opacity:1;}
+.arena-opp-card:hover{
+  border-color:rgba(184,32,48,.8);
+  transform:translateY(-5px);
+  box-shadow:0 12px 40px rgba(184,32,48,.35);
+}
+.arena-opp-card.featured:hover{transform:translateY(-7px);}
+
+/* Tabs (History / Leaderboard) */
+.arena-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:12px;margin-top:16px;}
+.arena-tab{background:none;border:none;border-bottom:2px solid transparent;padding:7px 16px;font-family:'Cinzel',serif;font-size:0.64rem;letter-spacing:1px;text-transform:uppercase;color:var(--text3);cursor:pointer;transition:color .15s,border-color .15s;margin-bottom:-1px;}
+.arena-tab:hover{color:var(--text2);}
+.arena-tab.active{color:var(--gold2);border-bottom-color:var(--gold2);}
+.arena-tab-panel{animation:fadeIn .18s ease;}
+
+/* legacy compat */
 .attack-btn{background:linear-gradient(135deg,var(--accent),#701020);border:1px solid var(--accent);color:#fff;padding:7px 14px;border-radius:3px;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .18s;white-space:nowrap;}
 .attack-btn:hover{box-shadow:0 0 14px rgba(184,32,48,.45);}
 .attack-btn:disabled{opacity:.4;cursor:not-allowed;}
@@ -2097,12 +2187,49 @@
 .dng-req-hint{font-size:.72rem;color:var(--text3);font-style:italic;}
 
 /* Footer */
-.dng-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.18);}
+.dng-footer{display:flex;flex-direction:column;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.25);}
 .dng-att-pill{display:flex;align-items:center;gap:6px;font-size:.7rem;padding:4px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.1);color:var(--text2);}
-.dng-enter-btn{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.2);color:var(--text);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:1px;padding:7px 18px;border-radius:4px;cursor:pointer;transition:all .15s;}
-.dng-enter-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+
+/* A) Enter tlačítko jako hero element */
+.dng-enter-btn{display:block;width:100%;padding:13px 24px;background:linear-gradient(135deg,rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.18),rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.08));border:1px solid rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.55);color:#fff;font-family:'Cinzel',serif;font-size:.82rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:4px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;animation:dng-btn-pulse-color 2.8s ease-in-out infinite;}
+.dng-enter-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:translateX(-100%);transition:transform .4s;}
+.dng-enter-btn:hover::before{transform:translateX(100%);}
+.dng-enter-btn:hover{background:linear-gradient(135deg,rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.35),rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.18));border-color:rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.9);box-shadow:0 0 24px rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.35),0 4px 16px rgba(0,0,0,.4);transform:translateY(-2px);letter-spacing:3px;}
+.dng-enter-btn:active{transform:translateY(0);}
+@keyframes dng-btn-pulse-color{0%,100%{box-shadow:0 0 8px rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.2);}50%{box-shadow:0 0 20px rgba(var(--dc-r,120),var(--dc-g,60),var(--dc-b,200),.45);}}
+
 .dng-att-btn{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.3);color:var(--accent);font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:1px;padding:7px 18px;border-radius:4px;cursor:pointer;transition:all .15s;}
 .dng-att-btn:hover{background:rgba(192,57,43,.22);}
+
+/* B) Art banner */
+.dng-art-banner{position:relative;height:110px;overflow:hidden;border-bottom:1px solid rgba(255,255,255,.07);}
+.dng-art-bg{position:absolute;inset:0;opacity:.55;}
+.dng-art-gradient{position:absolute;inset:0;}
+.dng-art-portal-wrap{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:80px;height:80px;display:flex;align-items:center;justify-content:center;}
+.dng-art-portal-glow{position:absolute;inset:-10px;border-radius:50%;}
+.dng-art-portal-icon{font-size:3rem;position:relative;z-index:1;filter:drop-shadow(0 0 12px rgba(255,255,255,.3));animation:dng-art-float 4s ease-in-out infinite;}
+@keyframes dng-art-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+.dng-art-title-overlay{position:absolute;left:14px;bottom:12px;}
+.dng-art-subtitle{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;opacity:.85;}
+.dng-art-name{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);letter-spacing:.5px;}
+.dng-art-diff-badge{position:absolute;top:10px;left:14px;}
+
+/* C) Boss showcase panel */
+.dng-boss-panel{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:5px;border:1px solid;margin-bottom:12px;position:relative;overflow:hidden;}
+.dng-boss-icon{font-size:2.2rem;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(255,80,80,.4));}
+.dng-boss-info{flex:1;}
+.dng-boss-label{font-family:'Cinzel',serif;font-size:.55rem;letter-spacing:2px;text-transform:uppercase;color:#f06878;margin-bottom:3px;}
+.dng-boss-name{font-family:'Cinzel',serif;font-size:.88rem;font-weight:700;color:var(--text);}
+.dng-boss-glow{position:absolute;inset:0;pointer-events:none;}
+
+/* D) Locked dungeon preview tease */
+.dng-locked-tease{display:flex;align-items:center;gap:14px;padding:12px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.05);border-radius:5px;margin-top:10px;}
+.dng-locked-boss-silhouette{font-size:2.2rem;flex-shrink:0;filter:grayscale(1) brightness(.35) blur(1px);opacity:.65;}
+.dng-locked-tease-info{flex:1;}
+.dng-locked-tease-boss{font-size:.75rem;color:var(--text2);margin-bottom:4px;}
+.dng-locked-tease-boss strong{color:var(--text);font-family:'Cinzel',serif;}
+.dng-locked-tease-req{font-size:.68rem;color:var(--text3);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.dng-locked-tease-hint{font-style:italic;color:var(--text3);}
 
 /* Konektor mezi nody */
 .dng-connector{display:flex;justify-content:center;padding:12px 0;position:relative;}
@@ -5510,3 +5637,56 @@
   .legacy-pending-card { padding: 1.5rem; }
   .legacy-back-btn { bottom: 1rem; font-size: .75rem; }
 }
+
+/* ── DUNGEON MAP — nahrazuje roadmapu ─────────────────────────────────────── */
+/* Roadmap nahrazen mapou — schovat staré styly */
+.dng-roadmap{display:none!important;}
+.dng-hero{display:none!important;}
+
+/* Skrýt page header pouze pro Dungeons (mapa potřebuje max prostoru) */
+#page-dungeons .page-hdr{display:none;}
+
+/* Kontejner mapy — zabere celou dostupnou výšku viewportu */
+.dng-map-container{position:relative;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#06040f;height:calc(100svh - 68px);}
+.dng-map-svg{display:block;width:100%;height:100%;position:absolute;inset:0;}
+
+/* HUD */
+.dng-map-hud{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:4px 14px;font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:1px;color:var(--text2);backdrop-filter:blur(4px);z-index:3;white-space:nowrap;}
+.dng-map-hud-sep{margin:0 8px;color:var(--border);}
+
+/* Nodes overlay */
+.dng-map-nodes{position:absolute;inset:0;pointer-events:none;}
+.dng-map-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:2;pointer-events:all;transition:filter .2s;}
+.dng-map-node:hover{filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
+.dng-map-node.locked{cursor:pointer;filter:grayscale(.7);}
+
+/* Node ring */
+.dng-map-node-ring{width:72px;height:72px;border-radius:50%;border:2px solid;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;box-shadow:0 0 16px rgba(0,0,0,.6);}
+.dng-map-node:not(.locked):hover .dng-map-node-ring{transform:scale(1.12);box-shadow:0 0 28px var(--nc,#9b59b6),0 0 8px rgba(0,0,0,.8);}
+.dng-map-node-icon{font-size:2.1rem;position:relative;z-index:1;}
+
+/* Pulse animace */
+.dng-map-node-pulse{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,var(--nc,#9b59b6) 0%,transparent 70%);opacity:0;animation:dng-node-pulse 2.5s ease-in-out infinite;}
+.dng-map-node:not(.locked) .dng-map-node-pulse{opacity:.12;}
+@keyframes dng-node-pulse{0%,100%{transform:scale(.8);opacity:.08;}50%{transform:scale(1.1);opacity:.18;}}
+
+/* Node label + status */
+.dng-map-node-label{font-family:'Cinzel',serif;font-size:.58rem;color:#fff;text-align:center;margin-top:6px;max-width:90px;text-shadow:0 1px 6px rgba(0,0,0,.95),0 0 16px rgba(0,0,0,.9);letter-spacing:.5px;line-height:1.3;}
+.dng-map-node-status{font-size:.5rem;color:rgba(255,255,255,.45);font-family:'Cinzel',serif;letter-spacing:1px;margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+.locked-lbl{color:rgba(150,150,150,.5)!important;}
+
+/* Detail panel — slide-up */
+.dng-map-panel{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(8,5,18,.98),rgba(8,5,18,.93));border-top:1px solid rgba(255,255,255,.1);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:10;backdrop-filter:blur(10px);max-height:70%;overflow-y:auto;}
+.dng-map-panel.open{transform:translateY(0);}
+
+/* Banner v detailu */
+.dng-detail-banner{display:flex;align-items:center;gap:14px;padding:14px 16px;}
+.dng-detail-icon{font-size:2.4rem;flex-shrink:0;}
+.dng-detail-meta{flex:1;}
+.dng-detail-sub{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px;}
+.dng-detail-title{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:5px;}
+.dng-map-panel-close{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.8rem;flex-shrink:0;transition:all .15s;}
+.dng-map-panel-close:hover{background:rgba(255,255,255,.14);color:#fff;}
+
+/* Tělo detailu */
+.dng-detail-body{padding:0 16px 16px;}

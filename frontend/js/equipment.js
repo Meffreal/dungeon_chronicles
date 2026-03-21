@@ -76,8 +76,7 @@ async function renderEquip() {
 
     return `<div class="eq-slot eq-mslot-${s.k} ${has?'filled':''} ${hasTmog?'eq-slot-transmogged':''}" style="--slot-rc:${rc}"
               data-slot-key="${s.k}"
-              onclick="${has ? `openEquippedItemDetail('${s.k}')` : ''}"
-              title="${has ? `${hasTmog ? '[TRANSMOG] '+tmog.name+' → ' : ''}${item.name} · Klikni pro detail` : 'Prázdný slot'}">
+              onclick="${has ? `openEquippedItemDetail('${s.k}')` : ''}">
       <div class="eq-slot-icon" style="${has ? `filter:drop-shadow(0 3px 10px ${rc}88)` : ''}">${has ? (hasTmog ? tmog.icon : item.icon) : SLOT_ICONS[s.k]}</div>
       <div class="eq-slot-body">
         <div class="eq-slot-type">${SLOT_CZ[s.k]}</div>
@@ -105,8 +104,7 @@ async function renderEquip() {
     return `<div class="altar-slot altar-slot-${sk} ${has?'filled':''} ${hasTmog?'altar-slot-transmogged':''}"
       style="--slot-rc:${rc}"
       data-slot-key="${sk}"
-      onclick="${has ? `openEquippedItemDetail('${sk}')` : ''}"
-      title="${has ? `${esc(item.name)} · Klikni pro detail` : `${SLOT_CZ[sk]} — prázdný`}">
+      onclick="${has ? `openEquippedItemDetail('${sk}')` : ''}">
       <div class="altar-slot-frame">
         <div class="altar-slot-icon">${icon}</div>
         ${has ? `<div class="altar-rarity-pip" style="background:${rc}"></div>` : ''}
