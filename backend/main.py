@@ -57,6 +57,7 @@ from models.disabled_quest  import DisabledQuest                                
 from models.news            import GameNews                                     # noqa: F401
 from models.balance_alert   import BalanceAlert                                  # noqa: F401
 from models.bug_report      import BugReport                                      # noqa: F401
+from models.playtest_run    import PlaytestRun                                    # noqa: F401
 
 from routers import auth, character, quest, inventory, market, arena, notifications, guild, achievements, admin, shop
 from routers import faction
@@ -77,6 +78,7 @@ from routers import news as news_router
 from routers import bloodline as bloodline_router
 from routers import hall as hall_router
 from routers import bugs as bugs_router
+from routers import playtest_dungeon as playtest_dungeon_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -185,6 +187,7 @@ app.include_router(news_router.router)
 app.include_router(bloodline_router.router)
 app.include_router(hall_router.router)
 app.include_router(bugs_router.router)
+app.include_router(playtest_dungeon_router.router)
 
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.exists(frontend_path):
