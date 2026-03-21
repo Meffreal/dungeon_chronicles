@@ -622,14 +622,13 @@ def build_enemy_config(dungeon_key: str, node: dict, char_level: int):
         weapon_dmg   = int(9   * lvl * mult),
         armor_value  = int(5   * lvl * mult),
         primary_stat = int(8   * lvl * mult),
+        secondary_a  = int(6   * lvl * mult),   # povinný field — DEX ekvivalent
+        secondary_b  = int(4   * lvl * mult),   # povinný field — INT ekvivalent
         luck         = 5,
         level        = lvl,
         cls          = "enemy",
         is_boss      = is_boss,
-        # secondary_a / secondary_b neexistují v CombatantConfig — nepoužívej je
     )
-    # Pokud simulate_unified_combat vyžaduje další povinné fieldy,
-    # zkontroluj dataclass definici v combat_engine.py a doplň je.
 
 
 def calculate_node_rewards(node: dict, relics: list, xp_base: int, gold_base: int) -> tuple[int, int]:
