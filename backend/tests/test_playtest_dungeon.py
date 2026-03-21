@@ -45,7 +45,8 @@ def test_unlock_successors():
     mdata["nodes"]["n1a"]["status"] = "completed"
     unlock_successors(mdata, "n1a")
     available = get_available_nodes(mdata)
-    assert "n2a" in available or "n2b" in available
+    # n1a edges: ["n1a", "n2a"] and ["n1a", "n2b"] — both n2a and n2b must unlock
+    assert "n2a" in available and "n2b" in available
 
 
 def test_roll_relics_no_duplicates():
@@ -61,6 +62,14 @@ def test_roll_relics_no_duplicates():
 def test_roll_relics_count():
     relics = roll_relics([], count=3)
     assert len(relics) == 3
+
+
+def test_generate_map_constraint_event():
+    """Every map must have at least one event node."""
+    for _ in range(20):
+        mdata = generate_map("pt_tomb", char_level=10)
+        types = [n["type"] for n in mdata["nodes"].values()]
+        assert "event" in types, f"Missing event node: {types}"
 
 
 def test_all_dungeon_keys_valid():

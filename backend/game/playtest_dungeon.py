@@ -330,7 +330,20 @@ def roll_relics(existing_relic_ids: list, is_elite: bool = False, count: int = 3
 
 def apply_relic_to_run(run, relic: dict) -> dict:
     """
-    Apply one-time effects immediately. Passive effects applied in build_playtest_combatant.
+    Apply one-time relic effects immediately.
+    IMPORTANT: relic is modified in-place (consumed flag).
+    Caller MUST call run.set_relics(updated_list) after calling this function
+    to persist the consumed state. The relic dict should come from run.get_relics()
+    and be part of the list that is re-saved.
+
+    Correct call pattern in router:
+        relics = run.get_relics()
+        relic_from_list = next(r for r in relics if r["id"] == chosen_id)
+        result = apply_relic_to_run(run, relic_from_list)
+        run.set_relics(relics)  # persist consumed flag
+
+    Passive effects (atk_pct, def_pct, etc.) are applied each combat in
+    build_playtest_combatant — they must NOT be consumed.
     Returns dict describing what happened (for frontend).
     """
     result = {"hp_delta": 0, "description": relic["desc"]}
@@ -376,8 +389,20 @@ async def build_playtest_combatant(char, run, db):
         elif key == "def_pct":
             base_cfg.armor_value = int(base_cfg.armor_value * (1 + val))
         elif key == "atk_spd_pct":
+            # war_cry: +ATK via weapon_dmg and primary_stat.
+            # CombatantConfig has no direct spd field — speed is derived from
+            # secondary stats inside the combat engine (class-specific mapping).
+            # SPD component of war_cry is therefore a no-op at config level.
             base_cfg.weapon_dmg   = int(base_cfg.weapon_dmg   * (1 + val))
             base_cfg.primary_stat = int(base_cfg.primary_stat * (1 + val))
+        elif key == "spd_pct":
+            # swift_boots: CombatantConfig has no direct spd field — speed is
+            # derived from secondary stats inside the engine. No-op at this layer.
+            pass
+        elif key == "mp_pct":
+            # mana_crystal: CombatantConfig has no mp field — MP (mana) is not
+            # exposed as an input field in CombatantConfig. No-op at this layer.
+            pass
         elif key == "luck_pct":
             base_cfg.luck = int(base_cfg.luck * (1 + val))
         elif key == "cursed_blade":
