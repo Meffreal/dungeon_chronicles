@@ -349,8 +349,10 @@ POST /playtest/dungeon/collect { run_id }
 1. Validace: run.status in ("completed", "failed"), reward ještě nebyl vyplacen
 2. char.xp += run.reward_xp
 3. char.gold += run.run_gold  # run_gold = reward_gold (shop výdaje již odečteny)
-4. log_gold(db, char, run.run_gold, "playtest_dungeon_reward", GoldReason.DUNGEON_REWARD)
+4. log_gold(db, char, run.run_gold, GoldReason.DUNGEON_REWARD,
+           {"dungeon_run_id": run.id, "dungeon_key": run.dungeon_key})
    # VŽDY log_gold — nikdy přímá editace char.gold
+   # Signatura: log_gold(db, char, amount, reason: GoldReason, detail: dict | None)
 5. Level-up check (smyčka)
 6. Boss loot drop pokud status == "completed"
 7. Vrátit { xp_gained, gold_gained, item, leveled_up, character }
@@ -362,7 +364,7 @@ POST /playtest/dungeon/collect { run_id }
 Správné signatury — musí odpovídat existujícím funkcím:
 ```python
 await increment_guild_weekly(char.guild_id, "kills", 1, char.id, db)
-await increment_weekly_board(char.id, "kills", db)
+await increment_weekly_board(char.id, "kills", 1, db)
 await add_season_xp(char.id, "dungeon_stage", db)
 await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
 ```
@@ -370,7 +372,7 @@ await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
 #### Při dokončení runu (boss výhra, status → "completed")
 ```python
 await increment_guild_weekly(char.guild_id, "dungeons", 1, char.id, db)
-await increment_weekly_board(char.id, "dungeons", db)
+await increment_weekly_board(char.id, "dungeons", 1, db)
 await add_season_xp(char.id, "dungeon_complete", db)
 await add_world_event_contribution("dungeon_clears", char.id, 1, db)
 ```
