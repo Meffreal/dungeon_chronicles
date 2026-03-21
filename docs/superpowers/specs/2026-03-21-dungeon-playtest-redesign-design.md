@@ -27,7 +27,7 @@ Vše nové žije pod prefixem `/playtest/`. Žádný existující soubor se nem�
 
 ```
 backend/
-  routers/playtest_dungeon.py     # 7 nových endpointů
+  routers/playtest_dungeon.py     # 9 nových endpointů
   game/playtest_dungeon.py        # generátor map, herní logika
   models/playtest_run.py          # nový ORM model PlaytestRun
 
@@ -49,15 +49,20 @@ class PlaytestRun(Base):
 
     id              : int (PK)
     char_id         : int (FK → characters.id)
-    dungeon_key     : str           # "tomb" | "fiery" | "citadel"
+    dungeon_key     : str           # "pt_tomb" | "pt_fiery" | "pt_citadel"
+                                    # Prefix "pt_" odlišuje od starého systému ("tomb_of_forgotten" atd.)
     status          : str           # "active" | "completed" | "failed"
     map_data        : JSON          # celý strom uzlů (generován při vstupu)
     current_node_id : str | None    # ID uzlu čekajícího na akci
     visited_nodes   : JSON          # list navštívených node ID
     relics          : JSON          # [{id, name, effect_key, value}]
     hp_current      : int
+    hp_max          : int           # efektivní max HP v runu (char.hp_max + iron_will bonus)
+                                    # ukládá se aby rest a cap výpočty byly konzistentní
+    run_gold        : int (default 0)  # gold dostupný pro shop UVNITŘ runu — oddělený od reward_gold
     reward_xp       : int (default 0)
-    reward_gold     : int (default 0)
+    reward_gold     : int (default 0)  # gold vyplacený hráči při collect (po odečtení shop výdajů)
+    reward_claimed  : bool (default False)  # guard proti double-spend při collect
     cooldown_until  : datetime | None
     created_at      : datetime
 ```
@@ -111,9 +116,11 @@ Tři dungeony, zachovány jako oddělené konfigurace. Fiery Depths = hard mode 
 
 | Dungeon | Klíč | Min. level | Cooldown | Boss mult | Téma eventů |
 |---------|------|-----------|----------|-----------|-------------|
-| Tomb of Forgotten | `tomb` | 8 | 6h | 2.0× | Hrobky, prokletí, nemrtví |
-| Fiery Depths | `fiery` | 15 | 8h | 2.4× | Oheň, láva, démonická past |
-| Citadel of Chaos | `citadel` | 24 | 12h | 2.8× | Chaos, magie, korupce |
+| Tomb of Forgotten | `pt_tomb` | 8 | 6h | 2.0× | Hrobky, prokletí, nemrtví |
+| Fiery Depths | `pt_fiery` | 15 | 8h | 2.4× | Oheň, láva, démonická past |
+| Citadel of Chaos | `pt_citadel` | 24 | 12h | 2.8× | Chaos, magie, korupce |
+
+> **Poznámka k prefix `pt_`:** Starý systém používá klíče `tomb_of_forgotten`, `fiery_depths`, `citadel_of_chaos`. Nové klíče mají prefix `pt_` aby nemohlo dojít ke kolizi v DB ani v podmínkách. Nikde nesdílejí namespace.
 
 ---
 
@@ -136,6 +143,12 @@ Celkem: 7–9 uzlů (Start + 6 uzlů ve vrstvách + Boss).
 - Boss: vždy poslední, jediný uzel bez volby
 - Celá mapa musí mít: aspoň 1 `rest`, aspoň 1 `elite`, 1–2 `event`
 
+**Constraint validace po generování:** Generátor po sestavení mapy ověří constraints. Pokud nejsou splněny (např. žádný `rest`), provede force-substituci:
+- Chybí `rest` → Vrstva 3 pravý uzel se změní na `rest` (přepíše `combat`)
+- Chybí `elite` → Vrstva 2 levý uzel se změní na `elite` (přepíše `combat`)
+- Žádný `event` → Vrstva 1 pravý uzel se změní na `event` (přepíše `rest`)
+Substituce probíhá v tomto pořadí, po max. 1 iteraci (bez nekonečné smyčky).
+
 ### Typy uzlů
 
 | Typ | Ikona | Popis |
@@ -153,14 +166,66 @@ Celkem: 7–9 uzlů (Start + 6 uzlů ve vrstvách + Boss).
 
 ### HP přenos
 
-- Hráč vstupuje s `char.hp_max` HP
+- Hráč vstupuje s `char.hp_max` HP; tato hodnota se uloží jako `run.hp_max` při vytvoření runu
+- `run.hp_max` se aktualizuje okamžitě při výběru relicu `iron_will` (+20%): `run.hp_max = int(run.hp_max * 1.2)`
 - HP se přenáší mezi uzly — bez automatické obnovy
-- Rest uzel: `hp = min(hp_current + hp_max * 0.25, hp_max)`
+- Rest uzel: `run.hp_current = min(run.hp_current + run.hp_max * 0.25, run.hp_max)`
 - Smrt v uzlu → `status = "failed"`, partial odměny (50% nashromážděného XP, 0 gold)
+
+> **Proč `hp_max` na modelu:** `iron_will` relic mění max HP uvnitř runu. Kdyby se `hp_max` vždy derivovalo z `char.hp_max`, změna by se ztratila mezi requesty. Uložením `run.hp_max` je cap konzistentní po celý run bez přepočítávání.
 
 ### Relic systém
 
 Po výhře v `combat` nebo `elite` uzlu backend nabídne **3 náhodné relics** z poolu daného dungeonu. Hráč vybere 1. Relic platí do konce runu.
+
+#### Relic aplikace do CombatantConfig
+
+Před každým `run_combat()` se sestaví `CombatantConfig` pro hráče s aplikovanými efekty aktivních relics. Funkce `build_playtest_combatant(char, run) -> CombatantConfig` v `game/playtest_dungeon.py`:
+
+```python
+def build_playtest_combatant(char, run: PlaytestRun) -> CombatantConfig:
+    # Základ — stejné hodnoty jako běžný dungeon
+    atk = char.atk; def_ = char.def_; hp = run.hp_current
+    spd = char.spd; luck = char.luck
+
+    for relic in run.relics:
+        if relic.get("consumed"):
+            continue  # healing_herb a podobné — pouze one-time efekt
+        key = relic["effect_key"]
+        val = relic["value"]          # procento jako float, např. 0.20
+        if key == "atk_pct":      atk  = int(atk  * (1 + val))
+        elif key == "def_pct":    def_ = int(def_ * (1 + val))
+        elif key == "spd_pct":    spd  = int(spd  * (1 + val))
+        elif key == "luck_pct":   luck = int(luck * (1 + val))
+        elif key == "hp_max_pct": pass  # hp_max uložen na run, hp_current se nemění zpětně
+        # vampiric_edge a gold_coin nemají stat efekt na CombatantConfig
+        # vampiric_edge → předat jako set_bonuses (viz níže)
+
+    # vampiric_edge: mapuje na set_bonuses strukturu aby combat engine mohl aplikovat lifesteal
+    set_bonuses = get_set_bonuses(char, db)  # existující set bonusy
+    if any(r["id"] == "vampiric_edge" and not r.get("consumed") for r in run.relics):
+        set_bonuses = {**set_bonuses, "vampiric_lifesteal": 0.15, "vampiric_chance": 0.10}
+
+    return CombatantConfig(
+        atk=atk, def_=def_, hp=hp, mp=char.mp, spd=spd, luck=luck,
+        class_name=char.char_class, level=char.level,
+        talents=char.talent_key or "", talent_t2=char.talent_t2_key or "",
+        subclass=char.subclass_key or "", set_bonuses=set_bonuses, strategy="balanced"
+    )
+```
+
+> `vampiric_edge` vyžaduje support v combat engine — implementace přidá `vampiric_lifesteal` a `vampiric_chance` do zpracování set_bonuses v `combat_engine.py` (nový effect handler).
+
+#### One-time relics
+
+`healing_herb` — efekt se aplikuje okamžitě při `choose-relic`:
+```python
+# V endpointu choose-relic, po uložení relicu:
+if relic["effect_key"] == "hp_restore_pct":
+    run.hp_current = min(run.hp_current + int(run.hp_max * relic["value"]), run.hp_max)
+    relic["consumed"] = True  # zabrání opakované aplikaci v build_playtest_combatant
+```
+Consumed relics zůstávají v `run.relics` pro historii — frontend nezobrazuje consumed relics v aktivním seznamu.
 
 **Pool relics (sdílený, ~12 kusů):**
 
@@ -181,7 +246,7 @@ Po výhře v `combat` nebo `elite` uzlu backend nabídne **3 náhodné relics** 
 
 ### Shop uzel
 
-Ceny jsou v **run-gold** (gold nashromážděný v aktuálním runu, ne inventář postavy):
+Ceny jsou v **run-gold** (`run.run_gold` — gold nashromážděný v aktuálním runu, ne inventář postavy). `run_gold` se inkrementuje při každém combat/elite/boss výhře. Shop nákup odečítá z `run_gold`. `reward_gold` vyplacený hráči při `collect` = `run_gold` v době dokončení (shop výdaje byly již odečteny z `run_gold`).
 
 | Položka | Cena | Efekt |
 |---------|------|-------|
@@ -215,7 +280,8 @@ Všechny pod `/playtest/dungeon/`:
 | `GET` | `/list` | Dostupné dungeony s cooldown info |
 | `GET` | `/status` | Aktuální run + celá mapa |
 | `POST` | `/enter` | Vstup do dungeonu, generace mapy |
-| `POST` | `/choose-node` | Výběr uzlu na mapě |
+| `POST` | `/choose-node` | Výběr uzlu na mapě (combat/rest/boss) |
+| `POST` | `/choose-event` | Odeslání volby hráče pro event uzel |
 | `POST` | `/choose-relic` | Výběr relicu po combatu |
 | `POST` | `/shop-buy` | Nákup v shop uzlu |
 | `POST` | `/collect` | Vyzvednutí odměn (completed/failed) |
@@ -224,29 +290,98 @@ Všechny pod `/playtest/dungeon/`:
 ### Tok `choose-node`
 
 ```
-POST /playtest/dungeon/choose-node { run_id, node_id }
+POST /playtest/dungeon/choose-node { run_id, node_id, skip_shop: bool = False }
 
-1. Validace: node musí být v available_nodes
+1. Validace: run.status == "active", node.status == "available"
 2. Dle node.type:
-   - combat/elite: spustit combat, vrátit battle_log + výsledek
-     - výhra → nastavit current_node_id, generovat 3 relic nabídky
+   - combat/elite:
+     - sestavit CombatantConfig pro hráče s aplikovanými relics (viz Relic aplikace níže)
+     - spustit run_combat()
+     - výhra → přidat reward_xp/run_gold
+              → node.status = "completed", DO NOT odemknout sousedy zatím
+              → current_node_id = node_id, generovat 3 relic nabídky
+              → vrátit { result: "win", pending_relics: [...], battle_log }
+              → ČEKAT na choose-relic — sousední uzly se odemknou až po výběru relicu
+     - prohra → node.status = "completed", status = "failed", hp_current = 0
+              → vrátit { result: "loss", battle_log }
+   - rest:
+     - hp_current = min(hp_current + hp_max * 0.25, hp_max)
+     - node.status = "completed", odemknout sousední uzly
+     - vrátit { hp_restored, new_hp }
+   - event:
+     - node.status = "pending_event" (nová hodnota — uzel aktivní, ale nedokončený)
+     - current_node_id = node_id
+     - vrátit { event_data: { id, text, choices: [{index, label, hint}] } }
+     - ČEKAT na choose-event
+   - shop:
+     - pokud skip_shop == True: node.status = "completed", odemknout sousedy, vrátit {}
+     - jinak: vrátit { shop_items: [{id, label, cost, effect}], run_gold }
+              → hráč buď zavolá shop-buy nebo znovu choose-node s skip_shop=True
+   - boss:
+     - sestavit CombatantConfig s relics
+     - spustit run_combat()
+     - výhra → node.status = "completed", status = "completed"
+              → nastavit cooldown_until, spustit completion hooks
      - prohra → status = "failed"
-   - rest: obnovit HP, posunout mapu
-   - event: vrátit event data (text + volby) → čekat na choose-event
-   - shop: vrátit shop položky → čekat na shop-buy
-   - boss: combat → výhra = status "completed", nastavit cooldown
-3. Aktualizovat visited_nodes, reward_xp/gold
-4. Vrátit nový stav runu + dostupné uzly
+3. Vrátit nový run stav
+```
+
+### Tok `choose-event`
+
+```
+POST /playtest/dungeon/choose-event { run_id, choice_index }
+
+1. Validace: run.status == "active", current_node_id je event uzel
+2. Aplikovat efekt dle choice_index a výsledku (deterministický nebo random seeded):
+   - gold bonus: run_gold += amount
+   - HP ztráta: hp_current -= int(hp_max * percent)
+   - relic bonus: generovat 1 relic výběr (vrátit jako pending_relics)
+   - next_node_override: upravit typ/mult sousedního uzlu v map_data
+3. Posunout mapu: uzel dokončen, odemknout sousedy
+4. Vrátit efekt { outcome_text, hp_delta, gold_delta } + nový run stav
+```
+
+### Tok `collect`
+
+```
+POST /playtest/dungeon/collect { run_id }
+
+1. Validace: run.status in ("completed", "failed"), reward ještě nebyl vyplacen
+2. char.xp += run.reward_xp
+3. char.gold += run.run_gold  # run_gold = reward_gold (shop výdaje již odečteny)
+4. log_gold(db, char, run.run_gold, "playtest_dungeon_reward", GoldReason.DUNGEON_REWARD)
+   # VŽDY log_gold — nikdy přímá editace char.gold
+5. Level-up check (smyčka)
+6. Boss loot drop pokud status == "completed"
+7. Vrátit { xp_gained, gold_gained, item, leveled_up, character }
 ```
 
 ### Integrace s existujícími systémy
 
-Zachovat stávající hooks při dokončení runu:
-- `increment_guild_weekly("dungeons", ...)`
-- `increment_weekly_board(char_id, "dungeons", ...)`
-- `add_season_xp(char_id, "dungeon_complete", ...)`
-- `_decrease_equipped_durability(...)`
-- HC permadeath při selhání (pokud `char.is_hardcore`)
+#### Per-combat-node (každá výhra v combat/elite/boss uzlu)
+Správné signatury — musí odpovídat existujícím funkcím:
+```python
+await increment_guild_weekly(char.guild_id, "kills", 1, char.id, db)
+await increment_weekly_board(char.id, "kills", db)
+await add_season_xp(char.id, "dungeon_stage", db)
+await _decrease_equipped_durability(char, DURABILITY_LOSS_DUNGEON, db)
+```
+
+#### Při dokončení runu (boss výhra, status → "completed")
+```python
+await increment_guild_weekly(char.guild_id, "dungeons", 1, char.id, db)
+await increment_weekly_board(char.id, "dungeons", db)
+await add_season_xp(char.id, "dungeon_complete", db)
+await add_world_event_contribution("dungeon_clears", char.id, 1, db)
+```
+
+#### Při selhání runu (status → "failed")
+```python
+now = datetime.now(timezone.utc).replace(tzinfo=None)
+if char.is_hardcore:
+    await _trigger_permadeath(char, killed_by_enemy_name, dungeon_key, now, db)
+```
+Žádné guild/season hooks při selhání (stejné chování jako starý systém).
 
 ---
 
