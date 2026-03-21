@@ -10,12 +10,12 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ── Konstanty ─────────────────────────────────────────────────────────────────
-const CR_EVENT_DELAY    = 380;   // ms mezi eventy
-const CR_ROUND_DELAY    = 220;   // extra delay před novým kolem
-const CR_PHASE_DELAY    = 900;   // extra delay při phase change
-const CR_STATUS_DELAY   = 160;   // delay pro status ticky (rychlé)
-const CR_ABILITY_DELAY  = 520;   // delay pro ability efekty
-const CR_RESULT_DELAY   = 800;   // delay před zobrazením výsledku
+const CR_EVENT_DELAY    = 490;   // ms mezi eventy
+const CR_ROUND_DELAY    = 360;   // extra delay před novým kolem
+const CR_PHASE_DELAY    = 1300;  // extra delay při phase change
+const CR_STATUS_DELAY   = 220;   // delay pro status ticky (rychlé)
+const CR_ABILITY_DELAY  = 700;   // delay pro ability efekty
+const CR_RESULT_DELAY   = 1000;  // delay před zobrazením výsledku
 
 // Event typy (musí odpovídat backendu)
 const EVT_ATTACK       = "attack";
@@ -143,8 +143,15 @@ function _buildOverlay(playerName, enemyName, playerHpMax, enemyHpMax, opts) {
     : `<div class="cr-enemy-emoji">${opts.bossEmoji || (opts.isBoss ? '👾' : '⚔')}</div>`;
   const title        = opts.title || (opts.isBoss ? '⚔ Boss Combat' : '⚔ Combat Replay');
 
+  const vsSvg = `<svg class="cr-vs-svg" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="crBlade" x1="13" y1="2" x2="19" y2="2" gradientUnits="userSpaceOnUse"><stop stop-color="#5a4a38"/><stop offset="0.45" stop-color="#c4a882"/><stop offset="1" stop-color="#3a2a20"/></linearGradient></defs><path d="M15 2 L16 1 L17 2" fill="#c4a882" stroke="#c4a882" stroke-width="0.5"/><path d="M14.5 2 L15.5 2 L16.5 22 L16 24 L15.5 22 L16.5 2 L17.5 2 Z" fill="url(#crBlade)" stroke="#8a7060" stroke-width="0.5"/><line x1="16" y1="3" x2="16" y2="20" stroke="#1a1010" stroke-width="0.5" opacity="0.7"/><path d="M6 22 Q10 20.5 16 22 Q22 20.5 26 22 L25.5 24.5 Q19 23 16 23 Q13 23 6.5 24.5 Z" fill="#221814" stroke="#7a6a5a" stroke-width="0.9"/><path d="M6 22 Q4 23 4.5 24.5 Q6 25.5 6.5 24.5" fill="#221814" stroke="#b89a6a" stroke-width="0.7"/><path d="M26 22 Q28 23 27.5 24.5 Q26 25.5 25.5 24.5" fill="#221814" stroke="#b89a6a" stroke-width="0.7"/><path d="M16 23 L17 24.5 L16 26 L15 24.5 Z" fill="#0f0808" stroke="#b89a6a" stroke-width="0.7"/><path d="M16 23 L16.8 24.5 L16 25.5 L15.2 24.5 Z" fill="#7a2020" opacity="0.9"/><rect x="15.2" y="26" width="1.6" height="5" rx="0.5" fill="#2a1808" stroke="#6a3a18" stroke-width="0.7"/><path d="M14 31 Q16 33 18 31 L17.5 31 Q16 32.5 14.5 31 Z" fill="#221814" stroke="#7a6a5a" stroke-width="0.9"/><circle cx="16" cy="31" r="1" fill="#7a2020" stroke="#b89a6a" stroke-width="0.4"/></svg>`;
+
   overlay.innerHTML = `
     <div class="cr-modal ${opts.isBoss ? 'cr-modal-boss' : ''}">
+      <div class="cr-corner cr-corner-tl"></div>
+      <div class="cr-corner cr-corner-tr"></div>
+      <div class="cr-corner cr-corner-bl"></div>
+      <div class="cr-corner cr-corner-br"></div>
+
       <div class="cr-header">
         <span class="cr-title">${esc(title)}</span>
         <button class="cr-close" onclick="closeCombatReplay()">✕ Přeskočit</button>
@@ -166,7 +173,7 @@ function _buildOverlay(playerName, enemyName, playerHpMax, enemyHpMax, opts) {
         </div>
 
         <div class="cr-vs-block">
-          <div class="cr-vs-icon" id="cr-vs-icon">⚔</div>
+          <div class="cr-vs-icon" id="cr-vs-icon">${vsSvg}</div>
           <div class="cr-round-badge" id="cr-round-badge">Kolo 1</div>
           <div class="cr-phase-indicator" id="cr-phase-indicator" style="display:none"></div>
         </div>
