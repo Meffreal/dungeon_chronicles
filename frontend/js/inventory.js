@@ -1,4 +1,4 @@
-﻿// ── INVENTÁŘ ──────────────────────────────────────────────────────────────
+// ── INVENTÁŘ ──────────────────────────────────────────────────────────────
 const _RARITY_ORDER = {set:0, legendary:1, epic:2, rare:3, uncommon:4, common:5};
 const _TYPE_ORDER   = {weapon:0, helmet:1, armor:2, gloves:3, boots:4, ring:5, amulet:6, potion:7};
 
