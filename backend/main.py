@@ -4,7 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import asyncio
+import mimetypes
 import os
+
+# Oprav Windows registry problém kdy .js soubory mají špatný MIME type
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
 
 from database import init_db
 from core.logging import setup_logging, get_logger
@@ -191,6 +196,13 @@ if os.path.exists(frontend_path):
 
     @app.get("/game")
     async def serve_game():
+        return FileResponse(
+            os.path.join(frontend_path, "game.html"),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
+        )
+
+    @app.get("/static/game.html")
+    async def serve_game_static():
         return FileResponse(
             os.path.join(frontend_path, "game.html"),
             headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
