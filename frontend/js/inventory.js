@@ -1,4 +1,4 @@
-// ── INVENTÁŘ ──────────────────────────────────────────────────────────────
+﻿// ── INVENTÁŘ ──────────────────────────────────────────────────────────────
 const _RARITY_ORDER = {set:0, legendary:1, epic:2, rare:3, uncommon:4, common:5};
 const _TYPE_ORDER   = {weapon:0, helmet:1, armor:2, gloves:3, boots:4, ring:5, amulet:6, potion:7};
 
@@ -35,7 +35,7 @@ function renderEquipStrip() {
     const durCol = dur === null ? '' : dur >= 50 ? '#1eff00' : dur >= 25 ? '#ff8c00' : '#ff4040';
     const durWarning = dur !== null && dur < 25 ? ' inv-strip-slot-crit' : dur !== null && dur < 50 ? ' inv-strip-slot-warn' : '';
     return `<div class="inv-strip-slot${item ? ' inv-strip-slot-filled' : ' inv-strip-slot-empty'}${durWarning}"
-               style="--rc:${rc}"
+               style="--rc:${rc}" data-rarity="${item?.rarity||\"\"}"
                data-slot="${s}"
                ${invItem ? `onclick="openItemDetail(${JSON.stringify(invItem).replace(/"/g,'&quot;')})"` : ''}>
       <div class="inv-strip-icon">${item ? item.icon : SLOT_ICONS[s]}</div>
@@ -96,7 +96,7 @@ function renderInv() {
     const dur = inv.durability ?? 100;
     const durCol = dur >= 50 ? '#1eff00' : dur >= 25 ? '#ff8c00' : '#ff4040';
     const durBar = equippable ? `<div class="inv-dur-bar"><div class="inv-dur-fill" style="width:${dur}%;background:${durCol}"></div></div>` : '';
-    return `<div class="inv-card ${inv.equipped?'equipped':''} ${isSet?'inv-card-set':''}" style="--rc:${rc}"
+    return `<div class="inv-card ${inv.equipped?'equipped':''} ${isSet?'inv-card-set':''}" style="--rc:${rc}" data-rarity="${item?.rarity||\"\"}"
               onclick="openItemDetail(${JSON.stringify(inv).replace(/"/g,'&quot;')})">
       ${isSet ? `<div class="inv-set-glow"></div>` : ''}
       <div class="inv-card-icon">${item?.icon || '📦'}</div>

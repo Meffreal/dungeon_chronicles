@@ -360,7 +360,7 @@ function runTimer(s) {
     const rem  = Math.max(0, initRem - Math.floor((Date.now()-start)/1000));
     const prog = Math.min(100, ((total-rem)/total)*100);
     const te=document.getElementById('aq-timer'), fe=document.getElementById('aq-fill'), pe=document.getElementById('aq-pct');
-    if(te) te.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
+    if(te) { te.textContent = `${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`; te.classList.toggle('urgent', rem > 0 && rem <= 60); }
     if(fe) fe.style.width = `${prog}%`;
     if(pe) pe.textContent = `${Math.round(prog)}%`;
     if(rem<=0){

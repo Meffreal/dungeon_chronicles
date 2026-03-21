@@ -54,8 +54,9 @@ function renderSubclassPage(d) {
 
 function _statMultLabel(key, val) {
     const names = {
-        atk_mult: 'ATK', def_mult: 'DEF', hp_mult: 'HP',
-        mp_mult: 'MP', spd_mult: 'SPD', luck_mult: 'LUCK',
+        atk_mult:   'ATK',   def_mult:   'DEF',  hp_mult:  'HP',
+        mp_mult:    'MP',    spd_mult:   'SPD',  luck_mult:'LUCK',
+        dmg_mult:   'DMG',   armor_mult: 'Armor', crit_mult:'Crit DMG',
     };
     const label = names[key] || key;
     const pct = Math.round((val - 1) * 100);

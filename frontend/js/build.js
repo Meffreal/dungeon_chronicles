@@ -22,12 +22,12 @@ const BUILD_TALENTS = {
 };
 
 const BUILD_SUBCLASSES = {
-  berserker:    { name:'Berserkr',       cls:'warrior', emoji:'🔴', mults:[{stat:'ATK',v:+30},{stat:'DEF',v:-15}] },
-  guardian:     { name:'Strážce',        cls:'warrior', emoji:'🛡️', mults:[{stat:'DEF',v:+35},{stat:'HP',v:+20},{stat:'ATK',v:-10}] },
-  elementalist: { name:'Elementalista', cls:'mage',    emoji:'☄️', mults:[{stat:'ATK',v:+25},{stat:'MP',v:+15},{stat:'DEF',v:-10}] },
-  necromancer:  { name:'Nekromancer',   cls:'mage',    emoji:'☠️', mults:[{stat:'MP',v:+30},{stat:'SPD',v:+10},{stat:'ATK',v:-15}] },
-  sharpshooter: { name:'Ostrostřelec',  cls:'ranger',  emoji:'💥', mults:[{stat:'ATK',v:+20},{stat:'LUCK',v:+30},{stat:'DEF',v:-10}] },
-  shadowblade:  { name:'Stínová Čepel', cls:'ranger',  emoji:'🌑', mults:[{stat:'SPD',v:+35},{stat:'ATK',v:-5},{stat:'DEF',v:-10}] },
+  berserker:    { name:'Berserkr',       cls:'warrior', emoji:'🔴', mults:[{stat:'DMG',v:+30},{stat:'Armor',v:-15}] },
+  guardian:     { name:'Strážce',        cls:'warrior', emoji:'🛡️', mults:[{stat:'Armor',v:+35},{stat:'HP',v:+20},{stat:'DMG',v:-10}] },
+  elementalist: { name:'Elementalista', cls:'mage',    emoji:'☄️', mults:[{stat:'DMG',v:+25},{stat:'Armor',v:-10}] },
+  necromancer:  { name:'Nekromancer',   cls:'mage',    emoji:'☠️', mults:[{stat:'DMG',v:-15}] },
+  sharpshooter: { name:'Ostrostřelec',  cls:'ranger',  emoji:'💥', mults:[{stat:'DMG',v:+10},{stat:'LUCK',v:+20},{stat:'Armor',v:-10}] },
+  shadowblade:  { name:'Stínová Čepel', cls:'ranger',  emoji:'🌑', mults:[{stat:'Crit DMG',v:+35},{stat:'LUCK',v:+10},{stat:'DMG',v:-5},{stat:'Armor',v:-10}] },
 };
 
 
@@ -267,9 +267,11 @@ function _bSummary(c, talents, sub) {
   else if (c.subclass === 'berserker')
     text += ' 🔥 Berserkr = maximální útok. Způsobíš hodně, ale i dostaneš hodně.';
   else if (c.subclass === 'elementalist')
-    text += ' ☄️ Elementalista — silné útočné schopnosti.';
+    text += ' ☄️ Elementalista — silné útočné schopnosti s armor penetrací.';
+  else if (c.subclass === 'necromancer')
+    text += ' ☠️ Nekromancer — nižší přímý útok, ale schopnost Mor Nemrtvých probíjí 100% obrany a aplikuje jed + krvácení + oslabení najednou. Silný v delších soubojích.';
   else if (c.subclass === 'shadowblade')
-    text += ' 🌑 Stínová Čepel — vysoká rychlost zajišťuje první kolo.';
+    text += ' 🌑 Stínová Čepel — dvojitý úder s garantovaným krvácením a zvýšeným crit poškozením.';
   else if (c.subclass === 'sharpshooter' && talents.includes('hunters_mark'))
     text += ' 🎯 Ostrostřelec s Loveckou Značkou — první útok způsobí +75 % bonus. Smrtící sestava na jeden výstřel.';
 

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="wep_blade" x1="20" y1="3" x2="28" y2="3" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5a4a38"/>
+      <stop offset="0.45" stop-color="#c4a882"/>
+      <stop offset="1" stop-color="#3a2a20"/>
+    </linearGradient>
+  </defs>
+  <!-- Blade tip (gothic point) -->
+  <path d="M22 3 L24 1 L26 3" fill="#c4a882" stroke="#c4a882" stroke-width="0.6"/>
+  <!-- Blade body -->
+  <path d="M21 3 L23 3 L24.5 33 L24 36 L23.5 33 L25 3 L27 3 Z" fill="url(#wep_blade)" stroke="#8a7060" stroke-width="0.7"/>
+  <!-- Blood groove (fuller) -->
+  <line x1="24" y1="4" x2="24" y2="30" stroke="#1a1010" stroke-width="0.7" opacity="0.8"/>
+  <!-- Blade edge glint -->
+  <path d="M22 5 L22 28" stroke="#7a6a5a" stroke-width="0.4" opacity="0.5"/>
+  <!-- Cross guard (with gothic swept quillons) -->
+  <path d="M9 33 Q11 31 24 33 Q37 31 39 33 L38 37 Q25 35 24 35 Q23 35 10 37 Z" fill="#221814" stroke="#7a6a5a" stroke-width="1.3"/>
+  <!-- Quillon tips (curled) -->
+  <path d="M9 33 Q6 34 7 37 Q9 38 10 37" fill="#221814" stroke="#b89a6a" stroke-width="0.9"/>
+  <path d="M39 33 Q42 34 41 37 Q39 38 38 37" fill="#221814" stroke="#b89a6a" stroke-width="0.9"/>
+  <!-- Guard center gem -->
+  <path d="M24 32 L26.5 35 L24 38 L21.5 35 Z" fill="#0f0808" stroke="#b89a6a" stroke-width="1"/>
+  <path d="M24 32 L26 35 L24 37 L22 35 Z" fill="#7a2020" opacity="0.9"/>
+  <!-- Grip (leather-wrapped handle) -->
+  <rect x="22.5" y="38" width="3" height="7" rx="0.8" fill="#2a1808" stroke="#6a3a18" stroke-width="0.9"/>
+  <!-- Grip wrapping -->
+  <line x1="22.5" y1="40" x2="25.5" y2="40" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/>
+  <line x1="22.5" y1="42" x2="25.5" y2="42" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/>
+  <line x1="22.5" y1="44" x2="25.5" y2="44" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/>
+  <!-- Pommel (gothic oval) -->
+  <path d="M20 45 Q24 48 28 45 L27 45 Q24 47.5 21 45 Z" fill="#221814" stroke="#7a6a5a" stroke-width="1.2"/>
+  <path d="M21 45 Q24 47.5 27 45" fill="#150f0e" stroke="#b89a6a" stroke-width="0.7"/>
+  <!-- Pommel center gem -->
+  <circle cx="24" cy="45" r="1.5" fill="#7a2020" stroke="#b89a6a" stroke-width="0.6"/>
+</svg>

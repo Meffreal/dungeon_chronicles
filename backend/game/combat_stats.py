@@ -18,10 +18,10 @@ CLASS_ARMOR_CAPS: dict[str, float] = {
     "mage":    0.20,  # was 0.15
 }
 
-CLASS_HP_MULT: dict[str, int] = {
-    "warrior": 4,
-    "ranger":  3,
-    "mage":    2,
+CLASS_HP_MULT: dict[str, float] = {
+    "warrior": 3.5,
+    "ranger":  3.5,
+    "mage":    3.0,
 }
 
 
@@ -73,12 +73,12 @@ def calc_damage_components(
 def calc_armor_pct(cls: str, armor_value: int, enemy_level: int) -> float:
     """Vrátí damage reduction % pro dané brnění a level nepřítele.
 
-    Formula: armor_value / (enemy_level * 100), cappováno třídním limitem.
-    Příklad: armor=90, level=10 → 90/(10*100) = 0.09
+    Formula: armor_value / (enemy_level * 10), cappováno třídním limitem.
+    Příklad: armor=90, level=10 → 90/(10*10) = 0.09
     """
     eff_level = max(1, enemy_level)
     cap = CLASS_ARMOR_CAPS.get(cls, 0.25)
-    return min(cap, armor_value / (eff_level * 100))
+    return min(cap, armor_value / (eff_level * 10))
 
 
 def calc_crit_chance(luck: int, enemy_level: int) -> float:

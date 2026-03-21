@@ -20,7 +20,7 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "flavor":      "Krev za krev. Vítěz bere vše.",
         # Stat multiplikátory (aplikují se v recalculate_stats)
         "stat_mults": {
-            "dmg_mult":   1.30,   # +30 % DMG
+            "dmg_mult":   1.20,   # +20 % DMG
             "armor_mult": 0.85,   # −15 % armor
         },
         "unlock_level": 10,
@@ -36,9 +36,9 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Nikdo neprojde, dokud dýchám.",
         "stat_mults": {
-            "armor_mult": 1.35,   # +35 % armor
-            "hp_mult":    1.20,   # +20 % HP
-            "dmg_mult":   0.90,   # −10 % DMG
+            "armor_mult": 1.20,   # +20 % armor (bylo +35 %)
+            "hp_mult":    1.00,   # +0 % HP (bylo +20 %)
+            "dmg_mult":   0.95,   # −5 % DMG
         },
         "unlock_level": 10,
     },
@@ -49,13 +49,12 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "cls":         "mage",
         "emoji":       "☄️",
         "description": (
-            "Ovládá síly ohně, ledu a blesku. Kombinovaná kouzla jsou "
-            "devastující — ale spotřebují mnoho many."
+            "Mistr arkanní magie. Každý druhý útok spouští Arkanní Přetížení — "
+            "silný burst s ignorováním obrany. Konzistentní a předvídatelný výstup."
         ),
-        "flavor":      "Příroda je zbraň. Já jsem spouštěč.",
+        "flavor":      "Magie není nástroj. Je to část mě.",
         "stat_mults": {
-            "dmg_mult":   1.25,   # +25 % DMG
-            "armor_mult": 0.90,   # −10 % armor
+            "dmg_mult": 1.10,  # +10 % DMG
         },
         "unlock_level": 10,
     },
@@ -65,12 +64,11 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "cls":         "mage",
         "emoji":       "☠️",
         "description": (
-            "Čerpá moc z utrpení a death magic. Slabší přímý útok, "
-            "ale kombinuje jed, krvácení a oslabení — nepřítel umírá pomalu."
+            "Čerpá moc ze své vlastní smrtelnosti. Pod 30 % HP se transformuje — "
+            "Dark Transformation přidá +40 % DMG permanentně. Life Drain na každém útoku."
         ),
-        "flavor":      "Smrt není konec. Je to nástroj.",
+        "flavor":      "Smrt není konec. Je to počátek.",
         "stat_mults": {
-            "dmg_mult": 0.85,   # −15 % DMG
         },
         "unlock_level": 10,
     },
@@ -86,8 +84,8 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Jeden výstřel. Jeden cíl. Konec.",
         "stat_mults": {
-            "dmg_mult":   1.20,  # +20 % DMG
-            "luck_mult":  1.30,  # +30 % LUCK (combat only — v _FighterState)
+            "dmg_mult":   1.10,  # +10 % DMG
+            "luck_mult":  1.20,  # +20 % LUCK (combat only — v _FighterState)
             "armor_mult": 0.90,  # −10 % armor
         },
         "unlock_level": 10,
@@ -99,13 +97,15 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "emoji":       "🌑",
         "description": (
             "Rychlý jako stín. Teleportuje se za nepřítele a útočí "
-            "dvěma rychlými ranami ze tmy. Zanechává krvácení."
+            "dvěma rychlými ranami ze tmy. Zanechává krvácení. "
+            "Zvýšený štěstí zajišťuje více kritických zásahů — každý z nich je devastující."
         ),
         "flavor":      "Nevidíš mě. Dokud není pozdě.",
         "stat_mults": {
             "armor_mult": 0.90,  # −10 % armor
-            "dmg_mult":   0.95,  # −5 % DMG
-            "crit_mult":  1.35,  # +35 % crit damage
+            "dmg_mult":   1.05,  # +5 % DMG
+            "luck_mult":  1.10,  # +10 % LUCK — synergy s bleed a crit
+            "crit_mult":  1.20,  # +20 % crit damage (vizuální, dle enginu)
         },
         "unlock_level": 10,
     },

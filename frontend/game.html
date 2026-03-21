@@ -19,6 +19,7 @@
 <link rel="stylesheet" href="/static/css/theme.css?v=16">
 <link rel="stylesheet" href="/static/css/textures.css?v=4">
 <link rel="stylesheet" href="/static/css/ui-enhance.css?v=3">
+<link rel="stylesheet" href="/static/css/physical.css?v=19">
 </head>
 <body>
 
@@ -370,100 +371,40 @@
         </div>
         <div class="equip-layout" id="equip-layout"></div>
 
-        <!-- STAT PANEL — pevná součást stránky pod vybavením -->
+        <!-- STAT PANEL — 2 taby: Attributes / Talents -->
         <div class="stat-panel" id="stat-panel">
 
-          <!-- Taby: Statistiky | Kouzla | Talenty -->
+          <!-- Hidden — kept for JS compatibility -->
+          <span id="sp-hp-val"  style="display:none">—</span>
+          <span id="sp-hp-base" style="display:none">—</span>
+          <span id="sp-hp-eq"   style="display:none"></span>
+
+          <!-- TAB BAR -->
           <div class="sp-tabs">
-            <button class="sp-tab sp-tab-active" onclick="switchSpTab('stats',this)">Attributes</button>
-            <button class="sp-tab" onclick="switchSpTab('spells',this)">✨ Spells</button>
-            <button class="sp-tab" onclick="switchSpTab('talents',this)">🌟 Talents</button>
+            <button class="sp-tab sp-tab--active" data-sp-tab="attributes">Attributes</button>
+            <button class="sp-tab" data-sp-tab="talents">Talents</button>
           </div>
 
-          <!-- TAB: Statistiky -->
-          <div id="sp-tab-stats">
-
-          <!-- ① ZDROJE -->
-          <div class="sp-sect">
-            <div class="sp-sect-hdr">
-              <span class="sp-sect-ico">💧</span>
-              <span>Resources</span>
-            </div>
-            <div class="sp-resources">
-
-              <div class="sp-res sp-res-hp">
-                <div class="sp-res-row">
-                  <span class="sp-res-ico"></span>
-                  <span class="sp-res-lbl">Health</span>
-                  <span class="sp-res-val" id="sp-hp-val">—</span>
-                </div>
-                <div class="sp-res-track">
-                  <div class="sp-res-fill sp-fill-hp" id="sp-hp-fill" style="width:100%"></div>
-                </div>
-                <div class="sp-bd">
-                  <span class="sp-bd-base">Base <strong id="sp-hp-base">—</strong></span>
-                  <span class="sp-bd-eq" id="sp-hp-eq"></span>
-                </div>
-              </div>
-
-
-            </div>
-          </div>
-
-          <div class="sp-line"></div>
-
-          <!-- ② ZÁKLADNÍ ATRIBUTY -->
-          <div class="sp-sect">
-            <div class="sp-sect-hdr">
-              <span class="sp-sect-ico"></span>
-              <span>Attributes</span>
-            </div>
-            <!-- Vyplní JS: .sp-attr-card[.primary-attr] > .sp-attr-top + .sp-bd -->
-            <div class="sp-attrs" id="sp-attrs"></div>
-          </div>
-
-          <div class="sp-line"></div>
-
-          <!-- ③ BOJOVÉ STATISTIKY -->
-          <div class="sp-sect">
-            <div class="sp-sect-hdr">
-              <span class="sp-sect-ico"></span>
-              <span>Combat</span>
-            </div>
-            <div class="sp-combat" id="sp-combat"></div>
-          </div>
-
-          </div><!-- /sp-tab-stats -->
-
-          <!-- TAB: Kouzla -->
-          <div id="sp-tab-spells" style="display:none">
+          <!-- TAB: ATTRIBUTES -->
+          <div class="sp-tab-panel sp-tab-panel--active" data-sp-panel="attributes">
             <div class="sp-sect">
-              <div class="sp-sect-hdr">
-                <span class="sp-sect-ico">✨</span>
-                <span>Spells</span>
-                <span class="sp-coming-soon">Soon</span>
-              </div>
-              <div class="sp-slots-grid" id="sp-spells">
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 1</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 2</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 3</div></div>
-                <div class="sp-spell-slot sp-slot-empty"><div class="sp-slot-plus">+</div><div class="sp-slot-lbl">Spell 4</div></div>
-              </div>
-              <div class="sp-coming-msg">System is still in progress.</div>
+              <div class="sp-attrs" id="sp-attrs"></div>
             </div>
-          </div><!-- /sp-tab-spells -->
-
-          <!-- TAB: Talenty -->
-          <div id="sp-tab-talents" style="display:none">
+            <div class="sp-line"></div>
             <div class="sp-sect">
-              <div class="sp-sect-hdr">
-                <span class="sp-sect-ico">🌟</span>
-                <span>Talents — Tier 1</span>
-              </div>
+              <div class="sp-sect-hdr"><span>Combat</span></div>
+              <div class="sp-combat" id="sp-combat"></div>
+            </div>
+          </div>
+
+          <!-- TAB: TALENTS -->
+          <div class="sp-tab-panel" data-sp-panel="talents">
+            <div class="sp-sect">
               <div id="sp-talents"></div>
               <div id="sp-t2-section"></div>
             </div>
-          </div><!-- /sp-tab-talents -->
+            <div id="sp-ability" style="display:none"></div>
+          </div>
 
         </div><!-- /stat-panel -->
       </div>
@@ -969,7 +910,7 @@
 <script src="/static/js/character.js?v=3" defer></script>
 <script src="/static/js/appearance.js?v=4" defer></script>
 <script src="/static/js/equipment.js?v=4" defer></script>
-<script src="/static/js/inventory.js?v=2" defer></script>
+<script src="/static/js/inventory.js?v=3" defer></script>
 <script src="/static/js/market.js" defer></script>
 <script src="/static/js/quest.js?v=6" defer></script>
 <script src="/static/js/shop.js" defer></script>

@@ -762,4 +762,261 @@
 .hub-map .hub-building:nth-child(4) { border-radius: 2px 2px 2px 6px; }
 .hub-map .hub-building:nth-child(6) { border-radius: 2px 2px 6px 2px; }
 
-/* ══ EOF — DUNGEON CHRONICLES UI ENHANCEMENT ═════════════════════════════ */
+/* ══ 25. SKELETON LOADING — DUNGEON SHADOWS ══════════════════════════════ */
+@keyframes skel-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skel {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,.03) 25%,
+    rgba(201,168,76,.07)  50%,
+    rgba(255,255,255,.03) 75%
+  );
+  background-size: 800px 100%;
+  animation: skel-shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.skel-line  { height: 12px; margin-bottom: 8px; border-radius: 3px; }
+.skel-title { height: 18px; width: 55%; margin-bottom: 12px; border-radius: 3px; }
+.skel-box   { border-radius: var(--radius-md); }
+.skel-circle { border-radius: 50%; }
+
+/* Sada skeletek pro quest board */
+.skel-quest-card {
+  height: 88px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,.03);
+}
+
+/* Skleted pro item kartu */
+.skel-item-card {
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255,255,255,.03);
+}
+
+/* ══ 26. ITEM RARITY ANIMATIONS — VZÁCNÉ ARTEFAKTY ══════════════════════ */
+
+/* Epic — fialové pulzování */
+@keyframes epic-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(163,53,238,.4), inset 0 0 8px rgba(163,53,238,.05); }
+  50%       { box-shadow: 0 0 14px rgba(163,53,238,.7), 0 0 24px rgba(163,53,238,.2), inset 0 0 12px rgba(163,53,238,.08); }
+}
+
+/* Legendary — oranžové žhavení */
+@keyframes legend-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,128,0,.5), inset 0 0 8px rgba(255,128,0,.06); }
+  50%       { box-shadow: 0 0 18px rgba(255,128,0,.8), 0 0 32px rgba(255,128,0,.25), inset 0 0 14px rgba(255,128,0,.1); }
+}
+
+/* Legendary — animovaný gradient border */
+@keyframes legend-border {
+  0%   { border-color: rgba(255,128,0,.6); }
+  33%  { border-color: rgba(255,180,0,.9); }
+  66%  { border-color: rgba(200,80,0,.7); }
+  100% { border-color: rgba(255,128,0,.6); }
+}
+
+[data-rarity="epic"],
+.inv-card[data-rarity="epic"],
+.shop-card[data-rarity="epic"] {
+  animation: epic-pulse 2.8s ease-in-out infinite;
+  border-color: rgba(163,53,238,.5) !important;
+}
+
+[data-rarity="legendary"],
+.inv-card[data-rarity="legendary"],
+.shop-card[data-rarity="legendary"] {
+  animation: legend-pulse 2.2s ease-in-out infinite, legend-border 3s ease-in-out infinite;
+  border-color: rgba(255,128,0,.6) !important;
+}
+
+/* Legendary item name glow */
+[data-rarity="legendary"] .inv-name,
+[data-rarity="legendary"] .shop-item-name,
+[data-rarity="legendary"] .item-detail-name {
+  text-shadow: 0 0 12px rgba(255,128,0,.5), 0 1px 2px rgba(0,0,0,.8);
+}
+
+/* Epic item name glow */
+[data-rarity="epic"] .inv-name,
+[data-rarity="epic"] .shop-item-name,
+[data-rarity="epic"] .item-detail-name {
+  text-shadow: 0 0 10px rgba(163,53,238,.5), 0 1px 2px rgba(0,0,0,.8);
+}
+
+/* ══ 27. MOBILE NAV ACTIVE INDICATOR ════════════════════════════════════ */
+.mob-nav-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Aktivní indikátor — zlatá linka nahoru */
+.mob-nav-btn.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--clr-gold), transparent);
+  box-shadow: 0 0 8px rgba(201,168,76,.8);
+  border-radius: 0 0 2px 2px;
+}
+
+/* Aktivní ikona se zlatě rozsvítí */
+.mob-nav-btn.active .mob-nav-icon {
+  filter: drop-shadow(0 0 5px rgba(201,168,76,.7));
+  transform: scale(1.1);
+  transition: transform .15s, filter .15s;
+}
+
+/* Ripple efekt při tapnutí */
+.mob-nav-btn:active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(201,168,76,.15), transparent 70%);
+  animation: mob-ripple .3s ease-out both;
+}
+
+@keyframes mob-ripple {
+  from { opacity: 1; transform: scale(0.5); }
+  to   { opacity: 0; transform: scale(1.5); }
+}
+
+/* ══ 28. CSS SELECTION — ZLATÝ VÝBĚR ════════════════════════════════════ */
+::selection {
+  background: rgba(201,168,76,.28);
+  color: var(--clr-gold-bright);
+}
+
+/* ══ 29. FOCUS INDICATORS — DOSTUPNOST ══════════════════════════════════ */
+/* Nahradit browser default focus outline runickým */
+:focus-visible {
+  outline: 2px solid rgba(201,168,76,.6);
+  outline-offset: 2px;
+  box-shadow: 0 0 8px rgba(201,168,76,.3);
+}
+
+/* Tlačítka — silnější focus */
+.btn:focus-visible,
+.nav-btn:focus-visible,
+.tb-btn:focus-visible {
+  outline: 2px solid var(--clr-gold);
+  outline-offset: 2px;
+  box-shadow: 0 0 12px rgba(201,168,76,.4);
+}
+
+/* ══ 30. MODAL SCROLLBAR — KONZISTENTNÍ ════════════════════════════════ */
+.modal::-webkit-scrollbar       { width: 4px; }
+.modal::-webkit-scrollbar-thumb { background: rgba(201,168,76,.3); border-radius: 2px; }
+.modal::-webkit-scrollbar-track { background: transparent; }
+
+/* ══ 31. QUEST TIMER URGENCY — POSLEDNÍ VTEŘINY ════════════════════════ */
+@keyframes timer-urgent {
+  0%, 100% { color: var(--clr-crimson); text-shadow: 0 0 8px rgba(192,57,43,.6); }
+  50%       { color: #ff5040; text-shadow: 0 0 16px rgba(255,80,64,.9), 0 0 32px rgba(255,80,64,.3); }
+}
+
+.aq-timer.urgent,
+.quest-timer.urgent {
+  animation: timer-urgent 0.9s ease-in-out infinite;
+}
+
+/* ══ 32. EMPTY STATE — TEMNOTA ČEKÁ ════════════════════════════════════ */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--text3);
+  text-align: center;
+  gap: var(--space-3);
+}
+
+.empty-state-icon {
+  font-size: 2.8rem;
+  opacity: 0.35;
+  filter: grayscale(0.5);
+}
+
+.empty-state-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.88rem;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.empty-state-sub,
+.empty-state-hint {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--text3);
+  max-width: 280px;
+  line-height: 1.55;
+}
+
+/* ══ 33. GOLD / XP NUMBER CHANGE ANIMATION ══════════════════════════════ */
+@keyframes num-up {
+  0%   { color: var(--clr-gold-bright); transform: scale(1.12); text-shadow: 0 0 12px rgba(244,208,63,.8); }
+  100% { color: inherit; transform: scale(1); text-shadow: none; }
+}
+
+@keyframes num-down {
+  0%   { color: #ff5050; transform: scale(0.95); text-shadow: 0 0 10px rgba(255,80,80,.7); }
+  100% { color: inherit; transform: scale(1); text-shadow: none; }
+}
+
+.num-flash-up   { animation: num-up   0.5s ease-out both; }
+.num-flash-down { animation: num-down 0.4s ease-out both; }
+
+/* ══ 34. TOAST EXIT ANIMATION ════════════════════════════════════════════ */
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(0); max-height: 80px; margin-bottom: 5px; }
+  to   { opacity: 0; transform: translateX(16px); max-height: 0; margin-bottom: 0; }
+}
+
+.toast.removing {
+  animation: toast-out 0.22s ease-in both;
+  pointer-events: none;
+}
+
+/* ══ 35. SCROLL RESTORE FADE — STRÁNKY ══════════════════════════════════ */
+/* Jemný horní fade-in mask pro .main-scroll */
+.main-scroll::before {
+  content: '';
+  position: sticky;
+  top: 0;
+  display: block;
+  height: 1px;
+  background: linear-gradient(180deg, rgba(13,13,20,.6), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ══ 36. BUFF CHIP — AKTIVNÍ HIGHLIGHT ════════════════════════════════════ */
+.tb-buff-chip.has-buff {
+  background: rgba(212,160,48,.2);
+  border-color: rgba(212,160,48,.6);
+  box-shadow: 0 0 8px rgba(212,160,48,.25);
+}
+
+/* ══ 37. LEVEL-UP PORTRAIT FLASH ════════════════════════════════════════ */
+@keyframes portrait-levelup {
+  0%   { box-shadow: 0 0 0 0 rgba(244,208,63,.0); }
+  20%  { box-shadow: 0 0 30px 10px rgba(244,208,63,.6), 0 0 60px 20px rgba(201,168,76,.3); }
+  100% { box-shadow: 0 0 0 0 rgba(244,208,63,.0); }
+}
+
+.portrait-outer.levelup {
+  animation: portrait-levelup 1.2s cubic-bezier(.2,0,.1,1) both;
+}
+
+/* ══ EOF — DUNGEON CHRONICLES UI ENHANCEMENT v2 ══════════════════════════ */

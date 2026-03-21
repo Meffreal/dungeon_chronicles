@@ -12,8 +12,26 @@ const CLS_E = { warrior:'⚔️', mage:'🔮', ranger:'🏹' };
 const CLS_D = { warrior:'Silný bojovník. Vysoký HP a obrana.', mage:'Mistr magie. Devastující kouzla.', ranger:'Rychlý lovec. Kritické zásahy.' };
 const RARITY_COL = { common:'#9d9d9d', uncommon:'#1eff00', rare:'#0070dd', epic:'#a335ee', legendary:'#ff8000', set:'#00d4ff' };
 const RARITY_CZ  = { common:'Běžný', uncommon:'Neobvyklý', rare:'Vzácný', epic:'Epický', legendary:'Legendární', set:'Setový' };
-const SLOT_ICONS = { weapon:'⚔️', helmet:'⛑️', armor:'🥋', gloves:'🧤', boots:'👢', ring:'💍', amulet:'🧿' };
+const SLOT_ICONS = {
+  helmet: `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><path d="M18 10 L20 5 L22 9 L24 3 L26 9 L28 5 L30 10" stroke="#b89a6a" stroke-width="1.2" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M13 26 L9 24 L9 30 L13 32" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.3"/><path d="M35 26 L39 24 L39 30 L35 32" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.3"/><path d="M13 28 C13 15 18 10 24 10 C30 10 35 15 35 28 L35 38 L13 38 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><line x1="24" y1="10" x2="24" y2="28" stroke="#5a4a3a" stroke-width="0.8" opacity="0.7"/><path d="M13 28 L35 28 L35 38 L13 38 Z" fill="#110e0d" stroke="#7a6a5a" stroke-width="1"/><line x1="16" y1="32" x2="22" y2="32" stroke="#b89a6a" stroke-width="1.8" stroke-linecap="round"/><line x1="26" y1="32" x2="32" y2="32" stroke="#b89a6a" stroke-width="1.8" stroke-linecap="round"/><line x1="24" y1="28" x2="24" y2="38" stroke="#b89a6a" stroke-width="1" stroke-linecap="round"/><path d="M18 16 Q20 13 24 12 Q28 13 30 16" stroke="#5a4a38" stroke-width="0.8" stroke-linecap="round" opacity="0.9"/><path d="M13 38 Q24 43 35 38" stroke="#7a6a5a" stroke-width="1.3" stroke-linecap="round"/><circle cx="14" cy="20" r="1" fill="#b89a6a" opacity="0.7"/><circle cx="34" cy="20" r="1" fill="#b89a6a" opacity="0.7"/></svg>`,
+  armor:  `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><path d="M8 15 Q9 10 16 12 L18 22 L8 20 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.3"/><line x1="9" y1="14" x2="17" y2="16" stroke="#5a4a38" stroke-width="0.7" opacity="0.7"/><path d="M40 15 Q39 10 32 12 L30 22 L40 20 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.3"/><line x1="39" y1="14" x2="31" y2="16" stroke="#5a4a38" stroke-width="0.7" opacity="0.7"/><path d="M16 12 Q24 8 32 12 L34 34 Q30 42 24 44 Q18 42 14 34 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><line x1="24" y1="12" x2="24" y2="40" stroke="#5a4a3a" stroke-width="1" opacity="0.6"/><path d="M18 17 Q24 14 30 17" stroke="#b89a6a" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/><path d="M17 23 Q24 20 31 23" stroke="#b89a6a" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/><path d="M24 20 L24 36 M20 27 L28 27" stroke="#7a2020" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/><path d="M15 34 L13 40 L18 43 L24 44 L30 43 L35 40 L33 34 Z" fill="#150f0e" stroke="#7a6a5a" stroke-width="1.2"/><line x1="19" y1="36" x2="18" y2="43" stroke="#5a4a38" stroke-width="0.8" opacity="0.6"/><line x1="24" y1="36" x2="24" y2="44" stroke="#5a4a38" stroke-width="0.8" opacity="0.6"/><line x1="29" y1="36" x2="30" y2="43" stroke="#5a4a38" stroke-width="0.8" opacity="0.6"/><path d="M17 12 Q24 9 31 12 L30 15 Q24 12 18 15 Z" fill="#221814" stroke="#b89a6a" stroke-width="0.8"/></svg>`,
+  gloves: `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><path d="M13 22 L13 13 Q14 10 16 13 L16 22" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M17 21 L17 11 Q18 8 20 11 L20 21" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M21 21 L21 11 Q22 8 24 11 L24 21" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M25 22 L25 13 Q26 10 28 13 L28 22" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M29 24 L34 19 Q37 17 37 20 L33 26" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M11 22 L11 36 Q11 40 15 42 L31 42 Q35 40 35 36 L35 22 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><line x1="23" y1="22" x2="23" y2="40" stroke="#5a4a3a" stroke-width="0.7" opacity="0.5"/><path d="M13 22 L28 22" stroke="#7a6a5a" stroke-width="0.8" opacity="0.6"/><ellipse cx="14.5" cy="22" rx="1.8" ry="1.4" fill="#221a14" stroke="#b89a6a" stroke-width="0.9"/><ellipse cx="18.5" cy="22" rx="1.8" ry="1.4" fill="#221a14" stroke="#b89a6a" stroke-width="0.9"/><ellipse cx="22.5" cy="22" rx="1.8" ry="1.4" fill="#221a14" stroke="#b89a6a" stroke-width="0.9"/><ellipse cx="26.5" cy="22" rx="1.8" ry="1.4" fill="#221a14" stroke="#b89a6a" stroke-width="0.9"/><path d="M11 36 L35 36 L35 42 Q23 46 11 42 Z" fill="#150f0e" stroke="#7a6a5a" stroke-width="1.3"/><path d="M15 38 Q23 36 31 38" stroke="#b89a6a" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/><circle cx="23" cy="40" r="1.2" fill="#b89a6a" opacity="0.7"/></svg>`,
+  amulet: `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><path d="M24 5 Q14 7 12 14" stroke="#7a6a5a" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="2.5 2"/><path d="M24 5 Q34 7 36 14" stroke="#7a6a5a" stroke-width="1.3" stroke-linecap="round" stroke-dasharray="2.5 2"/><circle cx="24" cy="5" r="2" fill="#221a14" stroke="#b89a6a" stroke-width="1"/><path d="M24 14 L30 20 L34 26 L30 30 L24 46 L18 30 L14 26 L18 20 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><path d="M24 14 L21 18 L24 16 L27 18 L24 14" fill="#b89a6a" stroke="#b89a6a" stroke-width="0.5"/><path d="M24 19 L28 24 L24 29 L20 24 Z" fill="#0f0a0a" stroke="#b89a6a" stroke-width="1.2"/><path d="M24 19 L27 23 L24 27 L21 23 Z" fill="#7a2020" stroke="#9a3030" stroke-width="0.5" opacity="0.9"/><line x1="24" y1="19" x2="24" y2="27" stroke="#2a0808" stroke-width="0.6" opacity="0.7"/><line x1="20" y1="24" x2="28" y2="24" stroke="#2a0808" stroke-width="0.6" opacity="0.7"/><path d="M22.5 20.5 L23.5 21.5" stroke="#ff9a7a" stroke-width="0.8" stroke-linecap="round" opacity="0.8"/><path d="M20 30 Q18 36 24 46 Q30 36 28 30" fill="#150f0e" stroke="#7a6a5a" stroke-width="1"/><path d="M14 26 Q11 22 14 20" stroke="#b89a6a" stroke-width="1" stroke-linecap="round" opacity="0.6"/><path d="M34 26 Q37 22 34 20" stroke="#b89a6a" stroke-width="1" stroke-linecap="round" opacity="0.6"/><circle cx="13" cy="26" r="1" fill="#b89a6a" opacity="0.5"/><circle cx="35" cy="26" r="1" fill="#b89a6a" opacity="0.5"/></svg>`,
+  ring:   `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="32" rx="15" ry="9" fill="none" stroke="#7a6a5a" stroke-width="2"/><ellipse cx="24" cy="32" rx="9" ry="5.5" fill="#0a0808" stroke="#5a4a3a" stroke-width="1"/><path d="M10 30 Q14 28 18 30" stroke="#b89a6a" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/><path d="M30 30 Q34 28 38 30" stroke="#b89a6a" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/><path d="M19 24 L17 18" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/><path d="M29 24 L31 18" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/><path d="M22 22 L21 16" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/><path d="M26 22 L27 16" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/><path d="M18 18 Q24 14 30 18 L30 26 Q24 30 18 26 Z" fill="#1a1412" stroke="#b89a6a" stroke-width="1.2"/><path d="M24 15 L27.5 17 L28 21 L24 24 L20 21 L20.5 17 Z" fill="#0f0808" stroke="#8a3a2a" stroke-width="0.9"/><path d="M24 15 L27 17.5 L26 21.5 L24 23 L22 21.5 L21 17.5 Z" fill="#7a2020" opacity="0.8"/><line x1="24" y1="15" x2="24" y2="23" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/><line x1="20.5" y1="17" x2="27.5" y2="17" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/><line x1="20" y1="21" x2="28" y2="21" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/><path d="M22.5 16 L23.5 17" stroke="#ffaa88" stroke-width="0.8" stroke-linecap="round" opacity="0.9"/></svg>`,
+  boots:  `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><path d="M16 3 L16 28 Q16 32 18 34 L30 34 Q32 32 32 28 L32 3 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><line x1="24" y1="3" x2="24" y2="28" stroke="#5a4a3a" stroke-width="0.9" opacity="0.6"/><line x1="16" y1="11" x2="32" y2="11" stroke="#5a4a3a" stroke-width="0.8" opacity="0.5"/><line x1="16" y1="19" x2="32" y2="19" stroke="#5a4a3a" stroke-width="0.8" opacity="0.5"/><line x1="16" y1="27" x2="32" y2="27" stroke="#5a4a3a" stroke-width="0.8" opacity="0.5"/><path d="M21 5 L24 9 L27 5" stroke="#b89a6a" stroke-width="0.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 22 Q11 22 11 28 Q11 32 15 32 L16 32 L16 22 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M32 22 Q36 22 36 28 Q36 32 32 32 L31 32 L31 22 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.2"/><path d="M14 34 Q12 36 13 41 Q16 45 26 45 Q36 43 38 39 Q38 35 34 34 L18 34 Z" fill="#1a1412" stroke="#7a6a5a" stroke-width="1.5"/><path d="M26 45 Q36 43 38 39 Q40 36 37 36 Q33 40 28 43 Z" fill="#150f0e" stroke="#7a6a5a" stroke-width="1"/><line x1="15" y1="37" x2="32" y2="37" stroke="#5a4a3a" stroke-width="0.8" opacity="0.5"/><line x1="16" y1="41" x2="30" y2="41" stroke="#5a4a3a" stroke-width="0.8" opacity="0.5"/><rect x="20" y="31" width="8" height="4" rx="1" fill="#221a14" stroke="#b89a6a" stroke-width="0.9"/><circle cx="24" cy="33" r="0.8" fill="#b89a6a" opacity="0.8"/></svg>`,
+  weapon: `<svg class="slot-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="si_wblade" x1="20" y1="3" x2="28" y2="3" gradientUnits="userSpaceOnUse"><stop stop-color="#5a4a38"/><stop offset="0.45" stop-color="#c4a882"/><stop offset="1" stop-color="#3a2a20"/></linearGradient></defs><path d="M22 3 L24 1 L26 3" fill="#c4a882" stroke="#c4a882" stroke-width="0.6"/><path d="M21 3 L23 3 L24.5 33 L24 36 L23.5 33 L25 3 L27 3 Z" fill="url(#si_wblade)" stroke="#8a7060" stroke-width="0.7"/><line x1="24" y1="4" x2="24" y2="30" stroke="#1a1010" stroke-width="0.7" opacity="0.8"/><path d="M22 5 L22 28" stroke="#7a6a5a" stroke-width="0.4" opacity="0.5"/><path d="M9 33 Q11 31 24 33 Q37 31 39 33 L38 37 Q25 35 24 35 Q23 35 10 37 Z" fill="#221814" stroke="#7a6a5a" stroke-width="1.3"/><path d="M9 33 Q6 34 7 37 Q9 38 10 37" fill="#221814" stroke="#b89a6a" stroke-width="0.9"/><path d="M39 33 Q42 34 41 37 Q39 38 38 37" fill="#221814" stroke="#b89a6a" stroke-width="0.9"/><path d="M24 32 L26.5 35 L24 38 L21.5 35 Z" fill="#0f0808" stroke="#b89a6a" stroke-width="1"/><path d="M24 32 L26 35 L24 37 L22 35 Z" fill="#7a2020" opacity="0.9"/><rect x="22.5" y="38" width="3" height="7" rx="0.8" fill="#2a1808" stroke="#6a3a18" stroke-width="0.9"/><line x1="22.5" y1="40" x2="25.5" y2="40" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/><line x1="22.5" y1="42" x2="25.5" y2="42" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/><line x1="22.5" y1="44" x2="25.5" y2="44" stroke="#8a5a28" stroke-width="0.7" opacity="0.8"/><path d="M20 45 Q24 48 28 45 L27 45 Q24 47.5 21 45 Z" fill="#221814" stroke="#7a6a5a" stroke-width="1.2"/><circle cx="24" cy="45" r="1.5" fill="#7a2020" stroke="#b89a6a" stroke-width="0.6"/></svg>`,
+};
 const SLOT_CZ    = { weapon:'Zbraň', helmet:'Přilba', armor:'Brnění', gloves:'Rukavice', boots:'Boty', ring:'Prsten', amulet:'Amulet' };
+
+// ── ATTRIBUTE SVG ICONS — globální, používají currentColor ──────────────
+const ATTR_SVG = {
+  strength:     `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><path d="M12 2.5L3.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.5 2H12.5V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 11L2 14.5L5.5 13Z" fill="currentColor" opacity=".5"/><path d="M7.2 7L5.8 8.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".35"/></svg>`,
+  dexterity:    `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><path d="M2 14L13 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".3"/><path d="M13 3L10 3L13 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 14L8.5 7.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M2 14L3.5 11.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".45"/></svg>`,
+  intelligence: `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><polygon points="8,1.5 11,6.5 8,14 5,6.5" stroke="currentColor" stroke-width="1.2" fill="currentColor" fill-opacity=".13"/><line x1="5" y1="6.5" x2="11" y2="6.5" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".4"/><circle cx="8" cy="3.8" r="1.3" fill="currentColor" opacity=".5"/></svg>`,
+  endurance:    `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><path d="M8 2L13 4.5V9C13 12 10.5 13.8 8 14.5C5.5 13.8 3 12 3 9V4.5L8 2Z" stroke="currentColor" stroke-width="1.3" fill="currentColor" fill-opacity=".1"/><path d="M5.5 8.2L7 9.7L10.5 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  luck:         `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="5.5" r="2.3" stroke="currentColor" stroke-width="1.1" fill="currentColor" fill-opacity=".12"/><circle cx="10.5" cy="5.5" r="2.3" stroke="currentColor" stroke-width="1.1" fill="currentColor" fill-opacity=".12"/><circle cx="5.5" cy="10.5" r="2.3" stroke="currentColor" stroke-width="1.1" fill="currentColor" fill-opacity=".12"/><circle cx="10.5" cy="10.5" r="2.3" stroke="currentColor" stroke-width="1.1" fill="currentColor" fill-opacity=".12"/><path d="M8 8V15" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>`,
+  crit:         `<svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none"><path d="M8 1L9.5 6H14.5L10.5 9L12 14L8 11L4 14L5.5 9L1.5 6H6.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" fill="currentColor" fill-opacity=".15"/><path d="M8 4L9 7H12L9.5 8.5L10.5 11.5L8 9.8L5.5 11.5L6.5 8.5L4 7H7Z" fill="currentColor" opacity=".3"/></svg>`,
+};
 
 // ── TOAST ─────────────────────────────────────────────────────────────────
 function toast(msg, type='i', dur=3500) {
@@ -22,7 +40,12 @@ function toast(msg, type='i', dur=3500) {
   el.className = `toast t${type}`;
   el.innerHTML = `<span>${ic[type]}</span><span>${msg}</span>`;
   document.getElementById('toasts').append(el);
-  setTimeout(() => el.remove(), dur);
+  const removeEl = () => {
+    el.classList.add('removing');
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+    setTimeout(() => el.remove(), 300); // fallback
+  };
+  setTimeout(removeEl, dur);
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────────────
@@ -40,7 +63,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }));
   initNavGroups();
   _initMobileUI();
+  _initStatPanelTabs();
 });
+
+function _initStatPanelTabs() {
+  document.querySelectorAll('.sp-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.spTab;
+      document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('sp-tab--active'));
+      document.querySelectorAll('.sp-tab-panel').forEach(p => p.classList.remove('sp-tab-panel--active'));
+      btn.classList.add('sp-tab--active');
+      document.querySelector(`.sp-tab-panel[data-sp-panel="${target}"]`).classList.add('sp-tab-panel--active');
+    });
+  });
+}
 
 // ── MOBILNÍ UI ────────────────────────────────────────────────────────────
 const _MOB_GROUP_META = {
@@ -302,6 +338,30 @@ function hideLoading(containerId) {
   if (el && el.querySelector('.loading-spinner')) el.innerHTML = '';
 }
 
+// ── SKELETON LOADING ──────────────────────────────────────────────────────
+// Generuje placeholder skeleton HTML před načtením dat
+function skelLines(count = 3) {
+  return Array.from({length: count}, (_, i) =>
+    `<div class="skel skel-line" style="width:${55 + Math.sin(i*1.7)*30}%"></div>`
+  ).join('');
+}
+function skelQuestCards(count = 3) {
+  return Array.from({length: count}, () =>
+    `<div class="skel skel-quest-card"></div>`
+  ).join('');
+}
+function skelItemGrid(count = 8) {
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px">`
+    + Array.from({length: count}, () => `<div class="skel skel-item-card" style="height:80px"></div>`).join('')
+    + `</div>`;
+}
+function showSkeleton(containerId, type = 'lines', count = 3) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const map = { lines: skelLines(count), quests: skelQuestCards(count), items: skelItemGrid(count) };
+  el.innerHTML = map[type] || skelLines(count);
+}
+
 // ── PLAYER SEARCH AUTOCOMPLETE ────────────────────────────────────────────
 // Generuje HTML pro políčko s autocomplete hledáním hráče.
 // Skrytý input se stejným `id` uchovává vybrané char ID (číselná hodnota).
@@ -364,6 +424,12 @@ function _tweenGold(el, from, to) {
   const dur  = 400;
   const t0   = performance.now();
   const diff = to - from;
+  // Flash animace dle směru změny
+  const flashClass = diff > 0 ? 'num-flash-up' : 'num-flash-down';
+  el.classList.remove('num-flash-up', 'num-flash-down');
+  void el.offsetWidth;
+  el.classList.add(flashClass);
+  el.addEventListener('animationend', () => el.classList.remove(flashClass), { once: true });
   function step(now) {
     const t    = Math.min(1, (now - t0) / dur);
     const ease = 1 - (1 - t) * (1 - t) * (1 - t); // easeOutCubic

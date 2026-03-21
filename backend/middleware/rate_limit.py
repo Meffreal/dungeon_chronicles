@@ -61,17 +61,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
 
     async def dispatch(self, request: Request, call_next):
-        ip = request.client.host if request.client else "unknown"
-        category = _category(request.url.path)
-        limit = _LIMITS[category]
-
-        # Import zde (lazy) — cache se inicializuje až v lifespan
-        from core.cache import cache
-
-        if cache.connected:
-            return await self._redis_check(request, call_next, ip, category, limit)
-        else:
-            return await self._memory_check(request, call_next, ip, category, limit)
+        # Rate limiting dočasně vypnuto
+        return await call_next(request)
 
     # ── Redis sliding window ──────────────────────────────────────────────────
 

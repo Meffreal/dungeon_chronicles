@@ -35,7 +35,6 @@ from game.class_mechanics import (
     check_chain_hit,
     check_multi_hit_round,
     ranger_first_round_first_strike,
-    calculate_spell_burn_damage,
     check_spirit_revenge_trigger,
     calculate_spirit_revenge_damage,
     get_class_mechanics,
@@ -47,7 +46,8 @@ from game.class_mechanics import (
 #            Stun imunita (warrior_is_stun_immune) — zatím neimplementováno
 #   Ranger:  chain_hit (25 % bonus hit) + multi_hit (každé 3. kolo) — IMPLEMENTOVÁNO v _ranger_chain_or_multi_attack
 #            First strike kolo 1 — IMPLEMENTOVÁNO (has_class_first_strike)
-#   Mage:    Spell Burn DoT (3 % max HP/kolo) — IMPLEMENTOVÁNO v _execute_attack
+#   Mage:    Mana Shield (30 % dmg absorbuje MP) — IMPLEMENTOVÁNO v _FighterState.apply_mana_shield
+#            Arcane Overload (každý 3. útok burst 1.8× armor ignore) — IMPLEMENTOVÁNO v _execute_attack
 #            Spirit Revenge (20 % max HP při smrti v kole 1) — IMPLEMENTOVÁNO v _maybe_spirit_revenge
 
 # ── Konstanty ──────────────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ def soft_cap_stat(value: int) -> int:
 STATUS_DEFS = {
     "bleed": {
         "name": "Krvácení", "emoji": "🩸",
-        "rounds": 3, "tick_dmg_pct": 0.06,   # 6% max HP za kolo
+        "rounds": 3, "tick_dmg_flat": 0.40,  # 40% ATK útočníka za kolo (neovlivněno HP oběti)
         "description": "Způsobuje krvácení — ztráta HP každé kolo.",
     },
     "poison": {
@@ -109,7 +109,7 @@ STATUS_DEFS = {
     },
     "burn": {
         "name": "Hoření", "emoji": "🔥",
-        "rounds": 3, "tick_dmg_pct": 0.04,   # 4% max HP za kolo
+        "rounds": 3, "tick_dmg_pct": 0.025,  # 2.5% max HP za kolo (bylo 4%)
         "description": "Plameny spalují — hoří každé kolo.",
     },
     "weaken": {
@@ -158,44 +158,46 @@ SUBCLASS_ABILITIES: dict[str, dict] = {
         "type": "armor_pierce",
         "dmg_mult": 2.2, "def_ignore_pct": 0.80,
         "apply_status": None,
-        "self_dmg_pct": 0.08,   # berserk recoil: 8 % způsobeného dmg
+        "self_dmg_pct": 0.03,   # berserk recoil: 3 % způsobeného dmg (sníženo z 0.08)
+        "lifesteal_pct": 0.12,  # 12 % způsobeného dmg jako heal
     },
     "guardian": {
         "name": "Železná Pevnost", "emoji": "🛡️", "mp_cost_pct": 0.15,
-        "desc": "Zaujme pevnou pozici a obklopí se štítem. Útok oslabený, obrana posílena.",
+        "desc": "Zaujme pevnou pozici a obklopí se štítem. Útok plný, obrana posílena.",
         "type": "armor_pierce",
-        "dmg_mult": 0.8, "def_ignore_pct": 0.0,
+        "dmg_mult": 1.6, "def_ignore_pct": 0.25,
         "apply_status": None,
         "apply_status_self": "shield",  # štít na sebe
+        "magic_resist_pct": 0.40,       # −40 % magic dmg od mágů
     },
     "elementalist": {
         "name": "Armageddon", "emoji": "☄️", "mp_cost_pct": 0.40,
         "desc": "Kombinace živlů decimuje nepřítele. Způsobuje hoření.",
         "type": "magic",
-        "dmg_mult": 2.5, "def_ignore_pct": 1.0,
+        "dmg_mult": 1.6, "def_ignore_pct": 0.35,
         "apply_status": "burn",
         "extra_statuses": [],
     },
     "necromancer": {
         "name": "Mor Nemrtvých", "emoji": "☠️", "mp_cost_pct": 0.25,
-        "desc": "Obklopí nepřítele temnou magií — jed, krvácení a oslabení najednou.",
+        "desc": "Obklopí nepřítele temnou magií — jed.",
         "type": "magic",
-        "dmg_mult": 0.9, "def_ignore_pct": 1.0,
+        "dmg_mult": 0.9, "def_ignore_pct": 0.50,
         "apply_status": "poison",
-        "extra_statuses": ["bleed", "weaken"],
+        "extra_statuses": [],
     },
     "sharpshooter": {
         "name": "Smrtící Zásah", "emoji": "💥", "mp_cost_pct": 0.22,
-        "desc": "Přesný výstřel na životně důležité místo. Vždy kritický zásah.",
+        "desc": "Přesný výstřel na životně důležité místo. Vždy kritický zásah, probíjí 25 % obrany.",
         "type": "guaranteed_crit",
-        "dmg_mult": 1.8, "def_ignore_pct": 0.0,
+        "dmg_mult": 1.2, "def_ignore_pct": 0.25,  # 1.2× crit (nyní aplikováno přes guaranteed_crit fix)
         "apply_status": None,
     },
     "shadowblade": {
         "name": "Stínový Skok", "emoji": "🌑", "mp_cost_pct": 0.18,
         "desc": "Teleportuje se a útočí ze stínu dvěma rychlými ranami. Zanechává krvácení.",
         "type": "multi_hit",
-        "dmg_mult": 0.85, "def_ignore_pct": 0.20,
+        "dmg_mult": 0.85, "def_ignore_pct": 0.20,  # 0.78 → 0.85 per hit
         "hit_count": 2,
         "apply_status": "bleed",
     },
@@ -341,6 +343,7 @@ class CombatResult:
     defender_hp_max:      int
     # Výsledky pro reward kalkulaci
     attacker_won:         bool = True
+    is_draw:              bool = False  # True pokud souboj skončil timeoutem s rovným HP%
     total_damage_dealt:   int  = 0    # celkový damage útočníka (pro boss contribution)
 
 
@@ -407,7 +410,7 @@ class _FighterState:
         if "mana_surge" in _talents:
             self.dmg_mult *= 1.15
         # Combat modifikátory — uloženy pro _execute_attack
-        self.crit_dmg_bonus_pct    = 0.25 if "battle_rage"   in _talents else 0.0
+        self.crit_dmg_bonus_pct    = 0.15 if "battle_rage"   in _talents else 0.0
         self.dmg_reduction_pct     = 0.20 if "iron_skin"      in _talents else 0.0
         self.ability_dmg_bonus_pct = 0.20 if "arcane_focus"   in _talents else 0.0
         self.spell_echo_chance     = 0.25 if "spell_echo"     in _talents else 0.0
@@ -429,6 +432,20 @@ class _FighterState:
         _SPELL_CYCLE = ["Fire", "Ice", "Arcane", "Void"]
         self._spell_cycle_index: int = 0
         self._spell_cycle: list = _SPELL_CYCLE
+
+        # ── F.4 Mage: Mana Shield + Arcane Overload ───────────────────────────
+        if cfg.cls == "mage":
+            self.mp: int = max(100, int(cfg.hp * 0.30))   # 30% HP jako MP pool
+            self.mp_max: int = self.mp
+            self.spell_overload_count: int = 0              # pro Arcane Overload
+        else:
+            self.mp: int = 0
+            self.mp_max: int = 0
+            self.spell_overload_count: int = 0
+        self.lich_transformed: bool = False
+        self.life_drain_pct: float = 0.07 if cfg.subclass == "necromancer" else 0.0
+        # ── Berserker Enrage: při 50% HP → dmg_mult += 0.30, jednou za boj ────
+        self.berserker_enraged: bool = False
 
         # ── Set bonusy (combat efekty) ────────────────────────────────────────
         # Stat bonusy (HP, LUCK) jsou již zapečeny v CombatantConfig hodnotách.
@@ -548,6 +565,14 @@ class _FighterState:
         """Vrátí aktuální absorpci štítu (0.0–1.0)."""
         s = self.get_status("shield")
         return s.absorb_pct if s else 0.0
+
+    def apply_mana_shield(self, dmg: int) -> int:
+        """Mage Mana Shield — 20 % dmg absorbuje MP. Vrátí dmg po absorpci."""
+        if self.cfg.cls != "mage" or self.mp <= 0:
+            return dmg
+        absorb = min(self.mp, int(dmg * 0.20))
+        self.mp = max(0, self.mp - absorb)
+        return max(1, dmg - absorb)
 
 
 # ── Pomocné funkce ─────────────────────────────────────────────────────────────
@@ -960,16 +985,16 @@ def _execute_t2_ability(
         ))
         log.append(txt)
 
-    # ── warrior: Poprava — 3× ATK pod 25% HP, jinak 1× ATK ─────────────────
+    # ── warrior: Poprava — 1.5× ATK pod 25% HP, jinak 1× ATK ───────────────
     elif key == "execute":
         hp_pct = defender.hp / defender.hp_max if defender.hp_max > 0 else 1.0
-        mult = 3.0 if hp_pct < 0.25 else 1.0
+        mult = 2.0 if hp_pct < 0.25 else 1.4
         dmg = _calc_damage(attacker, defender, dmg_override=attacker.effective_dmg() * mult)
         dmg = _apply_shield_absorb(defender, dmg)
         if defender.dmg_reduction_pct > 0:
             dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
         defender.hp = max(0, defender.hp - dmg)
-        note = " ☠ POPRAVA!" if mult == 3.0 else ""
+        note = " ☠ POPRAVA!" if mult == 2.0 else ""
         txt = (f"  ⚰ {aname}: Poprava!{note} → {dmg} dmg  [{dname} HP: {defender.hp}]")
         events.append(CombatEvent(
             type="t2_attack", round=round_num,
@@ -983,15 +1008,18 @@ def _execute_t2_ability(
     # ── mage: Arkánná Bouře — 3 kouzla × 60% ATK, ignorují brnění ───────────
     elif key == "arcane_storm":
         total = 0
-        for _ in range(3):
+        for _ in range(2):
             h = _calc_damage(attacker, defender,
-                             dmg_override=attacker.effective_dmg() * 0.60,
+                             dmg_override=attacker.effective_dmg() * 0.50,
                              ignore_armor=True)
             if attacker.ability_dmg_bonus_pct > 0:
                 h = max(1, int(h * (1.0 + attacker.ability_dmg_bonus_pct)))
+            # Guardian magic resist — -20 % dmg od mágů
+            if defender.cfg.subclass == "guardian":
+                h = max(1, int(h * 0.80))
             defender.hp = max(0, defender.hp - h)
             total += h
-        txt = f"  ⚡ {aname}: Arkánná Bouře! 3 kouzla → {total} dmg (pierce)  [{dname} HP: {defender.hp}]"
+        txt = f"  ⚡ {aname}: Arkánná Bouře! 2 kouzla → {total} dmg (pierce)  [{dname} HP: {defender.hp}]"
         events.append(CombatEvent(
             type="t2_attack", round=round_num,
             actor=aname, target=dname, damage=total,
@@ -1045,18 +1073,16 @@ def _execute_t2_ability(
         ))
         log.append(txt)
 
-    # ── ranger: Déšť Šípů — 4 šípy × 40% ATK + bleed ───────────────────────
+    # ── ranger: Déšť Šípů — 3 šípy × 40% ATK + bleed (respektuje armor) ─────
     elif key == "rain_of_arrows":
         total = 0
-        for _ in range(4):
-            h = max(1, int(attacker.effective_atk() * 0.40))
-            h = _apply_shield_absorb(defender, h)
-            if defender.dmg_reduction_pct > 0:
-                h = max(1, int(h * (1.0 - defender.dmg_reduction_pct)))
+        for _ in range(3):
+            h = _calc_damage(attacker, defender,
+                             dmg_override=attacker.effective_dmg() * 0.40)
             defender.hp = max(0, defender.hp - h)
             total += h
         defender.add_status("bleed", hp_max=defender.hp_max, atk=attacker.effective_atk())
-        txt = (f"  🏹 {aname}: Déšť Šípů! 4 šípy → {total} dmg + krvácení  "
+        txt = (f"  🏹 {aname}: Déšť Šípů! 3 šípy → {total} dmg + krvácení  "
                f"[{dname} HP: {defender.hp}]")
         events.append(CombatEvent(
             type="t2_attack", round=round_num,
@@ -1119,13 +1145,14 @@ def _warrior_berserker_burst(
     events: list,
     log: list,
 ) -> None:
-    """F.1 — Warrior Berserker Burst: double damage na příštím útoku + stun na nepřítele.
+    """F.1 — Warrior Berserker Burst: 1.5× damage na příštím útoku + stun na nepřítele.
     Volá se když rage >= 100 na začátku útočníkova kola. Resetuje rage na 0.
-    Implementováno jako přímý double-damage útok (bez dodge check — burst probíjí)."""
+    Implementováno jako přímý 1.5× damage útok (bez dodge check — burst probíjí)."""
     attacker.rage = 0
-    # Double damage útok (ignoruje dodge, neprobíhá ability check)
-    dmg = _calc_damage(attacker, defender, dmg_override=attacker.effective_dmg() * 2)
+    # 1.5× damage útok (ignoruje dodge, neprobíhá ability check)
+    dmg = _calc_damage(attacker, defender, dmg_override=attacker.effective_dmg() * 1.5)
     dmg = _apply_shield_absorb(defender, dmg)
+    dmg = defender.apply_mana_shield(dmg)
     if defender.dmg_reduction_pct > 0:
         dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
     defender.hp = max(0, defender.hp - dmg)
@@ -1209,7 +1236,7 @@ def _execute_attack(
     # ── 2. Subclass/Class ability ─────────────────────────────────────────────
     # Subclass ability má přednost před základní class ability
     ability = SUBCLASS_ABILITIES.get(a_sub or "") or (CLASS_ABILITIES.get(a_cls) if a_cls else None)
-    if ability:
+    if ability and random.random() < ABILITY_TRIGGER_PROB:
         ignore_pct = ability.get("def_ignore_pct", 0.0)
 
         # ── Multi-hit (Stínová Čepel) — speciální branch, vrátí early ────────
@@ -1263,8 +1290,11 @@ def _execute_attack(
 
         # ── Normal ability ────────────────────────────────────────────────────
         if ability["type"] == "guaranteed_crit":
+            # dmg_mult z ability def je aplikován jako override (garantovaný krit + dmg bonus)
             dmg = _calc_damage(attacker, defender,
-                                is_crit=True, ignore_armor=(ignore_pct >= 1.0))
+                                is_crit=True,
+                                dmg_override=attacker.effective_dmg() * ability.get("dmg_mult", 1.0),
+                                ignore_armor=(ignore_pct >= 1.0))
         else:
             dmg = _calc_damage(attacker, defender,
                                 dmg_override=attacker.effective_dmg() * ability["dmg_mult"],
@@ -1284,15 +1314,20 @@ def _execute_attack(
 
         # Štít absorpce
         dmg = _apply_shield_absorb(defender, dmg)
+        dmg = defender.apply_mana_shield(dmg)
 
         # Talent: Iron Skin — -20 % přijatého dmg
         if defender.dmg_reduction_pct > 0:
             dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
 
+        # Subclass: Guardian magic resist — -20 % dmg od mágů v ability
+        if ability.get("type") == "magic" and defender.cfg.subclass == "guardian":
+            dmg = max(1, int(dmg * 0.80))
+
         defender.hp = max(0, defender.hp - dmg)
         total_dmg = dmg
 
-        # Subclass: Berserkr recoil — útočník přijme 8 % způsobeného dmg
+        # Subclass: Berserker recoil — útočník přijme 3 % způsobeného dmg
         _recoil_pct = ability.get("self_dmg_pct", 0.0)
         if _recoil_pct > 0:
             _recoil = max(1, int(total_dmg * _recoil_pct))
@@ -1306,6 +1341,9 @@ def _execute_attack(
                 text=_rc_txt,
             ))
             log.append(_rc_txt)
+        # Subclass: Berserker lifesteal — 12 % způsobeného dmg jako heal
+        if ability.get("lifesteal_pct") and total_dmg > 0 and attacker.hp > 0:
+            attacker.hp = min(attacker.hp_max, attacker.hp + int(total_dmg * ability["lifesteal_pct"]))
 
         # Aplikuj status k obránci
         status_applied = ability.get("apply_status")
@@ -1400,30 +1438,6 @@ def _execute_attack(
             ))
             log.append(echo_txt)
 
-        # ── F.3 Mage: Spell Burn DoT (ability path) ──────────────────────────
-        if a_cls == "mage":
-            burn_dmg = calculate_spell_burn_damage(defender.hp_max)
-            existing_burn = defender.get_status("burn")
-            if existing_burn:
-                existing_burn.remaining_rounds = max(existing_burn.remaining_rounds, 3)
-                existing_burn.tick_value = max(existing_burn.tick_value, float(burn_dmg))
-            else:
-                defender.statuses.append(ActiveStatus(
-                    name="burn",
-                    remaining_rounds=3,
-                    tick_value=float(burn_dmg),
-                ))
-            burn_txt = f"  🔥 {a_name}: Kouzlo zapaluje {d_name}! ({burn_dmg} dmg/kolo po 3 kola)"
-            events.append(CombatEvent(
-                type="burn", round=round_num,
-                actor=a_name, target=d_name,
-                damage=burn_dmg,
-                actor_hp=attacker.hp, target_hp=defender.hp,
-                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-                text=burn_txt,
-            ))
-            log.append(burn_txt)
-
         return total_dmg
 
     # ── 3. Crit check ─────────────────────────────────────────────────────────
@@ -1458,6 +1472,38 @@ def _execute_attack(
     _effective_crit_chance = min(MAX_CRIT_CHANCE,
         _calc_crit_chance(attacker.luck, defender.level) + attacker.crit_bonus_pct + _fs_crit_bonus)
     is_crit = random.random() < _effective_crit_chance
+
+    # ── Berserker Enrage — jednou za boj při HP < 50 % ──────────────────────
+    if attacker.cfg.subclass == "berserker":
+        if not attacker.berserker_enraged and attacker.hp <= int(attacker.hp_max * 0.50):
+            attacker.berserker_enraged = True
+            attacker.dmg_mult += 0.20
+            txt = (f"  🔴 {attacker.cfg.name} ENRAGE! HP < 50% → DMG +20% permanentně!")
+            events.append(CombatEvent(
+                type=EVENT_ABILITY, round=round_num,
+                actor=attacker.cfg.name, target=attacker.cfg.name,
+                actor_hp=attacker.hp, target_hp=defender.hp,
+                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+                ability_name="Enrage", ability_emoji="🔴", text=txt,
+            ))
+            log.append(txt)
+
+    # ── Lich Dark Transformation — jednou za boj při HP < 50 % ───────────────
+    if attacker.cfg.cls == "mage" and attacker.cfg.subclass == "necromancer":
+        if not attacker.lich_transformed and attacker.hp <= int(attacker.hp_max * 0.50):
+            attacker.lich_transformed = True
+            attacker.dmg_mult *= 1.35
+            txt = (f"  ☠ {attacker.cfg.name} DARK TRANSFORMATION! "
+                   f"(HP < 50%) → DMG +35% permanentně!")
+            events.append(CombatEvent(
+                type=EVENT_ABILITY, round=round_num,
+                actor=attacker.cfg.name, target=attacker.cfg.name,
+                actor_hp=attacker.hp, target_hp=defender.hp,
+                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+                ability_name="Dark Transformation", ability_emoji="☠", text=txt,
+            ))
+            log.append(txt)
+
     dmg     = _calc_damage(attacker, defender, is_crit,
                            crit_mult=_crit_m)
     dmg = max(1, int(dmg * _hunters_mult))
@@ -1471,9 +1517,9 @@ def _execute_attack(
         _current_spell = _mage_next_spell_type(attacker)
         if attacker.last_spell_type is not None:
             if _current_spell != attacker.last_spell_type:
-                # Combo! +20% damage
-                dmg = max(1, int(dmg * 1.20))
-                _sc_txt = f"  🔥 Spell chain combo! +20% ({attacker.last_spell_type}→{_current_spell})"
+                # Combo! +12% damage
+                dmg = max(1, int(dmg * 1.12))
+                _sc_txt = f"  🔥 Spell chain combo! +12% ({attacker.last_spell_type}→{_current_spell})"
                 events.append(CombatEvent(
                     type=EVENT_ABILITY,
                     round=round_num,
@@ -1502,45 +1548,60 @@ def _execute_attack(
 
     # Štít absorpce
     dmg = _apply_shield_absorb(defender, dmg)
+    dmg = defender.apply_mana_shield(dmg)
 
     # Talent: Iron Skin — -20 % přijatého dmg
     if defender.dmg_reduction_pct > 0:
         dmg = max(1, int(dmg * (1.0 - defender.dmg_reduction_pct)))
 
+    # Subclass: Guardian magic resist — -20 % dmg od mágů
+    if a_cls == "mage" and defender.cfg.subclass == "guardian":
+        dmg = max(1, int(dmg * 0.80))
+
     defender.hp = max(0, defender.hp - dmg)
     total_dmg = dmg
+
+    # ── F.5 Necromancer: Life Drain — 8% způsobeného dmg jako heal ───────────
+    if dmg > 0 and attacker.life_drain_pct > 0 and attacker.hp > 0:
+        drain = max(1, int(dmg * attacker.life_drain_pct))
+        attacker.hp = min(attacker.hp_max, attacker.hp + drain)
 
     # ── F.1 Warrior: Rage gain při zasažení nepřítele (+15) ──────────────────
     if a_cls == "warrior":
         attacker.rage = min(100, attacker.rage + 15)
 
-    # ── F.1 Warrior: Rage gain pro obránce při přijatém zásahu (+25) ─────────
+    # ── F.1 Warrior: Rage gain pro obránce při přijatém zásahu (+20) ─────────
     if defender.cfg.cls == "warrior":
-        defender.rage = min(100, defender.rage + 25)
+        defender.rage = min(100, defender.rage + 20)
 
-    # ── F.3 Mage: Spell Burn DoT ─────────────────────────────────────────────
-    if a_cls == "mage":
-        burn_dmg = calculate_spell_burn_damage(defender.hp_max)
-        existing_burn = defender.get_status("burn")
-        if existing_burn:
-            existing_burn.remaining_rounds = max(existing_burn.remaining_rounds, 3)
-            existing_burn.tick_value = max(existing_burn.tick_value, float(burn_dmg))
-        else:
-            defender.statuses.append(ActiveStatus(
-                name="burn",
-                remaining_rounds=3,
-                tick_value=float(burn_dmg),
+    # ── F.4 Mage: Arcane Overload — každý 3. útok burst ──────────────────────
+    if a_cls == "mage" and defender.hp > 0:
+        attacker.spell_overload_count += 1
+        _overload_threshold = 2 if attacker.cfg.subclass == "elementalist" else 3
+        if attacker.spell_overload_count >= _overload_threshold:
+            attacker.spell_overload_count = 0
+            ol_dmg = _calc_damage(attacker, defender,
+                                  dmg_override=attacker.effective_dmg() * 1.2,
+                                  ignore_armor=True)
+            ol_dmg = defender.apply_mana_shield(ol_dmg)
+            ol_dmg = _apply_shield_absorb(defender, ol_dmg)
+            if defender.dmg_reduction_pct > 0:
+                ol_dmg = max(1, int(ol_dmg * (1.0 - defender.dmg_reduction_pct)))
+            # Guardian magic resist — -40 % dmg od mágů
+            if defender.cfg.subclass == "guardian":
+                ol_dmg = max(1, int(ol_dmg * 0.60))
+            defender.hp = max(0, defender.hp - ol_dmg)
+            txt = (f"  ✨ {attacker.cfg.name} ARCANE OVERLOAD! "
+                   f"→ {ol_dmg} dmg (armor ignore)  [{defender.cfg.name} HP: {defender.hp}]")
+            events.append(CombatEvent(
+                type=EVENT_ABILITY, round=round_num,
+                actor=attacker.cfg.name, target=defender.cfg.name,
+                damage=ol_dmg,
+                actor_hp=attacker.hp, target_hp=defender.hp,
+                actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
+                ability_name="Arcane Overload", ability_emoji="✨", text=txt,
             ))
-        txt = f"  🔥 {a_name}: Kouzlo zapaluje {d_name}! ({burn_dmg} dmg/kolo po 3 kola)"
-        events.append(CombatEvent(
-            type="burn", round=round_num,
-            actor=a_name, target=d_name,
-            damage=burn_dmg,
-            actor_hp=attacker.hp, target_hp=defender.hp,
-            actor_hp_max=attacker.hp_max, target_hp_max=defender.hp_max,
-            text=txt,
-        ))
-        log.append(txt)
+            log.append(txt)
 
     # ── 5. Crit efekt — aplikuj status pokud máš bonus ───────────────────────
     if is_crit:
@@ -1719,6 +1780,12 @@ def simulate_unified_combat(
         _process_status_ticks(attacker, defender, round_num, events, log)
         _process_status_ticks(defender, attacker, round_num, events, log)
 
+        # Guardian pasivní regen — +1% HP/kolo
+        for fighter in (attacker, defender):
+            if fighter.cfg.subclass == "guardian" and fighter.hp > 0:
+                regen_amt = max(1, int(fighter.hp_max * 0.005))
+                fighter.hp = min(fighter.hp_max, fighter.hp + regen_amt)
+
         if attacker.hp <= 0 or defender.hp <= 0:
             break
 
@@ -1741,52 +1808,56 @@ def simulate_unified_combat(
                 _warrior_berserker_burst(attacker, defender, round_num, events, log)
                 if defender.hp <= 0:
                     break
-            dmg = _execute_attack(attacker, defender, round_num, events, log)
-            total_dmg_by_attacker += dmg
-            if defender.hp <= 0:
-                _maybe_spirit_revenge(defender, attacker, round_num, events, log)
-                break
-            total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
-            if defender.hp <= 0:
-                break
+            else:
+                dmg = _execute_attack(attacker, defender, round_num, events, log)
+                total_dmg_by_attacker += dmg
+                if defender.hp <= 0:
+                    _maybe_spirit_revenge(defender, attacker, round_num, events, log)
+                    break
+                total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
+                if defender.hp <= 0:
+                    break
             # F.1 Warrior Berserker Burst pro obránce (pokud jde druhý)
             if defender.cfg.cls == "warrior" and defender.rage >= 100:
                 _warrior_berserker_burst(defender, attacker, round_num, events, log)
                 if attacker.hp <= 0:
                     break
-            _execute_attack(defender, attacker, round_num, events, log)
-            if attacker.hp <= 0:
-                _maybe_spirit_revenge(attacker, defender, round_num, events, log)
-                break
-            _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
-            if attacker.hp <= 0:
-                break
+            else:
+                _execute_attack(defender, attacker, round_num, events, log)
+                if attacker.hp <= 0:
+                    _maybe_spirit_revenge(attacker, defender, round_num, events, log)
+                    break
+                _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
+                if attacker.hp <= 0:
+                    break
         else:
             # F.1 Warrior Berserker Burst pro obránce (jde první v tomto pořadí)
             if defender.cfg.cls == "warrior" and defender.rage >= 100:
                 _warrior_berserker_burst(defender, attacker, round_num, events, log)
                 if attacker.hp <= 0:
                     break
-            _execute_attack(defender, attacker, round_num, events, log)
-            if attacker.hp <= 0:
-                _maybe_spirit_revenge(attacker, defender, round_num, events, log)
-                break
-            _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
-            if attacker.hp <= 0:
-                break
+            else:
+                _execute_attack(defender, attacker, round_num, events, log)
+                if attacker.hp <= 0:
+                    _maybe_spirit_revenge(attacker, defender, round_num, events, log)
+                    break
+                _ranger_chain_or_multi_attack(defender, attacker, round_num, events, log)
+                if attacker.hp <= 0:
+                    break
             # F.1 Warrior Berserker Burst pro útočníka (jde druhý v tomto pořadí)
             if attacker.cfg.cls == "warrior" and attacker.rage >= 100:
                 _warrior_berserker_burst(attacker, defender, round_num, events, log)
                 if defender.hp <= 0:
                     break
-            dmg = _execute_attack(attacker, defender, round_num, events, log)
-            total_dmg_by_attacker += dmg
-            if defender.hp <= 0:
-                _maybe_spirit_revenge(defender, attacker, round_num, events, log)
-                break
-            total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
-            if defender.hp <= 0:
-                break
+            else:
+                dmg = _execute_attack(attacker, defender, round_num, events, log)
+                total_dmg_by_attacker += dmg
+                if defender.hp <= 0:
+                    _maybe_spirit_revenge(defender, attacker, round_num, events, log)
+                    break
+                total_dmg_by_attacker += _ranger_chain_or_multi_attack(attacker, defender, round_num, events, log)
+                if defender.hp <= 0:
+                    break
 
         # ── T2 aktivní schopnost — každé 4. kolo ──────────────────────────
         if round_num % T2_COOLDOWN == 0:
@@ -1800,6 +1871,7 @@ def simulate_unified_combat(
                 break
 
     # ── Výsledek ──────────────────────────────────────────────────────────────
+    is_draw = False
     if defender.hp <= 0:
         attacker_won = True
         winner = "attacker"
@@ -1809,18 +1881,25 @@ def simulate_unified_combat(
         winner = "defender"
         log.append(f"\n💀 {attacker_cfg.name} byl poražen v kole {round_num}.")
     else:
-        # Timeout — kdo má více % HP
+        # Timeout — kdo má více % HP zbývajících; shodné HP% = remíza
         a_pct = attacker.hp / attacker.hp_max
         d_pct = defender.hp / defender.hp_max
-        attacker_won = a_pct >= d_pct
-        winner = "attacker" if attacker_won else "defender"
-        winner_name = attacker_cfg.name if attacker_won else defender_cfg.name
-        log.append(f"\n⏰ Čas vypršel! Vítěz: {winner_name}.")
+        HP_DRAW_THRESHOLD = 0.02  # rozdíl < 2% HP = remíza
+        if abs(a_pct - d_pct) < HP_DRAW_THRESHOLD:
+            is_draw = True
+            attacker_won = False
+            winner = "draw"
+            log.append(f"\n⏰ Čas vypršel! Remíza — oba bojovníci skončili s podobným HP.")
+        else:
+            attacker_won = a_pct > d_pct
+            winner = "attacker" if attacker_won else "defender"
+            winner_name = attacker_cfg.name if attacker_won else defender_cfg.name
+            log.append(f"\n⏰ Čas vypršel! Vítěz dle HP: {winner_name}.")
 
     events.append(CombatEvent(
         type=EVENT_COMBAT_END,
         round=round_num,
-        actor=attacker_cfg.name if attacker_won else defender_cfg.name,
+        actor=attacker_cfg.name if (attacker_won or is_draw) else defender_cfg.name,
         target="",
         actor_hp=attacker.hp,
         target_hp=defender.hp,
@@ -1839,6 +1918,7 @@ def simulate_unified_combat(
         attacker_hp_max=attacker.hp_max,
         defender_hp_max=defender.hp_max,
         attacker_won=attacker_won,
+        is_draw=is_draw,
         total_damage_dealt=total_dmg_by_attacker,
     )
 

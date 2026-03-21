@@ -92,6 +92,29 @@ async function renderEquip() {
     </div>`;
   };
 
+  // ── Kompaktní čtvercový slot pro oltářní layout ──────────────────────
+  const altarSlot = sk => {
+    const item = eq[sk];
+    const has = !!item;
+    const tmog = char.equipment_transmog?.[sk];
+    const hasTmog = !!tmog && !!item;
+    const rc = has ? (RARITY_COL[(hasTmog ? tmog : item)?.rarity] || '#9d9d9d') : 'rgba(150,95,20,.22)';
+    const icon = has ? (hasTmog ? tmog.icon : item.icon) : SLOT_ICONS[sk];
+    const name = has ? esc(hasTmog ? tmog.name : item.name) : '';
+    return `<div class="altar-slot altar-slot-${sk} ${has?'filled':''} ${hasTmog?'altar-slot-transmogged':''}"
+      style="--slot-rc:${rc}"
+      onclick="${has ? `openEquippedItemDetail('${sk}')` : ''}"
+      title="${has ? `${esc(item.name)} · Klikni pro detail` : `${SLOT_CZ[sk]} — prázdný`}">
+      <div class="altar-slot-frame">
+        <div class="altar-slot-icon">${icon}</div>
+        ${has ? `<div class="altar-rarity-pip" style="background:${rc}"></div>` : ''}
+        ${hasTmog ? `<div class="altar-tmog-pip" title="Transmog aktivní">🎨</div>` : ''}
+      </div>
+      <div class="altar-slot-type">${SLOT_CZ[sk]}</div>
+      ${has ? `<div class="altar-slot-name" style="color:${rc}">${name}</div>` : ''}
+    </div>`;
+  };
+
   const titleSelectorHtml = `
     <div class="title-selector">
       <div class="title-current" onclick="toggleTitlePicker()">
@@ -153,36 +176,59 @@ async function renderEquip() {
     : '';
 
   document.getElementById('equip-layout').innerHTML = `
-    <div class="equip-char-card">
-      <div class="equip-portrait-outer">
-        <div class="equip-portrait-inner">
-          <img id="equip-avatar-img" src="${getAvatarUrl(char.appearance, char.id)}" alt="Character Avatar" class="equip-portrait-img" style="max-width:100%;height:auto;">
-          <div id="equip-avatar-fallback" style="display:none;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#4ECDC4,#45B7D1);border-radius:8px;font-size:2.5rem;color:white">🧙</div>
-        </div>
-        <button class="equip-edit-appearance-btn" onclick="openAppearanceModal()" title="Upravit vzhled postavy">✏</button>
-      </div>
-      <div class="equip-char-info">
-        <div class="equip-char-name">${esc(char.name)}</div>
-        <div class="equip-char-lvl">Level ${char.level} · ${CLS_N[char.cls]}</div>
-        ${typeof getFactionBadgeHtml === 'function' ? getFactionBadgeHtml(char.faction, factionData?.reputation) : ''}
-        ${titleSelectorHtml}
-      </div>
-    </div>
-
     ${statPointsBanner}
 
-    <div class="equip-slots-grid">
-      ${SLOTS.map(slot).join('')}
-    </div>
+    <div class="equip-altar">
+      <!-- ── Oltářní 3 sloupce: sloty | portrét | sloty ── -->
+      <div class="altar-cols">
 
-    ${setBonusPanelHtml}
+        <!-- Levý sloupec: Přilba · Brnění · Rukavice -->
+        <div class="altar-col-slots altar-col-left">
+          ${altarSlot('helmet')}
+          ${altarSlot('armor')}
+          ${altarSlot('gloves')}
+        </div>
 
-    <div class="equip-actions">
-      ${repairAllBtn}
-      ${Object.keys(char.equipment_transmog || {}).length > 0
-        ? `<button class="equip-repair-btn" onclick="clearAllTransmogs()" style="background:rgba(147,51,234,.12);border-color:rgba(147,51,234,.4);color:#c084fc">🎨 Zrušit všechny transmoogy</button>`
-        : ''}
-    </div>`;
+        <!-- Střed: Portrét + info -->
+        <div class="altar-col-center">
+          <div class="altar-portrait-zone">
+            <div class="altar-portrait-frame">
+              <img id="equip-avatar-img" src="${getAvatarUrl(char.appearance, char.id)}" alt="Character Avatar" class="altar-portrait-img">
+              <div id="equip-avatar-fallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:linear-gradient(135deg,#4ECDC4,#45B7D1);border-radius:4px;font-size:3rem;color:white;z-index:2">🧙</div>
+            </div>
+            <button class="altar-edit-btn" onclick="openAppearanceModal()" title="Upravit vzhled postavy">✏</button>
+          </div>
+          <div class="altar-char-info">
+            <div class="altar-char-name">${esc(char.name)}</div>
+            <div class="altar-char-lvl">Level ${char.level} · ${CLS_N[char.cls]}</div>
+            ${typeof getFactionBadgeHtml === 'function' ? getFactionBadgeHtml(char.faction, factionData?.reputation) : ''}
+            ${titleSelectorHtml}
+          </div>
+        </div>
+
+        <!-- Pravý sloupec: Amulet · Prsten · Boty -->
+        <div class="altar-col-slots altar-col-right">
+          ${altarSlot('amulet')}
+          ${altarSlot('ring')}
+          ${altarSlot('boots')}
+        </div>
+
+      </div><!-- /altar-cols -->
+
+      <!-- Zbraň — full width pod oltářem -->
+      <div class="altar-weapon-row">
+        ${slot({k:'weapon'})}
+      </div>
+
+      ${setBonusPanelHtml}
+
+      <div class="equip-actions">
+        ${repairAllBtn}
+        ${Object.keys(char.equipment_transmog || {}).length > 0
+          ? `<button class="equip-repair-btn" onclick="clearAllTransmogs()" style="background:rgba(147,51,234,.12);border-color:rgba(147,51,234,.4);color:#c084fc">🎨 Zrušit všechny transmoogy</button>`
+          : ''}
+      </div>
+    </div><!-- /equip-altar -->`;
 
   renderStatPanel();
   
@@ -229,12 +275,13 @@ function renderStatPanel() {
   // Klíč v eq_bonus: str/dex/int/end/luck — mapujeme z plného jména
   const EQ_KEY = { strength:'str', dexterity:'dex', intelligence:'int', endurance:'end', luck:'luck' };
 
+  // ATTR_SVG je globální konstanta definovaná v ui.js
   const ATTR_DEF = [
-    { key:'strength',     ico:'💪', lbl:'Síla',        col:'c-red',    tip:'Síla — hlavní útočný stat Warriora' },
-    { key:'dexterity',    ico:'🤸', lbl:'Obratnost',   col:'c-green',  tip:'Obratnost — hlavní útočný stat Rangera, first strike' },
-    { key:'intelligence', ico:'🧠', lbl:'Inteligence', col:'c-blue',   tip:'Inteligence — hlavní útočný stat Mága' },
-    { key:'endurance',    ico:'🛡', lbl:'Výdrž',       col:'c-gold',   tip:'Výdrž — určuje maximální HP' },
-    { key:'luck',         ico:'🍀', lbl:'Štěstí',      col:'c-purple', tip:'Štěstí — šance na kritický zásah' },
+    { key:'strength',     ico: ATTR_SVG.strength,     lbl:'Strength',     col:'c-red',    tip:'Warrior primary. ATK = weapon × (1 + STR/10) + DEX/2 + INT/2. Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
+    { key:'dexterity',    ico: ATTR_SVG.dexterity,    lbl:'Dexterity',    col:'c-green',  tip:'Ranger primary. ATK = weapon × (1 + DEX/10) + STR/2 + INT/2. Also determines SPD = soft_cap(DEX). Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
+    { key:'intelligence', ico: ATTR_SVG.intelligence, lbl:'Intelligence', col:'c-blue',   tip:'Mage primary. ATK = weapon × (1 + INT/10) + STR/2 + DEX/2. Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
+    { key:'endurance',    ico: ATTR_SVG.endurance,    lbl:'Endurance',    col:'c-gold',   tip:'HP = END × class_mult × (level + 1). Class mult: Warrior 4 | Ranger 3 | Mage 2' },
+    { key:'luck',         ico: ATTR_SVG.luck,         lbl:'Luck',         col:'c-purple', tip:'Crit chance = min(50%, LUCK / (enemy_level × 4)). Crit deals 175% damage.' },
   ];
 
   const sp = char.stat_points || 0;
@@ -252,9 +299,9 @@ function renderStatPanel() {
     const basePct = Math.round((base  / maxStatVal) * 100);
 
     const capWarn = total > 150
-      ? `<span class="sp-attr-cap-warn zone3" title="Těžké diminishing returns nad 150 bodů (30% efektivita)">⚠⚠</span>`
+      ? `<span class="sp-attr-cap-warn zone3" title="Heavy diminishing returns above 150 (30% efficiency)">⚠⚠</span>`
       : total > 50
-        ? `<span class="sp-attr-cap-warn" title="Diminishing returns nad 50 bodů (70% efektivita)">⚠</span>`
+        ? `<span class="sp-attr-cap-warn" title="Diminishing returns above 50 (70% efficiency)">⚠</span>`
         : '';
 
     return `<div class="sp-attr-card${isPrim ? ' primary-attr' : ''}" id="sp-attr-${a.key}" title="${a.tip}">
@@ -263,52 +310,85 @@ function renderStatPanel() {
         <span class="sp-attr-lbl">${a.lbl}${isPrim ? ' ★' : ''}</span>
         <span class="sp-attr-val ${a.col}">${total}</span>
         ${capWarn}
-        ${sp > 0 ? `<button class="stat-alloc-btn" onclick="allocStat('${a.key}', event)" title="Přidat 1 bod do ${a.lbl}">+</button>` : ''}
+        ${sp > 0 ? `<button class="stat-alloc-btn" onclick="allocStat('${a.key}', event)" title="Add 1 point to ${a.lbl}">+</button>` : ''}
       </div>
       <div class="sp-attr-bar-track">
         <div class="sp-attr-bar-base" style="width:${basePct}%"></div>
         ${eqBonus > 0 ? `<div class="sp-attr-bar-eq" style="width:${barPct}%;"></div>` : ''}
       </div>
       <div class="sp-bd">
-        <span class="sp-bd-base">Základ <strong>${base}</strong></span>
+        <span class="sp-bd-base">Base <strong>${base}</strong></span>
         ${eqBonus > 0 ? `<span class="sp-bd-eq">+${eqBonus} eq</span>` : ''}
       </div>
     </div>`;
   }).join('');
 
-  // ── Bojové statistiky ──
-  // crit_pct, crit_mult jsou odvozeny z atributů (luck)
-  const COMBAT_DEF = [
-    { ico:'💥',  lbl:'Krit. šance',   val: com.crit_pct,  eff: null, eqKey:null, col:'c-gold',  unit:'%', primary:false },
-    { ico:'💀',  lbl:'Krit. poškoz.', val: com.crit_mult, eff: null, eqKey:null, col:'c-gold',  unit:'%', primary:false },
-  ];
-
-  const mkCombatCard = c => {
-    const valStr  = c.val != null ? `${c.val}${c.unit}` : '—';
-    const eqBonus = c.eqKey ? (eq[c.eqKey] ?? 0) : null;
-    const base    = (c.eqKey && c.val != null) ? c.val - eqBonus : null;
-    const bdHtml  = eqBonus !== null
-      ? `<div class="sp-bd">
-           <span class="sp-bd-base">Základ <strong>${base}</strong></span>
-           ${eqBonus > 0 ? `<span class="sp-bd-eq">+${eqBonus} eq</span>` : ''}
-         </div>`
-      : `<div class="sp-bd"><span class="sp-bd-base" style="font-style:italic">z atributů</span></div>`;
-    const effHtml = (c.eff != null && c.eff < c.val)
-      ? `<div class="sp-bd-eff" title="Soft cap — diminishing returns nad 50/150 bodů">⚙ v boji: <strong>${c.eff}</strong></div>`
-      : '';
-    const cardCls = c.primary ? 'sp-combat-card sp-ccard-primary' : 'sp-combat-card sp-ccard-secondary';
-    return `<div class="${cardCls}">
-      <div class="sp-combat-top">
-        <span class="sp-combat-ico">${c.ico}</span>
-        <span class="sp-combat-lbl">${c.lbl}</span>
-      </div>
-      <span class="sp-combat-val ${c.col}">${valStr}</span>
-      ${bdHtml}${effHtml}
-    </div>`;
+  // ── Damage Range ──
+  const CLASS_WEAPON_BASE = { warrior: 8, ranger: 6, mage: 5 };
+  const SUBCLASS_DMG_MULT = {
+    berserker: 1.30, guardian: 0.90,
+    elementalist: 1.25, necromancer: 0.85,
+    sharpshooter: 1.20, shadowblade: 0.95,
+  };
+  const softCap = v => {
+    if (v <= 50)  return v;
+    if (v <= 150) return 50 + (v - 50)  * 0.7;
+    return 50 + 100 * 0.7 + (v - 150) * 0.3;
   };
 
-  document.getElementById('sp-combat').innerHTML =
-    `<div class="sp-cg-secondary">${COMBAT_DEF.map(mkCombatCard).join('')}</div>`;
+  const eqItems  = char.equipment || {};
+  const weaponDmg = eqItems.weapon?.bonuses?.atk || CLASS_WEAPON_BASE[char.cls] || 5;
+
+  // Sum eq stat bonuses ze všech slotů
+  let eqStr = 0, eqDex = 0, eqInt = 0;
+  for (const item of Object.values(eqItems)) {
+    if (!item?.bonuses) continue;
+    eqStr += item.bonuses.str || 0;
+    eqDex += item.bonuses.dex || 0;
+    eqInt += item.bonuses.int || 0;
+  }
+
+  const totStr = (char.strength     || 0) + eqStr;
+  const totDex = (char.dexterity    || 0) + eqDex;
+  const totInt = (char.intelligence || 0) + eqInt;
+
+  const scStr = softCap(totStr), scDex = softCap(totDex), scInt = softCap(totInt);
+  let primary, secA, secB;
+  if      (char.cls === 'warrior') { primary = scStr; secA = scDex; secB = scInt; }
+  else if (char.cls === 'ranger')  { primary = scDex; secA = scStr; secB = scInt; }
+  else                             { primary = scInt; secA = scStr; secB = scDex; }
+
+  const baseDmg = weaponDmg * (1 + primary / 10) + secA / 2 + secB / 2;
+
+  let dmgMult = SUBCLASS_DMG_MULT[char.subclass] || 1.0;
+  const talents = char.talents || [];
+  if (talents.includes('mana_surge')) dmgMult *= 1.15;
+
+  const minDmg = Math.floor(baseDmg * dmgMult * 0.85);
+  const maxDmg = Math.floor(baseDmg * dmgMult * 1.15);
+
+  const critMult = talents.includes('battle_rage') ? 2.0 : 1.75;
+  const critMin  = Math.floor(minDmg * critMult);
+  const critMax  = Math.floor(maxDmg * critMult);
+
+  const dmgTip = `Base: weapon(${weaponDmg}) × (1 + primary/10) + sec/2\nVariance: ±15%${char.subclass ? `\nSubclass: ×${SUBCLASS_DMG_MULT[char.subclass] || 1.0}` : ''}${talents.includes('mana_surge') ? '\nMana Surge: ×1.15' : ''}\nCrit (×${critMult}): ${critMin} – ${critMax}`;
+
+  document.getElementById('sp-combat').innerHTML = `
+    <div class="sp-dmg-card" title="${dmgTip}">
+      <div class="sp-dmg-label">
+        <svg class="sp-attr-svg" viewBox="0 0 16 16" fill="none">
+          <path d="M3 13L13 3M10 3h3v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="4.5" cy="11.5" r="1.5" fill="currentColor" opacity=".6"/>
+        </svg>
+        Damage
+      </div>
+      <div class="sp-dmg-range">
+        <span class="sp-dmg-min">${minDmg}</span>
+        <span class="sp-dmg-sep">–</span>
+        <span class="sp-dmg-max">${maxDmg}</span>
+      </div>
+      <div class="sp-dmg-crit">${ATTR_SVG.crit} Crit: ${critMin} – ${critMax}</div>
+    </div>`;
 
   // Vyčisti případný starý ability element
   const abilityEl = document.getElementById('sp-ability');

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Ring band outer ellipse -->
+  <ellipse cx="24" cy="32" rx="15" ry="9" fill="none" stroke="#7a6a5a" stroke-width="2"/>
+  <!-- Ring band inner (hole) -->
+  <ellipse cx="24" cy="32" rx="9" ry="5.5" fill="#0a0808" stroke="#5a4a3a" stroke-width="1"/>
+  <!-- Band side engravings -->
+  <path d="M10 30 Q14 28 18 30" stroke="#b89a6a" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+  <path d="M30 30 Q34 28 38 30" stroke="#b89a6a" stroke-width="0.9" stroke-linecap="round" opacity="0.6"/>
+  <!-- Setting prongs (4 claws) -->
+  <path d="M19 24 L17 18" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M29 24 L31 18" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M22 22 L21 16" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M26 22 L27 16" stroke="#b89a6a" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Gem setting box -->
+  <path d="M18 18 Q24 14 30 18 L30 26 Q24 30 18 26 Z" fill="#1a1412" stroke="#b89a6a" stroke-width="1.2"/>
+  <!-- Gem (octagonal cut) -->
+  <path d="M24 15 L27.5 17 L28 21 L24 24 L20 21 L20.5 17 Z" fill="#0f0808" stroke="#8a3a2a" stroke-width="0.9"/>
+  <!-- Gem facets - blood red -->
+  <path d="M24 15 L27 17.5 L26 21.5 L24 23 L22 21.5 L21 17.5 Z" fill="#7a2020" opacity="0.8"/>
+  <line x1="24" y1="15" x2="24" y2="23" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/>
+  <line x1="20.5" y1="17" x2="27.5" y2="17" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/>
+  <line x1="20" y1="21" x2="28" y2="21" stroke="#2a0808" stroke-width="0.5" opacity="0.6"/>
+  <!-- Gem highlight -->
+  <path d="M22.5 16 L23.5 17" stroke="#ffaa88" stroke-width="0.8" stroke-linecap="round" opacity="0.9"/>
+  <!-- Gothic band ornament (center top) -->
+  <path d="M21 24 Q24 26 27 24" stroke="#5a4a3a" stroke-width="0.7" opacity="0.7"/>
+</svg>
