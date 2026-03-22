@@ -106,6 +106,9 @@
           <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🗡️</span> Arena</button>
           <button class="nav-btn" id="nav-boss"     onclick="showBossPage()">        <span class="ni">💀</span> World Boss</button>
           <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">☠️</span> Dungeons</button>
+          <button id="nav-playtest" onclick="showPage('page-playtest'); initPlaytest();" class="nav-btn nav-playtest">
+            ⚗️ <span>Playtest</span>
+          </button>
           <button class="nav-btn" id="nav-build"    onclick="showPage('build')" style="display:none"><span class="ni">🏗</span> Bojový Build</button>
         </div>
       </div>
@@ -765,6 +768,18 @@
         </div>
       </div>
 
+      <!-- PLAYTEST PAGE -->
+      <div id="page-playtest" class="page">
+        <div class="pt-header">
+          <h2>⚗️ Playtest <span class="pt-beta-badge">BETA</span></h2>
+          <p class="pt-subtitle">Roguelite dungeon — experimentální systém</p>
+        </div>
+        <div id="pt-content">
+          <!-- renderováno přes playtest.js -->
+          <div class="pt-loading">Načítám...</div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -909,6 +924,7 @@
 <script src="/static/js/achievements.js" defer></script>
 <script src="/static/js/guild.js" defer></script>
 <script src="/static/js/dungeons.js?v=14" defer></script>
+<script src="js/playtest.js"></script>
 <script src="/static/js/attunement.js?v=2" defer></script>
 <script src="/static/js/professions.js" defer></script>
 <script src="/static/js/weekly.js" defer></script>
@@ -999,5 +1015,43 @@
     </p>
   </div>
 </div>
+
+<!-- PLAYTEST NODE MODAL -->
+<div class="overlay" id="modal-playtest-node">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <h3 id="pt-modal-title">Uzel</h3>
+      <button onclick="closeModal('modal-playtest-node')" class="modal-close">×</button>
+    </div>
+    <div class="modal-body pt-modal-body" id="pt-modal-body"></div>
+  </div>
+</div>
+
+<!-- PLAYTEST CONFIRM MODAL -->
+<div class="overlay" id="modal-playtest-confirm">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-body" style="text-align:center;padding:24px">
+      <p id="pt-confirm-text" style="margin-bottom:20px"></p>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button id="pt-confirm-ok" class="pt-enter-btn" style="width:auto;padding:10px 24px">Potvrdit</button>
+        <button id="pt-confirm-cancel" style="padding:10px 24px;background:transparent;color:var(--clr-muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;cursor:pointer">Zrušit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYTEST RELIC MODAL -->
+<div class="overlay" id="modal-playtest-relic">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3>Vyber Relic</h3>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--clr-muted);margin-bottom:16px">Jeden relic platí do konce runu.</p>
+      <div class="pt-relic-cards" id="pt-relic-cards"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
