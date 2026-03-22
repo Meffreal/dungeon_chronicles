@@ -1566,6 +1566,15 @@ def _execute_attack(
         drain = max(1, int(dmg * attacker.life_drain_pct))
         attacker.hp = min(attacker.hp_max, attacker.hp + drain)
 
+    # ── F.6 Vampiric Edge lifesteal (Playtest relic) ──────────────────────────
+    _sb = attacker.cfg.set_bonuses or {}
+    _vamp_lifesteal = _sb.get('vampiric_lifesteal', 0)
+    _vamp_chance = _sb.get('vampiric_chance', 0)
+    if _vamp_lifesteal and _vamp_chance and dmg > 0:
+        if random.random() < _vamp_chance:
+            heal = int(dmg * _vamp_lifesteal)
+            attacker.hp = min(attacker.hp + heal, attacker.hp_max)
+
     # ── F.1 Warrior: Rage gain při zasažení nepřítele (+15) ──────────────────
     if a_cls == "warrior":
         attacker.rage = min(100, attacker.rage + 15)
