@@ -35,6 +35,7 @@ from game.playtest_dungeon import (
 )
 from game.combat_engine import simulate_unified_combat, events_to_dict_list
 from game.loot import get_random_item_for_quest
+from routers.dungeon import _trigger_permadeath
 
 router = APIRouter(prefix="/playtest/dungeon", tags=["playtest"])
 
@@ -71,7 +72,7 @@ async def playtest_dungeon_list(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -129,7 +130,7 @@ async def playtest_status(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -159,7 +160,7 @@ async def playtest_enter(
         raise HTTPException(400, "Neznámý dungeon")
 
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -241,7 +242,7 @@ async def playtest_choose_node(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -424,7 +425,6 @@ async def playtest_choose_node(
         run.set_map(mdata)
 
         if char.is_hardcore:
-            from routers.dungeon import _trigger_permadeath
             permadeath_data = await _trigger_permadeath(
                 char, node.get("enemy_name", "Unknown"), run.dungeon_key, now, db
             )
@@ -459,7 +459,7 @@ async def playtest_choose_event(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -526,7 +526,7 @@ async def playtest_choose_relic(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -535,6 +535,7 @@ async def playtest_choose_relic(
         select(PlaytestRun).where(
             PlaytestRun.id == body.run_id,
             PlaytestRun.char_id == char.id,
+            PlaytestRun.status.in_(["active", "completed"]),
         )
     )).scalar_one_or_none()
     if not run:
@@ -607,7 +608,7 @@ async def playtest_shop_buy(
         raise HTTPException(400, "Neznámý item")
 
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -692,7 +693,7 @@ async def playtest_collect(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
@@ -787,7 +788,7 @@ async def playtest_abandon(
     db: AsyncSession = Depends(get_db),
 ):
     char = (await db.execute(
-        select(Character).where(Character.user_id == current_user.id)
+        select(Character).where(Character.user_id == current_user.id, Character.is_dead == False)
     )).scalar_one_or_none()
     if not char:
         raise HTTPException(404, "Postava nenalezena")
