@@ -32,3 +32,5 @@ from models.hall_of_fallen import HallOfFallen
 from models.bug_report import BugReport
 # Playtest dungeon systém
 from models.playtest_run import PlaytestRun
+# Dungeon boss systém
+from models.dungeon_boss import DungeonBossProgress
