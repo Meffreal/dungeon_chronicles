@@ -2214,6 +2214,10 @@
 .dng-art-name{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);letter-spacing:.5px;}
 .dng-art-diff-badge{position:absolute;top:10px;left:14px;}
 
+/* C) Boss progress bar in detail panel */
+.dng-boss-prog-wrap{margin-bottom:12px;}
+.dng-boss-prog-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--clr-muted);margin-bottom:5px;}
+
 /* C) Boss showcase panel */
 .dng-boss-panel{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:5px;border:1px solid;margin-bottom:12px;position:relative;overflow:hidden;}
 .dng-boss-icon{font-size:2.2rem;flex-shrink:0;filter:drop-shadow(0 0 8px rgba(255,80,80,.4));}
@@ -5660,9 +5664,15 @@
 .dng-map-node:hover{filter:drop-shadow(0 0 8px rgba(255,255,255,.3));}
 .dng-map-node.locked{cursor:pointer;filter:grayscale(.7);}
 
+/* Node ring wrapper (pro progress ring SVG mimo overflow:hidden) */
+.dng-map-node-ring-wrap{position:relative;width:72px;height:72px;flex-shrink:0;}
+.dng-node-progress-ring{position:absolute;top:-4px;left:-4px;width:calc(100% + 8px);height:calc(100% + 8px);pointer-events:none;z-index:3;}
+.dng-map-node.complete .dng-map-node-ring{border-color:#4caf50!important;box-shadow:0 0 18px rgba(76,175,80,.4);}
+
 /* Node ring */
 .dng-map-node-ring{width:72px;height:72px;border-radius:50%;border:2px solid;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;box-shadow:0 0 16px rgba(0,0,0,.6);}
 .dng-map-node:not(.locked):hover .dng-map-node-ring{transform:scale(1.12);box-shadow:0 0 28px var(--nc,#9b59b6),0 0 8px rgba(0,0,0,.8);}
+.dng-map-node:not(.locked):hover .dng-map-node-ring-wrap .dng-map-node-ring{transform:scale(1.12);}
 .dng-map-node-icon{font-size:2.1rem;position:relative;z-index:1;}
 
 /* Pulse animace */
@@ -5746,6 +5756,9 @@
 .bdc-complete   { color: #4caf50; }
 .bdc-lock       { color: #ff6b6b; }
 
+/* Boss list wrapper */
+.boss-list-wrapper { padding: 0 4px; }
+
 /* Boss list */
 .boss-list-header {
   display: flex;
@@ -5804,6 +5817,123 @@
 @media (max-width: 768px) {
   .boss-desc { display: none; }
 }
+
+/* ── Single Boss Encounter Card ──────────────────────────────────────────── */
+.boss-encounter-wrap { padding: 0 4px; }
+
+.boss-encounter-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.boss-zone-label { flex: 1; font-size: 1rem; font-weight: 600; }
+
+.boss-encounter-card {
+  background: linear-gradient(160deg, #1a0a2e 0%, #0d0d1a 60%, #12050a 100%);
+  border: 1px solid rgba(180, 60, 60, 0.4);
+  border-radius: 12px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(180, 40, 40, 0.15);
+}
+.boss-encounter-card.completed {
+  border-color: rgba(76, 175, 80, 0.5);
+  box-shadow: 0 4px 24px rgba(76, 175, 80, 0.15);
+}
+
+.bec-floor {
+  font-size: 0.75rem;
+  color: var(--clr-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.bec-milestone-badge {
+  display: inline-block;
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  color: gold;
+  font-size: 0.72rem;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+.bec-icon {
+  font-size: 3.5rem;
+  margin: 12px 0;
+  filter: drop-shadow(0 0 12px rgba(255, 80, 80, 0.5));
+}
+.bec-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 10px rgba(255, 80, 80, 0.4);
+}
+.bec-desc {
+  font-size: 0.82rem;
+  color: var(--clr-muted);
+  margin-bottom: 20px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.bec-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.bec-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.bec-stat-val { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.bec-stat-lbl { font-size: 0.65rem; color: var(--clr-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.bec-hp-bar-wrap { margin-bottom: 20px; }
+.bec-hp-label {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--clr-muted);
+  margin-bottom: 5px;
+}
+.bec-hp-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.bec-hp-fill { height: 100%; background: linear-gradient(90deg, #c0392b, #e74c3c); border-radius: 3px; }
+
+.bec-fight-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, #c0392b, #96281b);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+  margin-bottom: 10px;
+}
+.bec-fight-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.bec-fight-btn:active:not(:disabled) { transform: translateY(0); }
+.bec-fight-btn.disabled, .bec-fight-btn:disabled {
+  background: rgba(100,100,100,0.4);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.bec-mult-note { font-size: 0.72rem; color: rgba(255,255,255,0.3); }
 
 /* ── Dungeon tab switcher ──────────────────────────────────────────────────── */
 .dungeon-tabs {

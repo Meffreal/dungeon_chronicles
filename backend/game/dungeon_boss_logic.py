@@ -140,3 +140,17 @@ def check_dungeon_unlocked(
 def boss_cooldown_until(now: datetime) -> datetime:
     """Returns the cooldown_until datetime after a boss fight."""
     return now + timedelta(hours=BOSS_COOLDOWN_HOURS)
+
+
+def get_boss_stats_dict(dungeon_key: str, boss_num: int, char_level: int) -> dict:
+    """Returns computed combat stats for a boss (for display in UI)."""
+    min_level = DUNGEON_UNLOCK_CONDITIONS.get(dungeon_key, {}).get("min_level", 1)
+    base_lvl  = max(char_level, min_level)
+    mult      = boss_enemy_mult(boss_num)
+    return {
+        "hp":  int(60 * base_lvl * mult),
+        "atk": int(9  * base_lvl * mult),
+        "def": int(5  * base_lvl * mult),
+        "spd": int(int(7  * base_lvl * mult) * 0.8),
+        "mult": round(mult, 3),
+    }

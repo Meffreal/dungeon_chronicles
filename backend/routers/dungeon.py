@@ -51,6 +51,7 @@ from game.dungeon_boss_logic import (
     calc_boss_rewards,
     check_dungeon_unlocked,
     boss_cooldown_until,
+    get_boss_stats_dict,
     TOTAL_BOSSES,
 )
 from game.dungeon_boss_data import DUNGEON_BOSS_DEFINITIONS, DUNGEON_UNLOCK_CONDITIONS
@@ -983,16 +984,24 @@ async def boss_dungeon_list(
 
 
 @router.get("/boss/bosses/{dungeon_key}")
-async def list_dungeon_bosses(
+async def get_current_dungeon_boss(
     dungeon_key: str,
     user: User = Depends(get_current_user),
     db:   AsyncSession = Depends(get_db),
 ):
-    """Lists all 50 bosses for a dungeon with per-boss unlock/completion status."""
+    """Returns the current (next) boss to fight in this dungeon with computed stats."""
     char = await _get_char(user, db)
 
     if dungeon_key not in DUNGEON_DEFINITIONS:
         raise HTTPException(404, "Dungeon nenalezen.")
+
+    # Cooldown check
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    on_cooldown  = False
+    cd_remaining = 0
+    if char.dungeon_cooldown_until and char.dungeon_cooldown_until > now:
+        cd_remaining = int((char.dungeon_cooldown_until - now).total_seconds())
+        on_cooldown  = True
 
     prog_result = await db.execute(
         select(DungeonBossProgress).where(
@@ -1000,30 +1009,48 @@ async def list_dungeon_bosses(
             DungeonBossProgress.dungeon_key  == dungeon_key,
         )
     )
-    prog = prog_result.scalar_one_or_none()
+    prog    = prog_result.scalar_one_or_none()
     highest = prog.highest_boss_defeated if prog else 0
 
-    bosses = []
-    for boss_def in DUNGEON_BOSS_DEFINITIONS.get(dungeon_key, []):
-        num = boss_def["num"]
-        bosses.append({
-            "num":         num,
-            "name":        boss_def["name"],
-            "desc":        boss_def["desc"],
-            "enemy_mult":  round(0.5 + (num / 50) * 2.0, 3),
-            "is_milestone": is_milestone_boss(num),
-            "defeated":    num <= highest,
-            "is_next":     num == highest + 1,
-            "is_locked":   num > highest + 1,
-        })
+    ddef       = DUNGEON_DEFINITIONS[dungeon_key]
+    next_num   = highest + 1
+    completed  = highest >= TOTAL_BOSSES
 
-    ddef = DUNGEON_DEFINITIONS[dungeon_key]
+    if completed:
+        return {
+            "dungeon_key":    dungeon_key,
+            "dungeon_name":   ddef["name"],
+            "dungeon_emoji":  ddef.get("emoji", "⚔️"),
+            "highest_boss":   highest,
+            "total_bosses":   TOTAL_BOSSES,
+            "completed":      True,
+            "on_cooldown":    on_cooldown,
+            "cd_remaining":   cd_remaining,
+            "current_boss":   None,
+        }
+
+    boss_def = get_boss_def(dungeon_key, next_num)
+    if not boss_def:
+        raise HTTPException(500, f"Boss #{next_num} nenalezen v datech.")
+
+    stats = get_boss_stats_dict(dungeon_key, next_num, char.level)
+
     return {
         "dungeon_key":    dungeon_key,
         "dungeon_name":   ddef["name"],
         "dungeon_emoji":  ddef.get("emoji", "⚔️"),
         "highest_boss":   highest,
-        "bosses":         bosses,
+        "total_bosses":   TOTAL_BOSSES,
+        "completed":      False,
+        "on_cooldown":    on_cooldown,
+        "cd_remaining":   cd_remaining,
+        "current_boss": {
+            "num":          next_num,
+            "name":         boss_def["name"],
+            "desc":         boss_def["desc"],
+            "is_milestone": is_milestone_boss(next_num),
+            "stats":        stats,
+        },
     }
 
 
@@ -1172,14 +1199,30 @@ async def fight_dungeon_boss(
 
     else:
         permadeath_data = None
+        gold_lost       = 0
+
         if char.is_hardcore:
             permadeath_data = await _trigger_permadeath(
                 char, boss_def["name"], req.dungeon_key, now, db
             )
+        else:
+            # Non-HC penalty: lose 10% gold (min 1, max 50)
+            if char.gold > 0:
+                gold_lost   = max(1, min(char.gold // 10, 50))
+                char.gold  -= gold_lost
+                await log_gold(db, char, -gold_lost, GoldReason.DUNGEON_REWARD,
+                               {"reason": "boss_defeat", "boss": req.boss_num})
 
-        if prog:
-            prog.last_fight_at = now
-            prog.set_last_combat_log(combat.log, events_to_dict_list(combat.events))
+        if prog is None:
+            prog = DungeonBossProgress(
+                character_id=char.id,
+                dungeon_key=req.dungeon_key,
+                highest_boss_defeated=0,
+                total_kills=0,
+            )
+            db.add(prog)
+        prog.last_fight_at = now
+        prog.set_last_combat_log(combat.log, events_to_dict_list(combat.events))
 
         await db.commit()
 
@@ -1190,6 +1233,7 @@ async def fight_dungeon_boss(
             "combat_log":     combat.log,
             "events":         events_to_dict_list(combat.events),
             "permadeath":     permadeath_data,
+            "gold_lost":      gold_lost,
             "cooldown_until": char.dungeon_cooldown_until.isoformat(),
         }
 

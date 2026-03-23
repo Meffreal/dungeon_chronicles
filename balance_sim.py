@@ -1,13 +1,14 @@
 """
-Balance simulace pro Dungeon Chronicles — všechny subclass kombinace, level 30.
+Balance simulace pro Dungeon Chronicles — PvP + PvE (dungeon stages), level 30.
 Spustit z kořene projektu: python balance_sim.py
+
+Buildy jsou automaticky odvozeny z reálných herních dat (SEED_ITEMS, SEED_CLASS_ITEMS)
+přes game/sim_builds.py — změny itemů v seed.py se automaticky projeví.
 """
 
 import sys
 import os
 import io
-import random
-from collections import defaultdict
 
 # Force ASCII-safe stdout pro Windows terminaly
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
@@ -17,261 +18,364 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
 from game.combat_engine import CombatantConfig, simulate_unified_combat
 from game.combat_stats import CLASS_HP_MULT
+from game.sim_builds import get_benchmark_build, get_best_gear
 from models.subclass import SUBCLASS_DEFINITIONS
+from models.dungeon_run import DUNGEON_DEFINITIONS
 
-# ── Build konfigurace ──────────────────────────────────────────────────────────
-LEVEL = 30
-SIMS  = 300
+# ── Konfigurace ────────────────────────────────────────────────────────────────
+LEVEL    = 30
+SIMS     = 300
+# Tier vybavení pro benchmark: "common" | "uncommon" | "rare" | "epic" | "legendary"
+GEAR_TIER = "epic"
 
-CLASS_BUILDS = {
-    "warrior": {
-        "cls": "warrior",
-        "primary_stat":  60,
-        "secondary_a":   30,
-        "secondary_b":   20,
-        "weapon_dmg":    22,
-        "armor_value":   90,
-        "luck":          12,
-        "talents":       ["battle_rage", "fortitude"],
-        "talent_t2":     "execute",
-    },
-    "mage": {
-        "cls": "mage",
-        "primary_stat":  60,
-        "secondary_a":   20,
-        "secondary_b":   25,
-        "weapon_dmg":    18,
-        "armor_value":   45,
-        "luck":          15,
-        "talents":       ["arcane_focus", "mana_surge"],
-        "talent_t2":     "arcane_storm",
-    },
-    "ranger": {
-        "cls": "ranger",
-        "primary_stat":  60,
-        "secondary_a":   25,
-        "secondary_b":   20,
-        "weapon_dmg":    20,
-        "armor_value":   60,
-        "luck":          20,
-        "talents":       ["eagle_eye", "evasion"],
-        "talent_t2":     "rain_of_arrows",
-    },
+# ── Talenty (design choices — nezávislé na itemech) ───────────────────────────
+CLASS_TALENTS: dict[str, dict] = {
+    "warrior": {"talents": ["battle_rage", "fortitude", "iron_skin"], "talent_t2": "execute"},
+    "mage":    {"talents": ["arcane_focus", "mana_surge", "spell_echo"],  "talent_t2": "arcane_storm"},
+    "ranger":  {"talents": ["eagle_eye", "evasion", "hunters_mark"],      "talent_t2": "rain_of_arrows"},
 }
 
-# Dynamicky z models/subclass.py — vždy aktuální hodnoty
+# ── Benchmark builds (odvozeno z herních dat při startu) ──────────────────────
+_BENCHMARK: dict[str, dict] = {
+    cls: get_benchmark_build(cls, level=LEVEL, max_rarity=GEAR_TIER)
+    for cls in ("warrior", "mage", "ranger")
+}
+
+# Subclass lookup z models/subclass.py
 SUBCLASS_BASE_CLASS = {k: v["cls"] for k, v in SUBCLASS_DEFINITIONS.items()}
 SUBCLASS_MULTS      = {k: v.get("stat_mults", {}) for k, v in SUBCLASS_DEFINITIONS.items()}
 
+SUBCLASSES = ["berserker", "guardian", "elementalist", "necromancer", "sharpshooter", "shadowblade"]
+
+
+# ── Build helpers ──────────────────────────────────────────────────────────────
+
 def build_config(subclass_key: str, fighter_num: int) -> CombatantConfig:
-    """Sestaví CombatantConfig pro daný subclass na level 30."""
+    """Sestaví CombatantConfig pro daný subclass na level LEVEL."""
     base_cls = SUBCLASS_BASE_CLASS[subclass_key]
-    build    = CLASS_BUILDS[base_cls]
+    bench    = _BENCHMARK[base_cls]
+    talents  = CLASS_TALENTS[base_cls]
     mults    = SUBCLASS_MULTS.get(subclass_key, {})
 
-    hp_mult_class = CLASS_HP_MULT[base_cls]  # warrior=4, ranger=3, mage=3
+    hp_mult_class = CLASS_HP_MULT[base_cls]
     hp_mult_sub   = mults.get("hp_mult", 1.0)
-
-    # HP = class_hp_mult * level * 50 * subclass_hp_mult (zjednodušená verze)
     base_hp = int(hp_mult_class * LEVEL * 50 * hp_mult_sub)
 
     return CombatantConfig(
         name         = f"{subclass_key.capitalize()}_{fighter_num}",
         hp           = base_hp,
-        weapon_dmg   = build["weapon_dmg"],
-        armor_value  = int(build["armor_value"] * mults.get("armor_mult", 1.0)),
-        primary_stat = build["primary_stat"],
-        secondary_a  = build["secondary_a"],
-        secondary_b  = build["secondary_b"],
-        luck         = build["luck"],
+        weapon_dmg   = bench["weapon_dmg"],
+        armor_value  = int(bench["armor_value"] * mults.get("armor_mult", 1.0)),
+        primary_stat = bench["primary_stat"],
+        secondary_a  = bench["secondary_a"],
+        secondary_b  = bench["secondary_b"],
+        luck         = bench["luck"],
         level        = LEVEL,
         cls          = base_cls,
         subclass     = subclass_key,
-        talents      = build["talents"],
-        talent_t2    = build["talent_t2"],
+        talents      = talents["talents"],
+        talent_t2    = talents["talent_t2"],
         set_bonuses  = {},
     )
 
 
-def run_matchup(sc_a: str, sc_b: str, n: int = SIMS) -> dict:
-    """Spustí n soubojů pro daný matchup, vrátí statistiky."""
-    wins_a   = 0
-    wins_b   = 0
-    rounds_total = 0
-    timeouts     = 0
+def build_dungeon_enemy(stage_def: dict) -> CombatantConfig:
+    """Sestaví CombatantConfig pro dungeon nepřítele podle stage_def."""
+    mult    = stage_def["enemy_mult"]
+    is_boss = stage_def["type"] == "boss"
 
-    for i in range(n):
-        cfg_a = build_config(sc_a, 1)
-        cfg_b = build_config(sc_b, 2)
+    hp          = int(60 * LEVEL * mult)
+    weapon_dmg  = int(9  * LEVEL * mult)
+    armor_value = int(5  * LEVEL * mult)
 
-        result = simulate_unified_combat(cfg_a, cfg_b, seed=None)
+    return CombatantConfig(
+        name              = stage_def["enemy_name"],
+        hp                = hp,
+        weapon_dmg        = weapon_dmg,
+        armor_value       = armor_value,
+        primary_stat      = 0,
+        secondary_a       = 0,
+        secondary_b       = 0,
+        luck              = 5,
+        level             = LEVEL,
+        cls               = "warrior",
+        subclass          = "",
+        talents           = [],
+        talent_t2         = "",
+        set_bonuses       = {},
+        is_boss           = is_boss,
+        phases            = stage_def.get("phases", []),
+        special_abilities = stage_def.get("special_abilities", []),
+    )
 
+
+# ── Simulační funkce ───────────────────────────────────────────────────────────
+
+def run_pvp_matchup(sc_a: str, sc_b: str, n: int = SIMS) -> dict:
+    """Spustí n PvP soubojů, vrátí statistiky."""
+    wins_a = wins_b = rounds_total = timeouts = 0
+
+    for _ in range(n):
+        result = simulate_unified_combat(build_config(sc_a, 1), build_config(sc_b, 2), seed=None)
         rounds_total += result.rounds
         if result.rounds >= 30:
             timeouts += 1
-
         if result.attacker_won:
             wins_a += 1
         else:
             wins_b += 1
 
     return {
-        "wins_a":  wins_a,
-        "wins_b":  wins_b,
-        "pct_a":   wins_a / n * 100,
-        "pct_b":   wins_b / n * 100,
+        "wins_a": wins_a, "wins_b": wins_b,
+        "pct_a":  wins_a / n * 100, "pct_b": wins_b / n * 100,
         "avg_rounds": rounds_total / n,
         "timeout_pct": timeouts / n * 100,
     }
 
 
-def main():
-    subclasses = ["berserker", "guardian", "elementalist", "necromancer", "sharpshooter", "shadowblade"]
-    n = len(subclasses)
+def run_pve_matchup(sc: str, stage_def: dict, n: int = SIMS) -> dict:
+    """Spustí n PvE soubojů hráče vs dungeon stage, vrátí statistiky."""
+    wins = rounds_total = timeouts = 0
 
-    print(f"\n{'='*72}")
-    print(f" Dungeon Chronicles — Balance Simulace  |  Level {LEVEL}  |  {SIMS} soubojů/matchup")
-    print(f"{'='*72}\n")
+    for _ in range(n):
+        result = simulate_unified_combat(build_config(sc, 1), build_dungeon_enemy(stage_def), seed=None)
+        rounds_total += result.rounds
+        if result.rounds >= 30:
+            timeouts += 1
+        if result.attacker_won:
+            wins += 1
 
-    # Zobraz build parametry
-    print("BUILD PARAMETRY:")
-    for sc in subclasses:
-        base_cls = SUBCLASS_BASE_CLASS[sc]
-        build = CLASS_BUILDS[base_cls]
-        mults = SUBCLASS_MULTS.get(sc, {})
-        hp = int(CLASS_HP_MULT[base_cls] * LEVEL * 50 * mults.get("hp_mult", 1.0))
-        arm = int(build["armor_value"] * mults.get("armor_mult", 1.0))
-        print(f"  {sc:<14} ({base_cls:<8})  HP={hp:>5}  ARM={arm:>3}  T2={build['talent_t2']}")
+    return {
+        "wins": wins,
+        "pct":  wins / n * 100,
+        "avg_rounds": rounds_total / n,
+        "timeout_pct": timeouts / n * 100,
+    }
 
+
+# ── Výstupní sekce ─────────────────────────────────────────────────────────────
+
+def print_build_params():
+    print(f"BUILD PARAMETRY  (gear tier: {GEAR_TIER}, level {LEVEL})")
     print()
 
-    # Výsledná matice: results[a][b] = win% a vs b
+    # Gear breakdown per class
+    for cls in ("warrior", "mage", "ranger"):
+        bench = _BENCHMARK[cls]
+        gear  = get_best_gear(cls, max_level=LEVEL, max_rarity=GEAR_TIER)
+        print(f"  {cls.upper()}  weapon_dmg={bench['weapon_dmg']}  armor={bench['armor_value']}"
+              f"  primary={bench['primary_stat']}  sec_a={bench['secondary_a']}"
+              f"  sec_b={bench['secondary_b']}  luck={bench['luck']}")
+        for slot, item in gear["selected_items"].items():
+            print(f"    {slot:<8} {item}")
+        print()
+
+    # Subclass přehled s vypočtenými HP a armor
+    print("SUBCLASS PŘEHLED (HP + armor po subclass multech):")
+    for sc in SUBCLASSES:
+        base_cls = SUBCLASS_BASE_CLASS[sc]
+        bench    = _BENCHMARK[base_cls]
+        talents  = CLASS_TALENTS[base_cls]
+        mults    = SUBCLASS_MULTS.get(sc, {})
+        hp  = int(CLASS_HP_MULT[base_cls] * LEVEL * 50 * mults.get("hp_mult", 1.0))
+        arm = int(bench["armor_value"] * mults.get("armor_mult", 1.0))
+        t1  = ", ".join(talents["talents"])
+        print(f"  {sc:<14} ({base_cls:<8})  HP={hp:>5}  ARM={arm:>3}  [{t1}]  T2={talents['talent_t2']}")
+    print()
+
+
+def print_pvp_section():
+    print(f"\n{'='*76}")
+    print(f" PvP SIMULACE  |  Level {LEVEL}  |  {SIMS} soubojů/matchup")
+    print(f"{'='*76}")
+
+    # Výpočet matice
     results = {}
-    for sc_a in subclasses:
+    for sc_a in SUBCLASSES:
         results[sc_a] = {}
-        for sc_b in subclasses:
+        for sc_b in SUBCLASSES:
             if sc_a == sc_b:
                 results[sc_a][sc_b] = None
                 continue
-            # Spustit pouze jednou — výsledek druhé strany je 100 - pct_a
             if sc_b in results and sc_a in results[sc_b] and results[sc_b][sc_a] is not None:
                 inv = results[sc_b][sc_a]
                 results[sc_a][sc_b] = {
                     "wins_a": inv["wins_b"], "wins_b": inv["wins_a"],
-                    "pct_a": inv["pct_b"], "pct_b": inv["pct_a"],
+                    "pct_a": inv["pct_b"],  "pct_b":  inv["pct_a"],
                     "avg_rounds": inv["avg_rounds"],
                     "timeout_pct": inv["timeout_pct"],
                 }
                 continue
             print(f"  Simuluji {sc_a} vs {sc_b}...", end="", flush=True)
-            stats = run_matchup(sc_a, sc_b)
+            stats = run_pvp_matchup(sc_a, sc_b)
             results[sc_a][sc_b] = stats
             print(f"  {stats['pct_a']:.1f}% / {stats['pct_b']:.1f}%  (avg {stats['avg_rounds']:.1f}r, {stats['timeout_pct']:.0f}% TO)")
 
-    # ── WIN% MATICE ────────────────────────────────────────────────────────────
-    col_w = 13
-    header = f"{'Attacker ->':<14}" + "".join(f"{sc[:col_w]:>{col_w}}" for sc in subclasses)
+    # WIN% matice
+    col_w  = 13
+    header = f"{'Attacker ->':<14}" + "".join(f"{sc[:col_w]:>{col_w}}" for sc in SUBCLASSES)
     sep    = "-" * len(header)
 
-    print(f"\n{'='*72}")
-    print(" WIN% MATICE  (radek = utocnik, sloupec = obrance)")
-    print(f"{'='*72}")
+    print(f"\n WIN% MATICE  (radek = utocnik, sloupec = obrance)")
     print(header)
     print(sep)
 
-    for sc_a in subclasses:
+    for sc_a in SUBCLASSES:
         row = f"{sc_a:<14}"
-        for sc_b in subclasses:
+        for sc_b in SUBCLASSES:
             if sc_a == sc_b:
                 row += f"{'---':>{col_w}}"
             else:
                 pct = results[sc_a][sc_b]["pct_a"]
-                # Barevné kódování textové
-                if pct >= 65:
-                    marker = "**"
-                elif pct >= 55:
-                    marker = " +"
-                elif pct <= 35:
-                    marker = " -"
-                elif pct <= 45:
-                    marker = "  "
-                else:
-                    marker = "  "
+                marker = "**" if pct >= 65 else (" +" if pct >= 55 else (" -" if pct <= 45 else "  "))
                 row += f"{f'{pct:.1f}%{marker}':>{col_w}}"
         print(row)
 
     print(sep)
     print("  ** = dominantní (≥65%) | + = výhoda (55-64%) | - = nevýhoda (≤45%)")
 
-    # ── CELKOVÉ WIN% (průměr přes všechny matchupy) ───────────────────────────
-    print(f"\n{'='*72}")
-    print(" CELKOVÝ WIN% (průměr vs všech ostatních subclassů)")
-    print(f"{'='*72}")
-
+    # Celkový žebříček
+    print(f"\n CELKOVÝ WIN% (průměr vs všech ostatních)")
     overall = {}
-    for sc_a in subclasses:
-        wins_list = []
-        for sc_b in subclasses:
-            if sc_a == sc_b:
-                continue
-            wins_list.append(results[sc_a][sc_b]["pct_a"])
-        overall[sc_a] = sum(wins_list) / len(wins_list)
+    for sc_a in SUBCLASSES:
+        pcts = [results[sc_a][sc_b]["pct_a"] for sc_b in SUBCLASSES if sc_b != sc_a]
+        overall[sc_a] = sum(pcts) / len(pcts)
 
-    sorted_overall = sorted(overall.items(), key=lambda x: -x[1])
-    for rank, (sc, pct) in enumerate(sorted_overall, 1):
+    for rank, (sc, pct) in enumerate(sorted(overall.items(), key=lambda x: -x[1]), 1):
         bar = "#" * int(pct / 2)
         print(f"  {rank}. {sc:<14}  {pct:5.1f}%  {bar}")
 
-    # ── DETAILNÍ STATISTIKY ────────────────────────────────────────────────────
-    print(f"\n{'='*72}")
-    print(" DETAILNÍ STATISTIKY (průměrná délka + timeout %)")
-    print(f"{'='*72}")
-    print(f"  {'Matchup':<32}  {'Win%':>6}  {'Avg Rounds':>10}  {'Timeout%':>9}")
-    print(f"  {'-'*32}  {'-'*6}  {'-'*10}  {'-'*9}")
-
-    # Zajímavé matchupy — seřazené podle win% (nejextrémnější první)
-    matchup_list = []
-    for sc_a in subclasses:
-        for sc_b in subclasses:
-            if sc_a >= sc_b:
-                continue
-            r = results[sc_a][sc_b]
-            matchup_list.append((sc_a, sc_b, r["pct_a"], r["avg_rounds"], r["timeout_pct"]))
-
-    matchup_list.sort(key=lambda x: abs(x[2] - 50), reverse=True)
-
-    for sc_a, sc_b, pct_a, avg_r, to_pct in matchup_list:
-        pct_b = 100 - pct_a
-        balance = "IMBAL" if abs(pct_a - 50) >= 20 else ("SKEWED" if abs(pct_a - 50) >= 10 else "OK")
-        print(f"  {sc_a:<14} vs {sc_b:<14}  {pct_a:5.1f}%  {avg_r:>10.1f}  {to_pct:>8.0f}%  {balance}")
-
-    # ── BALANCE VAROVÁNÍ ──────────────────────────────────────────────────────
-    print(f"\n{'='*72}")
-    print(" BALANCE VAROVÁNÍ")
-    print(f"{'='*72}")
+    # Balance varování
+    print(f"\n BALANCE VAROVÁNÍ (PvP):")
     issues = []
-    for sc_a in subclasses:
-        for sc_b in subclasses:
+    seen = set()
+    for sc_a in SUBCLASSES:
+        for sc_b in SUBCLASSES:
             if sc_a == sc_b:
                 continue
             pct = results[sc_a][sc_b]["pct_a"]
             if pct >= 70:
-                issues.append(f"  KRITICKY OP: {sc_a} vs {sc_b} = {pct:.1f}%")
+                tag = f"  KRITICKY OP: {sc_a} vs {sc_b} = {pct:.1f}%"
             elif pct >= 60:
-                issues.append(f"  MÍRNĚ OP:    {sc_a} vs {sc_b} = {pct:.1f}%")
-
-    if issues:
-        # Deduplikace
-        seen = set()
-        for iss in issues:
-            key = iss.strip()
+                tag = f"  MIRNE OP:    {sc_a} vs {sc_b} = {pct:.1f}%"
+            else:
+                continue
+            key = tag.strip()
             if key not in seen:
                 seen.add(key)
-                print(iss)
-    else:
-        print("  Žádná kritická nerovnováha detekována.")
+                issues.append(tag)
 
-    print(f"\n{'='*72}\n")
+    if issues:
+        for iss in issues:
+            print(iss)
+    else:
+        print("  Zadna kriticka nerovnovaha detekována.")
+
+    return results
+
+
+def print_pve_section():
+    print(f"\n{'='*76}")
+    print(f" PvE SIMULACE — DUNGEONY  |  Level {LEVEL}  |  {SIMS} soubojů/stage")
+    print(f"{'='*76}")
+
+    dungeon_order = ["tomb_of_forgotten", "fiery_depths", "citadel_of_chaos"]
+
+    # Výpočet všech výsledků
+    all_results = {}
+    for dkey in dungeon_order:
+        ddef = DUNGEON_DEFINITIONS[dkey]
+        all_results[dkey] = {}
+        for stage in ddef["stages"]:
+            snum = stage["stage_num"]
+            is_boss = stage["type"] == "boss"
+            tag = f"[BOSS]" if is_boss else (f"[mini]" if stage["type"] == "miniboss" else "      ")
+            print(f"\n  {ddef['name']}  Stage {snum} {tag} — {stage['enemy_name']} (mult {stage['enemy_mult']:.2f})")
+            all_results[dkey][snum] = {}
+            for sc in SUBCLASSES:
+                stats = run_pve_matchup(sc, stage)
+                all_results[dkey][snum][sc] = stats
+                bar = "#" * int(stats["pct"] / 5)
+                print(f"    {sc:<14}  {stats['pct']:5.1f}%  {bar}")
+
+    # Souhrnné tabulky
+    print(f"\n{'='*76}")
+    print(" SOUHRN: WIN% PER SUBCLASS PER STAGE")
+    print(f"{'='*76}")
+
+    for dkey in dungeon_order:
+        ddef   = DUNGEON_DEFINITIONS[dkey]
+        stages = ddef["stages"]
+        print(f"\n  {ddef['emoji']}  {ddef['name'].upper()}  (min level {ddef['min_level']})")
+
+        col_w = 10
+        header = f"  {'Subclass':<14}" + "".join(
+            f"  {'S'+str(s['stage_num'])+'('+s['type'][:1].upper()+')':>{col_w}}"
+            for s in stages
+        ) + f"  {'Avg':>{col_w}}"
+        print(header)
+        print("  " + "-" * (len(header) - 2))
+
+        for sc in SUBCLASSES:
+            row  = f"  {sc:<14}"
+            pcts = []
+            for s in stages:
+                pct = all_results[dkey][s["stage_num"]][sc]["pct"]
+                pcts.append(pct)
+                marker = "!" if pct < 30 else ("+" if pct >= 70 else " ")
+                row += f"  {f'{pct:.0f}%{marker}':>{col_w}}"
+            avg = sum(pcts) / len(pcts)
+            row += f"  {f'{avg:.0f}%':>{col_w}}"
+            print(row)
+
+        print(f"  Legenda: + = snazy (≥70%) | ! = tezky (≤30%)")
+
+    # Boss-only highlight
+    print(f"\n{'='*76}")
+    print(" BOSS WIN% PREHLED (stage 5 kazdeho dungeonu)")
+    print(f"{'='*76}")
+    print(f"  {'Subclass':<14}" + "".join(f"  {DUNGEON_DEFINITIONS[d]['name'][:18]:>20}" for d in dungeon_order))
+    print("  " + "-" * 80)
+    for sc in SUBCLASSES:
+        row = f"  {sc:<14}"
+        for dkey in dungeon_order:
+            pct = all_results[dkey][5][sc]["pct"]
+            marker = "!" if pct < 20 else ("*" if pct >= 60 else " ")
+            row += f"  {f'{pct:.0f}%{marker}':>20}"
+        print(row)
+    print("  Legenda: * = zdrave (≥60%) | ! = kriticky tezke (≤20%)")
+
+    # PvE balance varování
+    print(f"\n BALANCE VAROVÁNÍ (PvE):")
+    boss_issues = []
+    for dkey in dungeon_order:
+        dname = DUNGEON_DEFINITIONS[dkey]["name"]
+        for sc in SUBCLASSES:
+            pct = all_results[dkey][5][sc]["pct"]
+            if pct < 15:
+                boss_issues.append(f"  NEPRUCHOZI BOSS: {sc} vs {dname} boss = {pct:.0f}%")
+            elif pct < 30:
+                boss_issues.append(f"  TEZKY BOSS:      {sc} vs {dname} boss = {pct:.0f}%")
+
+    if boss_issues:
+        for iss in boss_issues:
+            print(iss)
+    else:
+        print("  Vsechny subclassy maji ≥30% sanci na bossich.")
+
+
+# ── Main ───────────────────────────────────────────────────────────────────────
+
+def main():
+    print(f"\n{'='*76}")
+    print(f" Dungeon Chronicles — Balance Simulace  |  Level {LEVEL}  |  {SIMS} souboju/matchup")
+    print(f"{'='*76}\n")
+
+    print_build_params()
+    print_pvp_section()
+    print_pve_section()
+
+    print(f"\n{'='*76}\n")
 
 
 if __name__ == "__main__":
