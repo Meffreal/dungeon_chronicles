@@ -13,6 +13,28 @@ function showDungeonPage() {
   loadBossDungeonData();
 }
 
+function switchDungeonTab(tab) {
+  const bossContent    = document.getElementById('boss-dungeon-content');
+  const classicContent = document.getElementById('dungeon-content');
+  const bossTab        = document.getElementById('dtab-boss');
+  const classicTab     = document.getElementById('dtab-classic');
+  if (!bossContent || !classicContent) return;
+
+  if (tab === 'boss') {
+    bossContent.style.display    = '';
+    classicContent.style.display = 'none';
+    bossTab.classList.add('active');
+    classicTab.classList.remove('active');
+    loadBossDungeonData();
+  } else {
+    bossContent.style.display    = 'none';
+    classicContent.style.display = '';
+    bossTab.classList.remove('active');
+    classicTab.classList.add('active');
+    if (typeof loadDungeons === 'function') loadDungeons();
+  }
+}
+
 async function loadDungeonData() {
   try {
     const [listData, statusData] = await Promise.all([

@@ -5804,3 +5804,29 @@
 @media (max-width: 768px) {
   .boss-desc { display: none; }
 }
+
+/* ── Dungeon tab switcher ──────────────────────────────────────────────────── */
+.dungeon-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 0;
+}
+.dungeon-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--clr-muted);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.dungeon-tab:hover { color: var(--clr-text); }
+.dungeon-tab.active {
+  color: var(--clr-accent);
+  border-bottom-color: var(--clr-accent);
+}

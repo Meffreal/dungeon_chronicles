@@ -106,7 +106,7 @@
           <button class="nav-btn" id="nav-arena"    onclick="showPage('arena')">    <span class="ni">🗡️</span> Arena</button>
           <button class="nav-btn" id="nav-boss"     onclick="showBossPage()">        <span class="ni">💀</span> World Boss</button>
           <button class="nav-btn" id="nav-dungeons" onclick="showDungeonPage()">    <span class="ni">☠️</span> Dungeons</button>
-          <button id="nav-playtest" onclick="showPage('page-playtest'); initPlaytest();" class="nav-btn nav-playtest">
+          <button id="nav-playtest" onclick="showPage('playtest'); initPlaytest();" class="nav-btn nav-playtest" style="display:none">
             ⚗️ <span>Playtest</span>
           </button>
           <button class="nav-btn" id="nav-build"    onclick="showPage('build')" style="display:none"><span class="ni">🏗</span> Bojový Build</button>
@@ -647,12 +647,16 @@
           <div class="page-hdr-title">🏰 Dungeons</div>
           <div class="page-hdr-sub">Prozkoumej dungeons, poraz bosse, získej kořist</div>
         </div>
-        <div id="dungeon-content">
-          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
+        <div class="dungeon-tabs">
+          <button class="dungeon-tab active" id="dtab-boss" onclick="switchDungeonTab('boss')">⚔️ Boss Encounters</button>
+          <button class="dungeon-tab" id="dtab-classic" onclick="switchDungeonTab('classic')">🏰 Classic Dungeons</button>
         </div>
         <!-- Boss Dungeon System -->
         <div id="boss-dungeon-content" class="dungeon-section">
           <div class="empty-state">Načítání...</div>
+        </div>
+        <div id="dungeon-content" style="display:none">
+          <div style="color:var(--text2);font-style:italic;text-align:center;padding:40px">Načítám...</div>
         </div>
       </div>
 
@@ -928,7 +932,7 @@
 <script src="/static/js/achievements.js" defer></script>
 <script src="/static/js/guild.js" defer></script>
 <script src="/static/js/dungeons.js?v=14" defer></script>
-<script src="js/playtest.js"></script>
+<!-- <script src="/static/js/playtest.js" defer></script> -->
 <script src="/static/js/attunement.js?v=2" defer></script>
 <script src="/static/js/professions.js" defer></script>
 <script src="/static/js/weekly.js" defer></script>
