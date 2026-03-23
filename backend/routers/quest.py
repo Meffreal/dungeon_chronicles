@@ -20,7 +20,7 @@ from models.item import InventoryItem
 from models.attunement import QUEST_CHAIN_MAP, DUNGEON_QUEST_ATTUNEMENT, ATTUNEMENT_CHAINS
 from routers.world_event import add_world_event_contribution
 from game.combat_engine import (
-    CombatantConfig, simulate_unified_combat, calculate_win_chance, events_to_dict_list,
+    CombatantConfig, simulate_unified_combat, simulate_win_chance, events_to_dict_list,
 )
 from game.experiments import get_experiment_overrides, apply_overrides_to_engine, apply_overrides_to_router
 from game.loot import get_random_item_for_quest, get_dungeon_set_item
@@ -122,18 +122,12 @@ async def _ensure_slots(char, db: AsyncSession, disabled_ids: set) -> list:
     return sorted(slots, key=lambda s: s.slot_index)
 
 
-def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set) -> dict | None:
+def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set, player_cfg: CombatantConfig | None = None) -> dict | None:
     """Převede QuestSlot na quest dict pro frontend. Vrátí None pokud qdef nenalezen."""
     qdef = next((q for q in QUEST_DEFINITIONS if q[0] == slot.quest_def_id), None)
     if qdef is None:
         return None
     enemy = _quest_enemy_config(qdef, char.level)
-    player = CombatantConfig(
-        name=char.name, hp=char.hp_max,
-        weapon_dmg=char.strength * 2, armor_value=10,
-        primary_stat=0, secondary_a=0, secondary_b=0,
-        luck=char.luck, level=char.level, cls="",
-    )
     gold_scale = 1.0 + char.level * 0.1
     return {
         "id":              qdef[0],
@@ -146,7 +140,7 @@ def _slot_to_quest_dict(slot: QuestSlot, char, disabled_ids: set) -> dict | None
         "reward_gold_max": int(qdef[7] * gold_scale),
         "min_level":       qdef[8],
         "icon":            qdef[9],
-        "win_chance":      calculate_win_chance(player, enemy),
+        "win_chance":      simulate_win_chance(player_cfg, enemy) if player_cfg else 0.5,
         "chain_info":      None,
         "slot_index":      slot.slot_index,
         "free_skip":       slot.free_skip_available(),
@@ -201,6 +195,9 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
     from models.disabled_quest import get_disabled_quest_ids
     disabled_ids = await get_disabled_quest_ids(db)
 
+    # Plný config hráče pro simulaci win chance (zahrnuje equipment, talenty, set bonusy)
+    player_cfg = await build_combatant_config(char, db)
+
     # ── Chain questy (zachováno z původní logiky) ──────────────────────────────
     chain_quests = []
     for qdef in QUEST_DEFINITIONS:
@@ -210,12 +207,6 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
         if qid in disabled_ids or char.level < qdef[8]:
             continue
         enemy = _quest_enemy_config(qdef, char.level)
-        player = CombatantConfig(
-            name=char.name, hp=char.hp_max,
-            weapon_dmg=char.strength * 2, armor_value=10,
-            primary_stat=0, secondary_a=0, secondary_b=0,
-            luck=char.luck, level=char.level, cls="",
-        )
         ci    = QUEST_CHAIN_MAP[qid]
         chain = ci["chain"]
         cid   = str(chain["id"])
@@ -232,7 +223,7 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
             "reward_gold_max": int(qdef[7] * gold_scale),
             "min_level":       qdef[8],
             "icon":            qdef[9],
-            "win_chance":      calculate_win_chance(player, enemy),
+            "win_chance":      simulate_win_chance(player_cfg, enemy),
             "chain_info": {
                 "chain_id":   chain["id"],
                 "chain_name": chain["name"],
@@ -250,7 +241,7 @@ async def list_quests(user: User = Depends(get_current_user), db: AsyncSession =
     slots = await _ensure_slots(char, db, disabled_ids)
     slot_quests = []
     for slot in slots:
-        q = _slot_to_quest_dict(slot, char, disabled_ids)
+        q = _slot_to_quest_dict(slot, char, disabled_ids, player_cfg)
         if q:
             slot_quests.append(q)
 
@@ -760,19 +751,14 @@ async def get_daily_quests(
         await db.commit()
 
     quest_ids = json.loads(rotation.quest_ids)
+    player_cfg = await build_combatant_config(char, db)
     quests_out = []
     for qid in quest_ids:
         qdef = next((q for q in QUEST_DEFINITIONS if q[0] == qid), None)
         if not qdef:
             continue
         enemy = _quest_enemy_config(qdef, char.level)
-        player = CombatantConfig(
-            name=char.name, hp=char.hp_max,
-            weapon_dmg=char.strength * 2, armor_value=10,
-            primary_stat=0, secondary_a=0, secondary_b=0,
-            luck=char.luck, level=char.level, cls="",
-        )
-        win_chance = calculate_win_chance(player, enemy)
+        win_chance = simulate_win_chance(player_cfg, enemy)
         gold_scale = 1.0 + char.level * 0.1
         quests_out.append({
             "id":               qdef[0],

@@ -156,10 +156,10 @@ SUBCLASS_ABILITIES: dict[str, dict] = {
         "name": "Zuřivý Náraz", "emoji": "🔴", "mp_cost_pct": 0.20,
         "desc": "Drtivý úder probíjející brnění — útočník však přijme část způsobeného poškození.",
         "type": "armor_pierce",
-        "dmg_mult": 2.2, "def_ignore_pct": 0.80,
+        "dmg_mult": 2.0, "def_ignore_pct": 0.80,  # dmg_mult: 2.2 → 2.0 (-9%)
         "apply_status": None,
-        "self_dmg_pct": 0.03,   # berserk recoil: 3 % způsobeného dmg (sníženo z 0.08)
-        "lifesteal_pct": 0.12,  # 12 % způsobeného dmg jako heal
+        "self_dmg_pct": 0.036,  # berserk recoil: 3.6 % způsobeného dmg (bylo 3 %, +20%)
+        "lifesteal_pct": 0.10,  # 10 % způsobeného dmg jako heal (bylo 12 %, -17%)
     },
     "guardian": {
         "name": "Železná Pevnost", "emoji": "🛡️", "mp_cost_pct": 0.15,
@@ -168,13 +168,13 @@ SUBCLASS_ABILITIES: dict[str, dict] = {
         "dmg_mult": 1.6, "def_ignore_pct": 0.25,
         "apply_status": None,
         "apply_status_self": "shield",  # štít na sebe
-        "magic_resist_pct": 0.40,       # −40 % magic dmg od mágů
+        "magic_resist_pct": 0.34,       # −34 % magic dmg od mágů (bylo −40 %, -15%)
     },
     "elementalist": {
         "name": "Armageddon", "emoji": "☄️", "mp_cost_pct": 0.40,
         "desc": "Kombinace živlů decimuje nepřítele. Způsobuje hoření.",
         "type": "magic",
-        "dmg_mult": 1.6, "def_ignore_pct": 0.35,
+        "dmg_mult": 1.8, "def_ignore_pct": 0.40,  # dmg_mult: 1.6→1.8 (+13%), def_ignore: 0.35→0.40 (+14%)
         "apply_status": "burn",
         "extra_statuses": [],
     },
@@ -1993,3 +1993,15 @@ def calculate_win_chance(attacker: CombatantConfig, defender: CombatantConfig) -
     d_pow = power(defender)
     ratio = a_pow / max(1.0, a_pow + d_pow)
     return round(min(0.97, max(0.03, ratio)), 2)
+
+
+def simulate_win_chance(attacker: CombatantConfig, defender: CombatantConfig, runs: int = 25) -> float:
+    """
+    Skutečná win chance na základě simulace combatu.
+    Spustí 'runs' bojů a vrátí podíl výher útočníka.
+    """
+    wins = sum(
+        1 for _ in range(runs)
+        if simulate_unified_combat(attacker, defender).attacker_won
+    )
+    return round(wins / runs, 2)

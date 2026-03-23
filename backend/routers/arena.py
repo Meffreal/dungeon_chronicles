@@ -15,7 +15,7 @@ from models.character import Character, xp_to_next
 from models.arena import ArenaMatch, Season, SeasonResult
 from models.economy import log_gold, GoldReason
 from models.notification import Notification, NotifType
-from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list, calculate_win_chance
+from game.combat_engine import CombatantConfig, simulate_unified_combat, events_to_dict_list, simulate_win_chance
 from game.experiments import get_experiment_overrides, apply_overrides_to_engine, apply_overrides_to_router
 from game.achievements import check_and_award
 from game.combatant_builder import build_combatant_config
@@ -116,7 +116,7 @@ async def get_opponents(
     opp_cfgs: dict[int, float] = {}
     for o in opponents:
         opp_cfg = await build_combatant_config(o, db)
-        opp_cfgs[o.id] = calculate_win_chance(my_cfg, opp_cfg)
+        opp_cfgs[o.id] = simulate_win_chance(my_cfg, opp_cfg)
 
     now = datetime.now(timezone.utc).replace(tzinfo=None)
     cd_until = char.arena_cooldown_until
