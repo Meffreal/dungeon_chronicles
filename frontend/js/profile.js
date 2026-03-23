@@ -144,14 +144,14 @@ function _renderProfileModal(data) {
 function _buildCompareSection(data) {
   if (typeof char === 'undefined' || !char) return '';
 
-  const my = char.combat || {};
+  const myCs = _computeCombatStats(char);
   const th = data.combat || {};
 
-  const myAtk = my.eff_atk || my.atk || 0;
-  const myDef = my.eff_def || my.def || 0;
-  const mySpd = my.eff_spd || my.spd || 0;
-  const myHp  = my.hp_max  || 0;
-  const myMp  = my.mp_max  || 0;
+  const myAtk = myCs.atk;
+  const myDef = myCs.def;
+  const mySpd = myCs.spd;
+  const myHp  = myCs.hp;
+  const myMp  = myCs.mp;
 
   const myArena = char.arena || {};
   const total   = (myArena.wins || 0) + (myArena.losses || 0);

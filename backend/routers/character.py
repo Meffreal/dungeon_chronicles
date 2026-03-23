@@ -1074,9 +1074,24 @@ async def get_public_profile(name: str, db: AsyncSession = Depends(get_db)):
         or char.crystal_portrait_frame
     )
 
-    # Effective combat stats
-    char_dict = char.to_dict()
-    combat = char_dict.get("combat", {})
+    # Effective combat stats — build from combatant config (accurate values)
+    from game.combatant_builder import build_combatant_config
+    from game.combat_stats import calc_damage_components, soft_cap_stat
+    from models.subclass import SUBCLASS_DEFINITIONS
+
+    cfg = await build_combatant_config(char, db)
+    if cfg.cls == "warrior":
+        _str, _dex, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+    elif cfg.cls == "ranger":
+        _dex, _str, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+    elif cfg.cls == "mage":
+        _int, _str, _dex = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+    else:
+        _str, _dex, _int = cfg.primary_stat, cfg.secondary_a, cfg.secondary_b
+    base_dmg, _, _ = calc_damage_components(cfg.cls or "", str_=_str, dex=_dex, int_=_int, weapon_dmg=cfg.weapon_dmg)
+    _sub_mults = SUBCLASS_DEFINITIONS.get(cfg.subclass or "", {}).get("stat_mults", {})
+    dmg_mult   = _sub_mults.get("dmg_mult",   1.0)
+    armor_mult = _sub_mults.get("armor_mult", 1.0)
 
     total_games = char.arena_wins + char.arena_losses
     win_rate = round(char.arena_wins / total_games * 100) if total_games > 0 else 0
@@ -1101,10 +1116,10 @@ async def get_public_profile(name: str, db: AsyncSession = Depends(get_db)):
         "last_matches":      matches_data,
         "achievement_count": achievement_count,
         "combat": {
-            "atk": combat.get("eff_atk", 0),
-            "def": combat.get("eff_def", 0),
-            "spd": combat.get("eff_spd", 0),
-            "hp":  combat.get("hp_max",  char.hp_max),
-            "mp":  combat.get("mp_max",  0),
+            "atk": round(base_dmg * dmg_mult),
+            "def": round(cfg.armor_value * armor_mult),
+            "spd": int(soft_cap_stat(_dex)),
+            "hp":  char.hp_max,
+            "mp":  0,
         },
     }

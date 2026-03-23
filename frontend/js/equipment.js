@@ -264,7 +264,7 @@ function renderStatPanel() {
     { key:'strength',     ico: ATTR_SVG.strength,     lbl:'Strength',     col:'c-red',    tip:'Warrior primary. ATK = weapon × (1 + STR/10) + DEX/2 + INT/2. Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
     { key:'dexterity',    ico: ATTR_SVG.dexterity,    lbl:'Dexterity',    col:'c-green',  tip:'Ranger primary. ATK = weapon × (1 + DEX/10) + STR/2 + INT/2. Also determines SPD = soft_cap(DEX). Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
     { key:'intelligence', ico: ATTR_SVG.intelligence, lbl:'Intelligence', col:'c-blue',   tip:'Mage primary. ATK = weapon × (1 + INT/10) + STR/2 + DEX/2. Soft cap: 0–50 100% | 51–150 70% | 151+ 30%' },
-    { key:'endurance',    ico: ATTR_SVG.endurance,    lbl:'Endurance',    col:'c-gold',   tip:'HP = END × class_mult × (level + 1). Class mult: Warrior 4 | Ranger 3 | Mage 2' },
+    { key:'endurance',    ico: ATTR_SVG.endurance,    lbl:'Endurance',    col:'c-gold',   tip:'HP = END × class_mult × (level + 1). Class mult: Warrior 5 | Ranger 4 | Mage 2' },
     { key:'luck',         ico: ATTR_SVG.luck,         lbl:'Luck',         col:'c-purple', tip:'Crit chance = min(50%, LUCK / (enemy_level × 4)). Crit deals 175% damage.' },
   ];
 
@@ -310,9 +310,9 @@ function renderStatPanel() {
   // ── Damage Range ──
   const CLASS_WEAPON_BASE = { warrior: 8, ranger: 6, mage: 5 };
   const SUBCLASS_DMG_MULT = {
-    berserker: 1.30, guardian: 0.90,
-    elementalist: 1.25, necromancer: 0.85,
-    sharpshooter: 1.20, shadowblade: 0.95,
+    berserker: 1.10, guardian: 0.95,
+    elementalist: 1.15, necromancer: 1.00,
+    sharpshooter: 1.10, shadowblade: 1.12,
   };
   const softCap = v => {
     if (v <= 50)  return v;
@@ -332,9 +332,9 @@ function renderStatPanel() {
     eqInt += item.bonuses.int || 0;
   }
 
-  const totStr = (char.strength     || 0) + eqStr;
-  const totDex = (char.dexterity    || 0) + eqDex;
-  const totInt = (char.intelligence || 0) + eqInt;
+  const totStr = (char.stats?.strength     ?? 0) + eqStr;
+  const totDex = (char.stats?.dexterity    ?? 0) + eqDex;
+  const totInt = (char.stats?.intelligence ?? 0) + eqInt;
 
   const scStr = softCap(totStr), scDex = softCap(totDex), scInt = softCap(totInt);
   let primary, secA, secB;

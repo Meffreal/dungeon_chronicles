@@ -39,6 +39,40 @@ const BUILD_RADAR_AXES = [
   { key:'def',  lbl:'DEF',  max:160 },
 ];
 
+// ── Combat stat výpočet (mirror backend logiky) ────────────────────────────
+function _computeCombatStats(c) {
+  const eq    = c.stats_breakdown?.eq_bonus ?? {};
+  const stats = c.stats ?? {};
+  const eqItems = c.equipment || {};
+  const sc = v => v <= 50 ? v : v <= 150 ? 50 + (v - 50) * 0.7 : 120 + (v - 150) * 0.3;
+
+  const totStr  = (stats.strength     ?? 0) + (eq.str  ?? 0);
+  const totDex  = (stats.dexterity    ?? 0) + (eq.dex  ?? 0);
+  const totInt  = (stats.intelligence ?? 0) + (eq.int  ?? 0);
+  const totLuck = (stats.luck         ?? 0) + (eq.luck ?? 0);
+
+  const WPN_BASE = { warrior: 8, ranger: 6, mage: 5 };
+  const weaponDmg = eqItems.weapon?.bonuses?.atk || WPN_BASE[c.cls] || 5;
+
+  let prim, secA, secB;
+  if (c.cls === 'warrior')     { prim = sc(totStr); secA = sc(totDex) / 2; secB = sc(totInt) / 2; }
+  else if (c.cls === 'ranger') { prim = sc(totDex); secA = sc(totStr) / 2; secB = sc(totInt) / 2; }
+  else                         { prim = sc(totInt); secA = sc(totStr) / 2; secB = sc(totDex) / 2; }
+
+  const SUB_MULT = { berserker:1.10, guardian:0.95, elementalist:1.15, necromancer:1.00, sharpshooter:1.10, shadowblade:1.12 };
+  const talents = c.talents || [];
+  const dmgMult = (SUB_MULT[c.subclass] || 1.0) * (talents.includes('mana_surge') ? 1.15 : 1.0);
+
+  const atk  = Math.round((weaponDmg * (1 + prim / 10) + secA + secB) * dmgMult);
+  const def  = Object.entries(eqItems).filter(([s]) => s !== 'weapon').reduce((sum, [, item]) => sum + (item?.bonuses?.def || 0), 0);
+  const spd  = Math.round(sc(totDex));
+  const hp   = c.combat?.hp_max ?? 0;
+  const mp   = c.cls === 'mage' ? Math.round(hp * 0.30) : 0;
+  const luck = totLuck;
+
+  return { atk, def, spd, hp, mp, luck };
+}
+
 // ── Hlavní load ────────────────────────────────────────────────────────────
 async function loadBuild() {
   const root = document.getElementById('build-root');
@@ -60,12 +94,13 @@ function _renderBuild(modRes) {
   const sets    = c.set_bonuses || {};
   const mod     = modRes?.modifier || null;
 
+  const cs = _computeCombatStats(c);
   const radarStats = {
-    atk:  combat.eff_atk ?? combat.atk  ?? 0,
-    def:  combat.eff_def ?? combat.def  ?? 0,
-    spd:  combat.eff_spd ?? combat.spd  ?? 0,
-    mp:   combat.mp_max  ?? 0,
-    luck: combat.luck    ?? 0,
+    atk:  cs.atk,
+    def:  cs.def,
+    spd:  cs.spd,
+    mp:   cs.mp,
+    luck: cs.luck,
   };
 
   root.innerHTML = `
@@ -91,7 +126,7 @@ function _renderBuild(modRes) {
 
     <div class="build-section">
       <div class="build-sec-title">⚡ Efektivní statistiky v souboji</div>
-      ${_bEffStats(combat)}
+      ${_bEffStats(cs)}
     </div>
 
     ${Object.keys(sets).length ? `<div class="build-section">${_bSetBonuses(sets)}</div>` : ''}
@@ -152,23 +187,19 @@ function _bTalentTree(cls, level, unlocked) {
 }
 
 // ── Efektivní statistiky ───────────────────────────────────────────────────
-function _bEffStats(combat) {
+function _bEffStats(cs) {
   const rows = [
-    { ico:'⚔',  lbl:'Útok (ATK)',    raw: combat.atk    ?? 0, eff: combat.eff_atk ?? combat.atk ?? 0 },
-    { ico:'🛡',  lbl:'Obrana (DEF)',  raw: combat.def    ?? 0, eff: combat.eff_def ?? combat.def ?? 0 },
-    { ico:'💨',  lbl:'Rychlost (SPD)',raw: combat.spd    ?? 0, eff: combat.eff_spd ?? combat.spd ?? 0 },
-    { ico:'❤',   lbl:'Max HP',        raw: combat.hp_max ?? 0, eff: combat.hp_max  ?? 0 },
-    { ico:'🍀',  lbl:'Štěstí (LUCK)', raw: combat.luck   ?? 0, eff: combat.luck    ?? 0 },
+    { ico:'⚔',  lbl:'Útok (ATK)',    val: cs.atk  ?? 0 },
+    { ico:'🛡',  lbl:'Obrana (DEF)',  val: cs.def  ?? 0 },
+    { ico:'💨',  lbl:'Rychlost (SPD)',val: cs.spd  ?? 0 },
+    { ico:'❤',   lbl:'Max HP',        val: cs.hp   ?? 0 },
+    { ico:'🍀',  lbl:'Štěstí (LUCK)', val: cs.luck ?? 0 },
   ];
-  return `<div class="build-stats-grid">${rows.map(r => {
-    const capped = r.eff < r.raw;
-    return `<div class="build-stat-row">
+  return `<div class="build-stats-grid">${rows.map(r => `<div class="build-stat-row">
       <span class="bsr-ico">${r.ico}</span>
       <span class="bsr-lbl">${r.lbl}</span>
-      <span class="bsr-raw">${r.raw}</span>
-      ${capped ? `<span class="bsr-sep">→ cap:</span><span class="bsr-eff">${r.eff}</span>` : ''}
-    </div>`;
-  }).join('')}</div>`;
+      <span class="bsr-raw">${r.val}</span>
+    </div>`).join('')}</div>`;
 }
 
 // ── Set bonusy ─────────────────────────────────────────────────────────────
