@@ -257,6 +257,16 @@ SEED_CLASS_ITEMS = [
     ("Amulet arkanisty",         "amulet",  "epic",     "Amulet posilující magické schopnosti.",      "📿",  0,  5, 0, 18, 0,  0,0,12,0,0, 10, 415, "mage"),
 ]
 
+# Append dungeon-only items to SEED_CLASS_ITEMS
+try:
+    from game.dungeon_boss_data import DUNGEON_ONLY_ITEMS as _DUNG_ITEMS
+    for _dkey, _classes in _DUNG_ITEMS.items():
+        for _cls_items in _classes.values():
+            SEED_CLASS_ITEMS.extend(_cls_items)
+    del _DUNG_ITEMS, _dkey, _classes, _cls_items
+except ImportError:
+    pass  # Safe for environments where dungeon_boss_data hasn't been created yet
+
 
 async def seed():
     await init_db()
