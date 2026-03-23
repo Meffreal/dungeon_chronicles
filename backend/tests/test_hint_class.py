@@ -25,16 +25,18 @@ def test_item_hint_class_none_by_default():
 
 
 def test_seed_class_items_count():
-    assert len(SEED_CLASS_ITEMS) == 30
+    # 30 base items + 45 dungeon-only items (15 per class × 3 classes)
+    assert len(SEED_CLASS_ITEMS) == 75
 
 
 def test_seed_class_items_per_class():
     warriors = [i for i in SEED_CLASS_ITEMS if i[-1] == "warrior"]
     rangers  = [i for i in SEED_CLASS_ITEMS if i[-1] == "ranger"]
     mages    = [i for i in SEED_CLASS_ITEMS if i[-1] == "mage"]
-    assert len(warriors) == 10
-    assert len(rangers)  == 10
-    assert len(mages)    == 10
+    # 10 base + 15 dungeon-only per class
+    assert len(warriors) == 25
+    assert len(rangers)  == 25
+    assert len(mages)    == 25
 
 
 def test_seed_class_items_hint_class_values():
