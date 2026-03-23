@@ -58,6 +58,7 @@ from models.news            import GameNews                                     
 from models.balance_alert   import BalanceAlert                                  # noqa: F401
 from models.bug_report      import BugReport                                      # noqa: F401
 from models.playtest_run    import PlaytestRun                                    # noqa: F401
+from models.dungeon_boss    import DungeonBossProgress                            # noqa: F401
 
 from routers import auth, character, quest, inventory, market, arena, notifications, guild, achievements, admin, shop
 from routers import faction

@@ -10,6 +10,7 @@ let _dungeonModifier    = null;  // aktuální týdenní modifikátor
 
 function showDungeonPage() {
   showPage('dungeons');
+  loadBossDungeonData();
 }
 
 async function loadDungeonData() {
@@ -536,4 +537,181 @@ function _formatCd(seconds) {
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
+}
+
+// ── Boss Dungeon System ────────────────────────────────────────────────────────
+
+let _bossListData   = null;   // response from /dungeon/boss/list
+let _bossCdTimer    = null;   // interval for countdown
+
+async function loadBossDungeonData() {
+  try {
+    const data = await api('GET', '/dungeon/boss/list');
+    _bossListData = data;
+    renderBossDungeonList(data);
+  } catch (e) {
+    const c = document.getElementById('boss-dungeon-content');
+    if (c) c.innerHTML = `<div class="empty-state">⚠️ ${esc(e.message || 'Chyba načítání')}</div>`;
+  }
+}
+
+function renderBossDungeonList(data) {
+  const container = document.getElementById('boss-dungeon-content');
+  if (!container) return;
+
+  const { dungeons, on_cooldown, cd_remaining } = data;
+
+  let cdBanner = '';
+  if (on_cooldown && cd_remaining > 0) {
+    const h = Math.floor(cd_remaining / 3600);
+    const m = Math.floor((cd_remaining % 3600) / 60);
+    const s = cd_remaining % 60;
+    cdBanner = `
+      <div class="boss-cd-banner">
+        ⏳ Cooldown: <span id="boss-cd-countdown">${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s</span>
+      </div>`;
+    _startBossCdCountdown(cd_remaining);
+  }
+
+  const dungeonCards = dungeons.map(d => `
+    <div class="boss-dungeon-card ${d.is_unlocked ? '' : 'locked'}"
+         ${d.is_unlocked ? `onclick="openBossDungeon('${d.key}')"` : ''}>
+      <div class="bdc-header">
+        <span class="bdc-emoji">${esc(d.emoji)}</span>
+        <div class="bdc-info">
+          <h3 class="bdc-name">${esc(d.name)}</h3>
+          <p class="bdc-desc">${esc(d.description)}</p>
+        </div>
+      </div>
+      <div class="bdc-progress-bar">
+        <div class="bdc-progress-fill" style="width:${d.progress_pct}%"></div>
+      </div>
+      <div class="bdc-footer">
+        <span class="bdc-progress-text">${d.highest_boss}/${d.total_bosses} bosses</span>
+        ${d.is_unlocked
+          ? (d.next_boss_num
+              ? `<span class="bdc-next">Next: #${d.next_boss_num}</span>`
+              : `<span class="bdc-complete">✅ Complete</span>`)
+          : `<span class="bdc-lock">🔒 ${esc(d.lock_reason)}</span>`
+        }
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = cdBanner + `<div class="boss-dungeon-list">${dungeonCards}</div>`;
+}
+
+function _startBossCdCountdown(seconds) {
+  if (_bossCdTimer) clearInterval(_bossCdTimer);
+  let remaining = seconds;
+  _bossCdTimer = setInterval(() => {
+    remaining--;
+    const el = document.getElementById('boss-cd-countdown');
+    if (!el || remaining <= 0) {
+      clearInterval(_bossCdTimer);
+      if (remaining <= 0) loadBossDungeonData();
+      return;
+    }
+    const h = Math.floor(remaining / 3600);
+    const m = Math.floor((remaining % 3600) / 60);
+    const s = remaining % 60;
+    el.textContent = `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  }, 1000);
+}
+
+async function openBossDungeon(dungeonKey) {
+  try {
+    const c = document.getElementById('boss-dungeon-content');
+    if (c) c.innerHTML = '<div class="empty-state">Načítání...</div>';
+    const data = await api('GET', `/dungeon/boss/bosses/${dungeonKey}`);
+    renderBossList(data);
+  } catch (e) {
+    toast(e.message || 'Chyba', 'e');
+  }
+}
+
+function renderBossList(data) {
+  const container = document.getElementById('boss-dungeon-content');
+  if (!container) return;
+
+  const { dungeon_key, dungeon_name, dungeon_emoji, highest_boss, bosses } = data;
+
+  const bossRows = bosses.map(b => {
+    const stateClass = b.defeated ? 'defeated' : b.is_next ? 'available' : 'locked';
+    const icon = b.defeated ? '✅' : b.is_next ? '⚔️' : b.is_locked ? '🔒' : '❓';
+    const milestone = b.is_milestone ? ' <span class="milestone-badge">★</span>' : '';
+    return `
+      <div class="boss-row ${stateClass}"
+           ${b.is_next ? `onclick="fightBoss('${dungeon_key}', ${b.num})"` : ''}>
+        <span class="boss-num">#${b.num}</span>
+        <span class="boss-icon">${icon}</span>
+        <div class="boss-info">
+          <span class="boss-name">${esc(b.name)}${milestone}</span>
+          <span class="boss-desc">${esc(b.desc)}</span>
+        </div>
+        <span class="boss-mult">×${b.enemy_mult}</span>
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="boss-list-header">
+      <button class="btn-back" onclick="loadBossDungeonData()">← Zpět</button>
+      <h2>${esc(dungeon_emoji)} ${esc(dungeon_name)}</h2>
+      <span class="boss-progress-badge">${highest_boss}/50</span>
+    </div>
+    <div class="boss-list">${bossRows}</div>`;
+}
+
+async function fightBoss(dungeonKey, bossNum) {
+  const rows = document.querySelectorAll('.boss-row.available');
+  rows.forEach(r => r.onclick = null);
+
+  try {
+    const data = await api('POST', '/dungeon/boss/fight', {
+      dungeon_key: dungeonKey,
+      boss_num: bossNum,
+    });
+
+    if (data.result === 'victory') {
+      const { rewards, boss_name } = data;
+      let msg = `✅ ${esc(boss_name)} poražen! +${rewards.xp} XP, +${rewards.gold} 🪙`;
+      if (rewards.item_drop) {
+        msg += ` | 🎁 ${esc(rewards.item_drop.name)} (${esc(rewards.item_drop.rarity)})`;
+      }
+      toast(msg, 's', 5000);
+
+      if (rewards.leveled_up) {
+        toast(`🎉 Level up! Jsi nyní level ${rewards.new_level}!`, 's', 4000);
+      }
+
+      const updatedChar = await api('GET', '/character/me');
+      updateUI(updatedChar);
+
+      _showBossCombatLog(data);
+
+    } else {
+      const msg = data.permadeath
+        ? `💀 ${esc(data.boss_name)} tě zabil! PERMADEATH!`
+        : `☠️ ${esc(data.boss_name)} tě porazil.`;
+      toast(msg, 'e', 5000);
+      _showBossCombatLog(data);
+
+      if (data.permadeath) {
+        setTimeout(() => location.reload(), 3000);
+        return;
+      }
+    }
+
+    await openBossDungeon(dungeonKey);
+
+  } catch (e) {
+    toast(e.message || 'Chyba', 'e');
+    await openBossDungeon(dungeonKey);
+  }
+}
+
+function _showBossCombatLog(data) {
+  if (typeof showCombatResult === 'function') {
+    showCombatResult(data.combat_log, data.events, data.result === 'victory');
+  }
 }

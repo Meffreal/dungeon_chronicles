@@ -42,6 +42,18 @@ from game.dungeon_modifiers import (
 )
 from game.combatant_builder import build_combatant_config
 from models.hall_of_fallen import HallOfFallen
+from models.dungeon_boss import DungeonBossProgress
+from game.dungeon_boss_logic import (
+    get_boss_def,
+    is_milestone_boss,
+    get_milestone_item,
+    build_boss_enemy,
+    calc_boss_rewards,
+    check_dungeon_unlocked,
+    boss_cooldown_until,
+    TOTAL_BOSSES,
+)
+from game.dungeon_boss_data import DUNGEON_BOSS_DEFINITIONS, DUNGEON_UNLOCK_CONDITIONS
 from game.bloodline import award_death_bloodline_xp
 from models.guild import Guild
 from models.notification import Notification, NotifType
@@ -896,3 +908,313 @@ async def abandon_dungeon(
         await db.rollback()
         raise HTTPException(500, "Chyba při opouštění dungeonu — zkus znovu.")
     return {"message": "Dungeon opuštěn.", "partial_xp": partial_xp, "partial_gold": partial_gold}
+
+
+# ── Boss Dungeon System ────────────────────────────────────────────────────────
+
+async def _get_boss_progress(
+    char_id: int, db: AsyncSession
+) -> dict[str, "DungeonBossProgress"]:
+    """Returns dict of dungeon_key → DungeonBossProgress for a character."""
+    result = await db.execute(
+        select(DungeonBossProgress).where(DungeonBossProgress.character_id == char_id)
+    )
+    return {p.dungeon_key: p for p in result.scalars().all()}
+
+
+class BossFightRequest(BaseModel):
+    dungeon_key: str
+    boss_num:    int
+
+
+@router.get("/boss/list")
+async def boss_dungeon_list(
+    user: User = Depends(get_current_user),
+    db:   AsyncSession = Depends(get_db),
+):
+    """Lists all dungeons with boss progress, unlock status, and cooldown."""
+    char = await _get_char(user, db)
+    now  = datetime.now(timezone.utc).replace(tzinfo=None)
+    progress_map = await _get_boss_progress(char.id, db)
+
+    completed_chain_ids = char.get_attunements()
+
+    cooldown_until = char.dungeon_cooldown_until
+    cd_remaining   = 0
+    on_cooldown    = False
+    if cooldown_until and cooldown_until > now:
+        cd_remaining = int((cooldown_until - now).total_seconds())
+        on_cooldown  = True
+
+    dungeons = []
+    for key, ddef in DUNGEON_DEFINITIONS.items():
+        prog = progress_map.get(key)
+        highest = prog.highest_boss_defeated if prog else 0
+        is_unlocked, lock_reason = check_dungeon_unlocked(
+            key,
+            char_level=char.level,
+            progress_map={k: v.highest_boss_defeated for k, v in progress_map.items()},
+            completed_chain_ids=completed_chain_ids,
+        )
+
+        dungeons.append({
+            "key":                 key,
+            "name":                ddef["name"],
+            "emoji":               ddef.get("emoji", "⚔️"),
+            "description":         ddef.get("description", ""),
+            "min_level":           ddef.get("min_level", 1),
+            "total_bosses":        TOTAL_BOSSES,
+            "highest_boss":        highest,
+            "progress_pct":        round(highest / TOTAL_BOSSES * 100, 1),
+            "next_boss_num":       highest + 1 if highest < TOTAL_BOSSES else None,
+            "is_unlocked":         is_unlocked,
+            "lock_reason":         lock_reason,
+            "on_cooldown":         on_cooldown,
+            "cd_remaining":        cd_remaining,
+            "cooldown_until":      cooldown_until.isoformat() if (on_cooldown and cooldown_until) else None,
+        })
+
+    return {
+        "dungeons":    dungeons,
+        "char_level":  char.level,
+        "on_cooldown": on_cooldown,
+        "cd_remaining": cd_remaining,
+    }
+
+
+@router.get("/boss/bosses/{dungeon_key}")
+async def list_dungeon_bosses(
+    dungeon_key: str,
+    user: User = Depends(get_current_user),
+    db:   AsyncSession = Depends(get_db),
+):
+    """Lists all 50 bosses for a dungeon with per-boss unlock/completion status."""
+    char = await _get_char(user, db)
+
+    if dungeon_key not in DUNGEON_DEFINITIONS:
+        raise HTTPException(404, "Dungeon nenalezen.")
+
+    prog_result = await db.execute(
+        select(DungeonBossProgress).where(
+            DungeonBossProgress.character_id == char.id,
+            DungeonBossProgress.dungeon_key  == dungeon_key,
+        )
+    )
+    prog = prog_result.scalar_one_or_none()
+    highest = prog.highest_boss_defeated if prog else 0
+
+    bosses = []
+    for boss_def in DUNGEON_BOSS_DEFINITIONS.get(dungeon_key, []):
+        num = boss_def["num"]
+        bosses.append({
+            "num":         num,
+            "name":        boss_def["name"],
+            "desc":        boss_def["desc"],
+            "enemy_mult":  round(0.5 + (num / 50) * 2.0, 3),
+            "is_milestone": is_milestone_boss(num),
+            "defeated":    num <= highest,
+            "is_next":     num == highest + 1,
+            "is_locked":   num > highest + 1,
+        })
+
+    ddef = DUNGEON_DEFINITIONS[dungeon_key]
+    return {
+        "dungeon_key":    dungeon_key,
+        "dungeon_name":   ddef["name"],
+        "dungeon_emoji":  ddef.get("emoji", "⚔️"),
+        "highest_boss":   highest,
+        "bosses":         bosses,
+    }
+
+
+@router.post("/boss/fight")
+async def fight_dungeon_boss(
+    req:  BossFightRequest,
+    user: User = Depends(get_current_user),
+    db:   AsyncSession = Depends(get_db),
+):
+    """
+    Fights a single dungeon boss.
+    """
+    char = await _get_char(user, db)
+    now  = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    if req.dungeon_key not in DUNGEON_DEFINITIONS:
+        raise HTTPException(404, "Dungeon nenalezen.")
+
+    boss_def = get_boss_def(req.dungeon_key, req.boss_num)
+    if not boss_def:
+        raise HTTPException(404, f"Boss {req.boss_num} nenalezen.")
+
+    if char.dungeon_cooldown_until and char.dungeon_cooldown_until > now:
+        remaining = int((char.dungeon_cooldown_until - now).total_seconds())
+        h, rem = divmod(remaining, 3600)
+        m, _   = divmod(rem, 60)
+        raise HTTPException(400, f"Cooldown! Boss dostupný za {h}h {m}m.")
+
+    prog_map_result = await db.execute(
+        select(DungeonBossProgress).where(DungeonBossProgress.character_id == char.id)
+    )
+    all_progress = {p.dungeon_key: p for p in prog_map_result.scalars().all()}
+
+    is_unlocked, lock_reason = check_dungeon_unlocked(
+        req.dungeon_key,
+        char_level=char.level,
+        progress_map={k: v.highest_boss_defeated for k, v in all_progress.items()},
+        completed_chain_ids=char.get_attunements(),
+    )
+    if not is_unlocked:
+        raise HTTPException(400, lock_reason)
+
+    prog = all_progress.get(req.dungeon_key)
+    highest = prog.highest_boss_defeated if prog else 0
+    if req.boss_num != highest + 1:
+        raise HTTPException(
+            400,
+            f"Musíš porazit bosse #{highest + 1} jako dalšího (ne #{req.boss_num})."
+        )
+
+    enemy_cfg  = build_boss_enemy(req.dungeon_key, req.boss_num, char.level)
+    player_cfg = await build_combatant_config(char, db)
+
+    combat = simulate_unified_combat(player_cfg, enemy_cfg, max_rounds=30)
+
+    player_won = combat.attacker_won and combat.attacker_hp_remaining > 0
+
+    char.dungeon_cooldown_until = boss_cooldown_until(now)
+
+    rewards = {}
+
+    if player_won:
+        if prog is None:
+            prog = DungeonBossProgress(
+                character_id=char.id,
+                dungeon_key=req.dungeon_key,
+                highest_boss_defeated=0,
+                total_kills=0,
+            )
+            db.add(prog)
+        prog.highest_boss_defeated = req.boss_num
+        prog.total_kills += 1
+        prog.last_fight_at = now
+        prog.set_last_combat_log(combat.log, events_to_dict_list(combat.events))
+
+        base_rewards = calc_boss_rewards(req.dungeon_key, req.boss_num, char.level)
+        char.xp    += base_rewards["xp"]
+        char.gold  += base_rewards["gold"]
+        await log_gold(db, char, base_rewards["gold"], GoldReason.DUNGEON_REWARD)
+        rewards["xp"]   = base_rewards["xp"]
+        rewards["gold"] = base_rewards["gold"]
+
+        leveled_up = False
+        while char.xp >= xp_to_next(char.level):
+            char.xp    -= xp_to_next(char.level)
+            char.level += 1
+            leveled_up  = True
+
+        item_drop = None
+        if is_milestone_boss(req.boss_num):
+            item_tuple = get_milestone_item(req.dungeon_key, char.cls, req.boss_num)
+            if item_tuple:
+                from models.item import Item, InventoryItem as InvItem
+                item_result = await db.execute(
+                    select(Item).where(Item.name == item_tuple[0])
+                )
+                master_item = item_result.scalar_one_or_none()
+                if master_item is None:
+                    master_item = Item(
+                        name=item_tuple[0],
+                        item_type=item_tuple[1],
+                        rarity=item_tuple[2],
+                        description=item_tuple[3],
+                        icon=item_tuple[4],
+                        bonus_atk=item_tuple[5],
+                        bonus_def=item_tuple[6],
+                        bonus_str=item_tuple[10],
+                        bonus_dex=item_tuple[11],
+                        bonus_int=item_tuple[12],
+                        bonus_end=item_tuple[13],
+                        bonus_luck=item_tuple[14],
+                        sell_price=item_tuple[16],
+                    )
+                    db.add(master_item)
+                    await db.flush()
+
+                inv_entry = InvItem(
+                    character_id=char.id,
+                    item_id=master_item.id,
+                )
+                db.add(inv_entry)
+                item_drop = {
+                    "name":    item_tuple[0],
+                    "rarity":  item_tuple[2],
+                    "icon":    item_tuple[4],
+                    "type":    item_tuple[1],
+                }
+
+        rewards["item_drop"] = item_drop
+        rewards["leveled_up"] = leveled_up
+        rewards["new_level"]  = char.level
+
+        await db.commit()
+        await db.refresh(char)
+
+        return {
+            "result":       "victory",
+            "boss_num":     req.boss_num,
+            "boss_name":    boss_def["name"],
+            "is_milestone": is_milestone_boss(req.boss_num),
+            "rewards":      rewards,
+            "combat_log":   combat.log,
+            "events":       events_to_dict_list(combat.events),
+            "cooldown_until": char.dungeon_cooldown_until.isoformat(),
+        }
+
+    else:
+        permadeath_data = None
+        if char.is_hardcore:
+            permadeath_data = await _trigger_permadeath(
+                char, boss_def["name"], req.dungeon_key, now, db
+            )
+
+        if prog:
+            prog.last_fight_at = now
+            prog.set_last_combat_log(combat.log, events_to_dict_list(combat.events))
+
+        await db.commit()
+
+        return {
+            "result":         "defeat",
+            "boss_num":       req.boss_num,
+            "boss_name":      boss_def["name"],
+            "combat_log":     combat.log,
+            "events":         events_to_dict_list(combat.events),
+            "permadeath":     permadeath_data,
+            "cooldown_until": char.dungeon_cooldown_until.isoformat(),
+        }
+
+
+@router.get("/boss/status")
+async def boss_status(
+    user: User = Depends(get_current_user),
+    db:   AsyncSession = Depends(get_db),
+):
+    """Returns player's current boss progress across all dungeons + cooldown."""
+    char = await _get_char(user, db)
+    now  = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    progress_map = await _get_boss_progress(char.id, db)
+
+    cooldown_until = char.dungeon_cooldown_until
+    cd_remaining   = 0
+    on_cooldown    = False
+    if cooldown_until and cooldown_until > now:
+        cd_remaining = int((cooldown_until - now).total_seconds())
+        on_cooldown  = True
+
+    return {
+        "on_cooldown":   on_cooldown,
+        "cd_remaining":  cd_remaining,
+        "cooldown_until": cooldown_until.isoformat() if (on_cooldown and cooldown_until) else None,
+        "progress": [p.to_dict() for p in progress_map.values()],
+    }
