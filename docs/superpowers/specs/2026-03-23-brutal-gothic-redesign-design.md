@@ -62,23 +62,29 @@ Striktně 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64px`
 /* TEXT */
 --clr-text:      #f0f0f0;
 --clr-muted:     #999999;
---clr-faint:     #666666;
+--clr-faint:     #666666;   /* pouze dekorativní — nesplňuje AA pro malý text */
 
 /* STATUSY */
 --clr-success:   #22c55e;
 --clr-warning:   #f59e0b;
---clr-danger:    #cc0000;
+--clr-danger:    #ff3333;   /* odlišné od --clr-blood: teplý červeno-oranžový pro error stavy */
 ```
+
+> `--clr-danger` je záměrně odlišný od `--clr-blood` — blood je primární UI accent,
+> danger je sémantická barva pro chybové stavy (formuláře, validace).
 
 ### Typografie — 3 rodiny (z 6)
 
 | Role | Font | Použití |
 |------|------|---------|
 | `--font-display` | Cinzel | Page titles, modal titles |
-| `--font-body` | Inter | UI, labels, čísla, navigace |
+| `--font-body` | Rajdhani | UI, labels, čísla, navigace |
 | `--font-lore` | Crimson Text | Quest text, item flavor text |
 
-**Odstraněny:** Cinzel Decorative, IM Fell English, Josefin Sans, UnifrakturMaguntia
+> **Rajdhani** zvolen jako `--font-body`: angulární, silný, kontextuálně vhodný pro RPG UI.
+> Splňuje pravidlo `frontend/CLAUDE.md` — ne Arial/Inter/Roboto.
+
+**Odstraněny:** Cinzel Decorative, IM Fell English, Josefin Sans, UnifrakturMaguntia, Inter
 
 ### Typografická škála
 
@@ -108,7 +114,7 @@ Striktně 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64px`
 - **Red accent lines:** `border-left: 3px solid var(--clr-blood)` pro aktivní stavy
 - **Červená aura na titulech:** `text-shadow: 0 0 40px rgba(204,0,0,0.3)`
 - **Jediný glow:** HP bar — `box-shadow: 0 0 8px rgba(204,0,0,0.4)`
-- **Žádný backdrop-filter blur** na modalech — výkon + charakter
+- **Žádný `backdrop-filter`** — odstraněn ze `.overlay`, `.toast` i `.modal` (výkon + charakter)
 
 ---
 
@@ -137,24 +143,36 @@ Striktně 4px base grid: `4 / 8 / 12 / 16 / 24 / 32 / 48 / 64px`
 - `border-left: 3px solid transparent`
 - Aktivní: `border-left-color: var(--clr-blood)` + `background: rgba(204,0,0,0.08)`
 - Hover: `border-left-color: rgba(204,0,0,0.4)` + `background: var(--clr-raised)`
-- Font: Inter, `font-size: var(--fs-sm)`, `text-transform: uppercase`, `letter-spacing: 0.04em`
+- Font: Rajdhani, `font-size: var(--fs-sm)`, `text-transform: uppercase`, `letter-spacing: 0.04em`
 
-### SVG ikony (Lucide, 16×16, stroke-width: 2)
+### SVG ikony — kompletní seznam (Lucide, 16×16, stroke-width: 2)
 
-| Položka | Ikona |
-|---------|-------|
-| City Hub | `home` |
-| Quests | `scroll` |
-| Arena | `swords` |
-| World Boss | `skull` |
-| Dungeons | `door-open` |
-| Equipment | `shield` |
-| Inventory | `backpack` |
-| Guild | `users` |
-| Faction | `flag` |
-| Market | `store` |
-| Shop | `shopping-bag` |
-| Profile | `user` |
+| Skupina | Položka | Ikona |
+|---------|---------|-------|
+| — | City Hub | `home` |
+| Combat | Quests | `scroll` |
+| Combat | Arena | `swords` |
+| Combat | World Boss | `skull` |
+| Combat | Dungeons | `door-open` |
+| Character | Equipment | `shield` |
+| Character | Inventory | `backpack` |
+| Character | Specialization | `git-branch` |
+| Character | Prestige | `award` |
+| Character | Attunement | `zap` |
+| Character | Bloodline | `dna` |
+| Social | Guild | `users` |
+| Social | Faction | `flag` |
+| Social | Market | `store` |
+| Social | Shop | `shopping-bag` |
+| Social | Hall of Fallen | `cross` |
+| Seasonal | World Events | `globe` |
+| Seasonal | Weekly | `calendar` |
+| Seasonal | Season | `star` |
+| Cosmetic | Crystals | `gem` |
+| — | Profile | `user` |
+| — | Account | `settings` |
+
+> Žádné emoji ikony — všechny položky mají Lucide SVG ekvivalent.
 
 ### Portrait → Character Chip
 - Avatar: `40×40px`, `border-radius: 2px`, `border: 2px solid var(--clr-blood)`
@@ -202,12 +220,15 @@ Všechny buttony: `min-height: 44px`, `font-weight: 600`, `letter-spacing: 0.08e
 }
 ```
 
-Rarity: `border-top-color` nahrazuje rarity barvu.
+Rarity: `border-top-color` nahrazuje rarity barvu (common/uncommon/rare/epic/legendary kódy zachovány).
 
 ### Modaly
 
 ```css
-.overlay { background: rgba(0,0,0,0.92); }  /* žádný backdrop-filter */
+.overlay {
+  background: rgba(0,0,0,0.92);
+  /* backdrop-filter odstraněn */
+}
 .modal {
   background: var(--clr-surface);
   border: 1px solid var(--clr-border);
@@ -233,10 +254,11 @@ Rarity: `border-top-color` nahrazuje rarity barvu.
   border-left: 4px solid;
   border-radius: 2px;
   box-shadow: 4px 4px 0 rgba(0,0,0,0.6);
+  /* backdrop-filter odstraněn */
 }
 ```
 
-`[data-type="s"]` → `border-left-color: var(--clr-success)`
+`[data-type="s"]` → `border-left-color: var(--clr-success)` + `aria-live="polite"`
 `[data-type="e"]` → `border-left-color: var(--clr-blood)` + `role="alert"`
 `[data-type="i"]` → `border-left-color: var(--clr-muted)` + `aria-live="polite"`
 
@@ -253,19 +275,20 @@ Výška: `8px` (z aktuálních ~6px).
 
 ## 6. Accessibility
 
-### Contrast (všechny páry splňují WCAG AA+)
+### Contrast (WCAG 2.1, ověřené hodnoty)
 
 | Kombinace | Poměr | Standard |
 |-----------|-------|----------|
-| `#f0f0f0` na `#080808` | 18.5:1 | AAA |
-| `#f0f0f0` na `#1a1a1a` | 13.2:1 | AAA |
-| `#999999` na `#111111` | 5.8:1 | AA |
-| `#fff` na `#cc0000` | 5.9:1 | AA |
+| `#f0f0f0` na `#080808` | 17.6:1 | ✅ AAA |
+| `#f0f0f0` na `#1a1a1a` | 15.3:1 | ✅ AAA |
+| `#999999` na `#111111` | 6.6:1 | ✅ AA |
+| `#fff` na `#cc0000` | 5.9:1 | ✅ AA |
+| `#666666` na `#111111` | 3.4:1 | ⚠️ pouze dekorativní použití |
 
 ### ARIA
 
 - `<nav aria-label="Hlavní navigace">`
-- `aria-current="page"` na aktivní nav položce
+- `aria-current="page"` na aktivní nav položce (spravuje `ui.js`)
 - `aria-label="Zavřít"` na modal-x buttonech
 - `role="alert"` na error toastech
 - `aria-live="polite"` na success/info toastech
@@ -298,14 +321,18 @@ Výška: `8px` (z aktuálních ~6px).
 - Všechny akční buttony: `min-height: 44px`
 - Modal close: `min-width: 44px; min-height: 44px`
 
-### Font loading
+### Font loading (Google Fonts CDN)
 
 ```html
-<link rel="preload" href="Inter.woff2" as="font" crossorigin>
-<link rel="preload" href="Cinzel.woff2" as="font" crossorigin>
+<!-- Preconnect pro výkon -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Fonty přes CDN s display=swap pro eliminaci FOIT -->
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 ```
 
-Crimson Text: `font-display: swap` přes Google Fonts.
+> Fonty zůstávají na Google Fonts CDN (ne lokálně). `display=swap` eliminuje FOIT.
+> `preconnect` nahrazuje neúčinný `preload` pro CDN fonty.
 
 ### Reduced motion
 
@@ -320,29 +347,35 @@ Crimson Text: `font-display: swap` přes Google Fonts.
 
 ---
 
-## 7. Soubory k úpravě / vytvoření
+## 7. Soubory k úpravě
 
 | Soubor | Akce |
 |--------|------|
-| `frontend/css/design-system.css` | Přepsat — nová paleta, tokeny, typografie |
-| `frontend/css/base.css` | Aktualizovat — fs-base na 1rem, focus ring, skip link |
-| `frontend/css/layout.css` | Přepsat — nový grid, sidebar, topbar, mobile drawer |
-| `frontend/css/components.css` | Přepsat — buttony, karty, modaly, toasty |
-| `frontend/css/theme.css` | Aktualizovat — aplikovat nové tokeny |
-| `frontend/css/combat.css` | Aktualizovat — HP/MP bary |
-| `frontend/css/animations.css` | Aktualizovat — reduced-motion selektor |
-| `frontend/css/physical.css` | Zjednodušit — pouze grain texture + worn metal |
-| `frontend/game.html` | Aktualizovat — skip link, ARIA, SVG ikony, nav struktura, font imports |
-| `frontend/js/main.js` | Aktualizovat — mobile drawer toggle, aria-current management |
+| `frontend/css/design-system.css` | **Přepsat** — nová paleta, tokeny, Rajdhani typografie |
+| `frontend/css/base.css` | **Aktualizovat** — fs-base na 1rem, focus ring, skip link |
+| `frontend/css/layout.css` | **Přepsat** — nový grid, sidebar, topbar, mobile drawer |
+| `frontend/css/components.css` | **Přepsat** — buttony, karty, modaly, toasty (bez backdrop-filter) |
+| `frontend/css/theme.css` | **Aktualizovat** — aplikovat nové tokeny |
+| `frontend/css/combat.css` | **Aktualizovat** — HP/MP bary |
+| `frontend/css/animations.css` | **Aktualizovat** — reduced-motion selektor |
+| `frontend/css/physical.css` | **Zjednodušit** — zachovat pouze: grain noise overlay + worn metal na topbar/sidebar; odstranit: vignette, turbulence na kartách, depth efekty |
+| `frontend/css/assets.css` | **Aktualizovat** — rarity barvy zachovat, ostatní tokeny přemapovat |
+| `frontend/css/quest.css` | **Aktualizovat** — přemapovat staré tokeny na nové |
+| `frontend/css/inventory.css` | **Aktualizovat** — přemapovat staré tokeny na nové |
+| `frontend/css/textures.css` | **Zkontrolovat** — odstranit textury nahrazené v physical.css; zachovat co nekoliduje |
+| `frontend/css/ui-enhance.css` | **Zkontrolovat** — odstranit co koliduje s novým systémem |
+| `frontend/game.html` | **Aktualizovat** — skip link, ARIA, SVG ikony (Lucide), nav struktura, font imports |
+| `frontend/js/ui.js` | **Aktualizovat** — mobile drawer toggle, `aria-current` management v `showPage()` |
 
 ---
 
 ## 8. Co se NEMĚNÍ
 
-- Herní logika (JS moduly — combat, quests, dungeon, atd.)
+- Herní logika (JS moduly — combat, quests, dungeon, arena, guild atd.)
 - Backend API
-- Rarity barevné kódy (common/uncommon/rare/epic/legendary)
-- Toast systém API (`toast(msg, type, duration)`)
-- Modal systém API (`openModal(id)` / `closeModal(id)`)
-- Z-index stack hodnoty (30/50/100/200)
-- Pořadí JS scriptů
+- Rarity barevné kódy (common/uncommon/rare/epic/legendary hodnoty v assets.css)
+- Toast systém API: `toast(msg, type, duration)` — typy `'s'` / `'e'` / `'i'`
+- Modal systém API: `openModal(id)` / `closeModal(id)` — `.open` CSS class přístup
+- Z-index stack hodnoty: topbar 30 · level-flash 50 · modals 100 · toasts 200
+- Pořadí JS scriptů (39 modulů, kritické)
+- `showPage(id)`, `updateUI(char)`, `api()` funkce signatury
