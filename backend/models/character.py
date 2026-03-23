@@ -153,6 +153,9 @@ class Character(Base):
     # Talent Tier 2 — aktivní schopnost, irreverzibilní volba na levelu 25
     talent_t2_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
+    # Dungeon boss cooldown
+    dungeon_cooldown_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     # Hardcore mode — postava hraje v permadeath módu
     is_hardcore: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
 
