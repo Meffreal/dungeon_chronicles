@@ -33,51 +33,46 @@ def roll_rarity(difficulty: str) -> Rarity:
 
 async def get_dungeon_set_item(db, char_cls: str):
     """
-    Vrátí náhodný setový item odpovídající třídě postavy.
-    Volá se při dokončení dungeon questu — garantovaný drop setového kusu.
+    Set item drops are DISABLED.
+    Vrátí vždy None — set itemy jsou deaktivovány.
     """
-    from sqlalchemy import select
-    from models.item import Item
-    from models.sets import CLS_TO_SET_ID
-
-    set_id = CLS_TO_SET_ID.get(char_cls)
-    if set_id is None:
-        return None
-
-    result = await db.execute(
-        select(Item).where(Item.set_id == set_id)
-    )
-    items = result.scalars().all()
-    return random.choice(items) if items else None
+    return None
 
 
 async def get_random_item_for_quest(db, difficulty: str, character_level: int):
     """
     Vybere náhodný item z databáze odpovídající obtížnosti a levelu.
+    Filtruje: set itemy (rarity==set) a dungeon-only itemy.
     Vrátí Item nebo None.
     """
     from sqlalchemy import select
     from models.item import Item
+    from game.dungeon_boss_data import get_dungeon_only_item_names
 
     if not roll_drop(difficulty):
         return None
 
     rarity = roll_rarity(difficulty)
+    dungeon_names = get_dungeon_only_item_names()
 
-    # Vyber item dané rarity který hráč může nosit
-    result = await db.execute(
-        select(Item).where(
-            Item.rarity == rarity.value,
-            Item.min_level <= character_level + 2,
-        )
-    )
+    # Vyber item dané rarity který hráč může nosit — bez set itemů a dungeon itemů
+    conditions = [
+        Item.rarity == rarity.value,
+        Item.rarity != "set",
+        Item.min_level <= character_level + 2,
+    ]
+    if dungeon_names:
+        conditions.append(Item.name.not_in(dungeon_names))
+
+    result = await db.execute(select(Item).where(*conditions))
     items = result.scalars().all()
 
     if not items:
-        # Fallback — libovolný common item
-        result = await db.execute(
-            select(Item).where(Item.rarity == Rarity.COMMON.value).limit(10)
-        )
+        # Fallback — libovolný common item (stále bez set/dungeon)
+        fb_conditions = [Item.rarity == Rarity.COMMON.value]
+        if dungeon_names:
+            fb_conditions.append(Item.name.not_in(dungeon_names))
+        result = await db.execute(select(Item).where(*fb_conditions).limit(10))
         items = result.scalars().all()
 
     return random.choice(items) if items else None

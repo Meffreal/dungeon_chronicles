@@ -20,7 +20,7 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "flavor":      "Krev za krev. Vítěz bere vše.",
         # Stat multiplikátory (aplikují se v recalculate_stats)
         "stat_mults": {
-            "dmg_mult":   1.20,   # +20 % DMG
+            "dmg_mult":   1.10,   # +10 % DMG (bylo +20 %, sníženo pro balance)
             "armor_mult": 0.85,   # −15 % armor
         },
         "unlock_level": 10,
@@ -54,7 +54,7 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         ),
         "flavor":      "Magie není nástroj. Je to část mě.",
         "stat_mults": {
-            "dmg_mult": 1.10,  # +10 % DMG
+            "dmg_mult": 1.15,  # +15 % DMG (bylo +10 %, zvýšeno pro balance)
         },
         "unlock_level": 10,
     },
@@ -103,7 +103,7 @@ SUBCLASS_DEFINITIONS: dict[str, dict] = {
         "flavor":      "Nevidíš mě. Dokud není pozdě.",
         "stat_mults": {
             "armor_mult": 0.90,  # −10 % armor
-            "dmg_mult":   1.05,  # +5 % DMG
+            "dmg_mult":   1.12,  # +12 % DMG (bylo +5 %, zvýšeno pro balance)
             "luck_mult":  1.10,  # +10 % LUCK — synergy s bleed a crit
             "crit_mult":  1.20,  # +20 % crit damage (vizuální, dle enginu)
         },

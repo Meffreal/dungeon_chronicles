@@ -12,6 +12,8 @@ def boss_enemy_mult(boss_num: int) -> float:
     return round(0.5 + (boss_num / 50) * 2.0, 3)
 
 
+
+
 # ── Boss definitions ──────────────────────────────────────────────────────────
 # Format per boss: {"num": int, "name": str, "desc": str}
 # enemy_mult is computed dynamically via boss_enemy_mult(boss_num)
@@ -390,3 +392,15 @@ DUNGEON_UNLOCK_CONDITIONS: dict[str, dict] = {
         "attunement_chain_id": 2,   # must have completed fiery attunement (chain 2)
     },
 }
+
+
+def get_dungeon_only_item_names() -> set[str]:
+    """Vrátí sadu jmen všech dungeon-only itemů (z DUNGEON_ONLY_ITEMS).
+    Používá se k filtrování — dungeon itemy nesmí padat z questů ani být v shopu.
+    """
+    names: set[str] = set()
+    for classes in DUNGEON_ONLY_ITEMS.values():
+        for item_list in classes.values():
+            for tup in item_list:
+                names.add(tup[0])
+    return names

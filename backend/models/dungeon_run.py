@@ -197,7 +197,7 @@ DUNGEON_DEFINITIONS = {
                 "stage_num": 5,
                 "name":      "Trůnní síň Chaosu",
                 "enemy_name": "Pán Chaosu",
-                "enemy_mult": 2.5,
+                "enemy_mult": 2.0,  # bylo 2.5, sníženo -20% pro dosažitelnost
                 "type":      "boss",
                 "special_abilities": ["chaos_bolt", "soul_drain", "fire_breath"],
                 "phases": [
@@ -210,15 +210,15 @@ DUNGEON_DEFINITIONS = {
                     BossPhase(
                         phase_num=2, trigger_hp_pct=0.40,
                         message="CHAOS DIMENSION! Pán Chaosu mění pravidla reality!",
-                        stat_multipliers={"atk": 1.5, "spd": 1.5},
+                        stat_multipliers={"atk": 1.3, "spd": 1.5},  # atk: 1.5→1.3 (-13%)
                         apply_status_to_player="weaken",
                     ),
                     BossPhase(
                         phase_num=3, trigger_hp_pct=0.15,
                         message="TOTÁLNÍ CHAOS! Pán Chaosu uvolňuje veškerou svou destruktivní moc!",
-                        stat_multipliers={"atk": 2.2, "spd": 2.0},
+                        stat_multipliers={"atk": 1.8, "spd": 2.0},  # atk: 2.2→1.8 (-18%)
                         apply_status_to_player="stun",
-                        heal_pct=0.20,
+                        heal_pct=0.16,  # bylo 0.20, sníženo -20%
                     ),
                 ],
             },

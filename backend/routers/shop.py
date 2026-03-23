@@ -105,12 +105,15 @@ def _weighted_pool(items: list, k: int, char_cls: str, rng: random.Random) -> li
 
 
 async def _npc_stock(npc: dict, db: AsyncSession, char_id: int | None = None) -> list[Item]:
-    result = await db.execute(
-        select(Item).where(
-            Item.item_type.in_(npc["types"]),
-            Item.rarity != "set",
-        )
-    )
+    from game.dungeon_boss_data import get_dungeon_only_item_names
+    dungeon_names = get_dungeon_only_item_names()
+    stock_conditions = [
+        Item.item_type.in_(npc["types"]),
+        Item.rarity != "set",
+    ]
+    if dungeon_names:
+        stock_conditions.append(Item.name.not_in(dungeon_names))
+    result = await db.execute(select(Item).where(*stock_conditions))
     all_items = result.scalars().all()
     if not all_items:
         return []
