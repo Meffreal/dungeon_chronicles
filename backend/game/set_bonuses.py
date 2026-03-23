@@ -28,7 +28,11 @@ async def get_char_set_combat_effects(char, db: AsyncSession) -> dict:
     do char.hp_max a char.luck přes recalculate_with_gear() → není třeba
     předávat do CombatantConfig zvlášť.
     """
-    from models.item import InventoryItem, Item
+    # DOČASNĚ VYPNUTO: Sety jsou nevyvážené — vrátíme prázdný dict.
+    # Pro opětovné zapnutí: odstraň tento early return.
+    return {"ability_dmg_pct": 0, "spell_echo_pct": 0, "first_strike": False, "regen_every_round": False}
+
+    from models.item import InventoryItem, Item  # noqa: F401 — zachováno pro budoucí use
     from models.sets import get_active_set_bonuses
 
     eq_ids = [

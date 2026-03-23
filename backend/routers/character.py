@@ -70,9 +70,8 @@ async def char_dict_with_equipment(char: Character, db: AsyncSession) -> dict:
             equipped[slot] = None
     data["equipment"] = equipped
 
-    # Přidej info o aktivních set bonusech
-    from models.sets import get_active_set_bonuses
-    data["set_bonuses"] = get_active_set_bonuses(equipped_items, char.cls)
+    # Set bonusy dočasně vypnuty — vrátíme prázdný dict
+    data["set_bonuses"] = {"active": {}, "hp_multiplier": 1.0, "luck_multiplier": 1.0, "total_atk_multiplier": 1.0}
 
     # Breakdown: přímé bonusy ze všech nasazených itemů (s upgrade mult)
     def _eff_bonus(inv_or_item, bk: str) -> int:

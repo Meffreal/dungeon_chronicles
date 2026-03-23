@@ -133,34 +133,8 @@ async function renderEquip() {
       </div>
     </div>`;
 
-  // Sestav HTML pro aktivní set bonusy
-  const setActive = Object.values(char.set_bonuses?.active || {});
-  const setBonusPanelHtml = setActive.length > 0
-    ? `<div class="equip-set-panel">
-        <div class="equip-set-panel-title">✦ Aktivní sady</div>
-        ${setActive.map(s => {
-          const need3 = Math.max(0, 3 - s.pieces_equipped);
-          const need5 = Math.max(0, 5 - s.pieces_equipped);
-          const prog3 = need3 > 0 ? `<span class="set-need">ještě ${need3} pro bonus</span>` : '';
-          const prog5 = need5 > 0 ? `<span class="set-need">ještě ${need5} pro bonus</span>` : '';
-          return `
-          <div class="equip-set-entry" style="--set-color:${s.color}">
-            <div class="equip-set-name">${s.badge} ${esc(s.set_name)}</div>
-            <div class="equip-set-pieces">${s.pieces_equipped} / 5 kusů</div>
-            <div class="equip-set-bonuses">
-              <div class="equip-set-bonus-row ${s.bonus_3pc_active?'active':'inactive'}">
-                <span>3 kusy: ${esc(s.bonus_3pc_desc)}</span>
-                ${s.bonus_3pc_active ? '<span class="set-check">✓</span>' : prog3}
-              </div>
-              <div class="equip-set-bonus-row ${s.bonus_5pc_active?'active':'inactive'}">
-                <span>5 kusů: ${esc(s.bonus_5pc_desc)}</span>
-                ${s.bonus_5pc_active ? '<span class="set-check">✓</span>' : prog5}
-              </div>
-            </div>
-          </div>`;
-        }).join('')}
-      </div>`
-    : '';
+  // Set bonusy dočasně vypnuty — panel skryt
+  const setBonusPanelHtml = '';
 
   // Repair-all button — zobraz pokud je alespoň jeden nasazený item poškozený
   const equippedInvItems = SLOTS.map(s => (invData || []).find(i => i.item?.id === eq[s.k]?.id)).filter(Boolean);

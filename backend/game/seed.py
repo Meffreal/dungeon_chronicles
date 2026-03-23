@@ -147,60 +147,61 @@ SEED_ITEMS = [
     ("Božský nektar",         "potion","legendary","+5 ke všem primárním statům na 3 dny.",   "✨",  0,0,0,0,  0, 5,5,5,5,5,15,2000, None),
 ]
 
-# ── SETOVÉ ITEMY ─────────────────────────────────────────────────────────────
-# Formát: (name, itype, desc, icon, atk, def_, spd, hp, mp(ignorováno),
-#           s_str, s_dex, s_int, s_end, s_luck, min_lv, sell, set_id, set_name)
-# rarity je vždy "set"
+# ── SETOVÉ ITEMY — DOČASNĚ VYPNUTO ───────────────────────────────────────────
+# Sety jsou nevyvážené a budou implementovány do hry až v pozdější fázi.
+# Pro opětovné zapnutí: odkomentuj SEED_SET_ITEMS a seeding loop níže.
+#
+# SEED_SET_ITEMS = [
+#     # ── WARRIOR SET — "Sada Titanovy Krve" (set_id=1) ──────────────────────
+#     ("Titanův Bijec",         "weapon", "Mohutný kladivo zkovaný z titanovy krve. Ničivá síla každého úderů.",
+#      "⚒️",  70, 5, 3, 30, 0, 14, 0, 0, 6, 0,  20, 3500, 1, "Sada Titanovy Krve"),
+#     ("Přilba Titanovy Krve",  "helmet", "Těžká přilba nesoucí znamení titána. Chrání hlavu i duši.",
+#      "⛑️",   0,35, 0, 70, 0,  8, 0, 0,12, 0,  20, 2800, 1, "Sada Titanovy Krve"),
+#     ("Kyrys Titanovy Krve",   "armor",  "Neprorazitelný kyrys z kovu titána. Chrání jako hora.",
+#      "🏔️",   0,60, 0,110, 0, 10, 0, 0,16, 0,  20, 4000, 1, "Sada Titanovy Krve"),
+#     ("Pěsti Titana",          "gloves", "Rukavice zesílené titanovou magií. Každý úder otřásá zemí.",
+#      "💪",   0,12, 0,  0, 0, 16, 0, 0, 4, 0,  20, 2500, 1, "Sada Titanovy Krve"),
+#     ("Boty Titana",           "boots",  "Masivní boty z titanovy kůže. Pevný krok nepřítele zastraší.",
+#      "👢",   0,18, 8,  0, 0,  5, 0, 0, 8, 0,  20, 2200, 1, "Sada Titanovy Krve"),
+#     ("Pečeť Titána",          "ring",   "Prsten nesoucí pečeť titána. Zesiluje každý útok nositele.",
+#      "💍",   0, 0, 0,  0, 0, 14, 0, 0, 4, 0,  20, 2000, 1, "Sada Titanovy Krve"),
+#     ("Duše Titána",           "amulet", "Amulet obsahující duši dávného titána. Přetéká surovou mocí.",
+#      "🔮",   0, 0, 0, 90, 0, 12, 0, 0,10, 0,  20, 2300, 1, "Sada Titanovy Krve"),
+#
+#     # ── MAGE SET — "Sada Arkanního Mistra" (set_id=2) ──────────────────────
+#     ("Žezlo Arkanního Mistra",    "weapon", "Starověké žezlo naplněné arkánnou mocí. Kouzla z něj vylétají jako blesky.",
+#      "⚡",  50, 0, 5,  0,50,  0, 0,18, 0, 0,  20, 3500, 2, "Sada Arkanního Mistra"),
+#     ("Koruna Arkanních Mistrů",   "helmet", "Koruna zasvěcená prastaré magii. Mysl nositele je jasná jako křišťál.",
+#      "👑",   0,18, 0,  0,40,  0, 0,16, 0, 7,  20, 2800, 2, "Sada Arkanního Mistra"),
+#     ("Roucho Arkanního Mistra",   "armor",  "Roucho tkaná z čisté arkánné energie. Lehké, ale magicky odolné.",
+#      "✨",   0,30, 0, 20,80,  0, 0,18, 0, 0,  20, 4000, 2, "Sada Arkanního Mistra"),
+#     ("Rukavice Arkanního Mistra", "gloves", "Rukavice zesilující magické schopnosti. Kouzla proudí snáze.",
+#      "🌟",   0, 0, 3,  0,20,  0, 0,20, 0, 0,  20, 2500, 2, "Sada Arkanního Mistra"),
+#     ("Sandály Arkanního Mistra",  "boots",  "Lehké sandály umožňující rychlé přesunování i v boji.",
+#      "💫",   0,12,12,  0,15,  0, 0, 9, 0, 0,  20, 2200, 2, "Sada Arkanního Mistra"),
+#     ("Prsten Arkanního Mistra",   "ring",   "Prsten zesilující každé kouzlo. Nositel cítí moc v každém prstu.",
+#      "💜",   0, 0, 0,  0,25,  0, 0,24, 0, 0,  20, 2000, 2, "Sada Arkanního Mistra"),
+#     ("Přívěsek Arkanního Mistra", "amulet", "Přívěsek plný arkánné energie. Každé kouzlo je s ním destruktivnější.",
+#      "🌐",   0, 0, 0,  0,100, 0, 0,26, 0, 5,  20, 2300, 2, "Sada Arkanního Mistra"),
+#
+#     # ── RANGER SET — "Sada Zákeřného Lovce" (set_id=3) ─────────────────────
+#     ("Luk Zákeřného Lovce",        "weapon", "Luk ze dřeva černého stromu. Šípy z něj nikdy neminout.",
+#      "🏹",  60, 0, 8,  0, 0,  0,16, 0, 0, 7,  20, 3500, 3, "Sada Zákeřného Lovce"),
+#     ("Kukla Zákeřného Lovce",      "helmet", "Temná kukla skrývající identitu lovce. Zvyšuje přesnost.",
+#      "🎭",   0,24, 5,  0, 0,  0,14, 0, 0, 7,  20, 2800, 3, "Sada Zákeřného Lovce"),
+#     ("Plášť Zákeřného Lovce",      "armor",  "Plášť splývající se stíny. Lovec se v něm stává přízrakem.",
+#      "🌑",   0,35,10, 30, 0,  0,12, 0, 0, 0,  20, 4000, 3, "Sada Zákeřného Lovce"),
+#     ("Rukavice Zákeřného Lovce",   "gloves", "Rukavice ze zákeřné kůže. Každý šíp je vystřelen s přesností.",
+#      "🍃",   0, 0, 4,  0, 0,  0,18, 0, 0, 5,  20, 2500, 3, "Sada Zákeřného Lovce"),
+#     ("Boty Zákeřného Lovce",       "boots",  "Boty lovce pohybujícího se jako duch. Rychlost nad vše.",
+#      "💨",   0,14,20,  0, 0,  0,18, 0, 0, 4,  20, 2200, 3, "Sada Zákeřného Lovce"),
+#     ("Prsten Zákeřného Lovce",     "ring",   "Prsten nabitý loveckou magií. Šance na kritický zásah roste.",
+#      "🍀",   0, 0, 3,  0, 0,  0,12, 0, 0,15,  20, 2000, 3, "Sada Zákeřného Lovce"),
+#     ("Amulet Zákeřného Lovce",     "amulet", "Amulet zákeřného lovce. Každý kus sady zesiluje smrtonosnost.",
+#      "🌿",   0, 0, 0, 25, 0,  0,18, 0, 0,15,  20, 2300, 3, "Sada Zákeřného Lovce"),
+# ]
 
-SEED_SET_ITEMS = [
-    # ── WARRIOR SET — "Sada Titanovy Krve" (set_id=1) ─────────────────────────
-    ("Titanův Bijec",         "weapon", "Mohutný kladivo zkovaný z titanovy krve. Ničivá síla každého úderů.",
-     "⚒️",  70, 5, 3, 30, 0, 14, 0, 0, 6, 0,  20, 3500, 1, "Sada Titanovy Krve"),
-    ("Přilba Titanovy Krve",  "helmet", "Těžká přilba nesoucí znamení titána. Chrání hlavu i duši.",
-     "⛑️",   0,35, 0, 70, 0,  8, 0, 0,12, 0,  20, 2800, 1, "Sada Titanovy Krve"),
-    ("Kyrys Titanovy Krve",   "armor",  "Neprorazitelný kyrys z kovu titána. Chrání jako hora.",
-     "🏔️",   0,60, 0,110, 0, 10, 0, 0,16, 0,  20, 4000, 1, "Sada Titanovy Krve"),
-    ("Pěsti Titana",          "gloves", "Rukavice zesílené titanovou magií. Každý úder otřásá zemí.",
-     "💪",   0,12, 0,  0, 0, 16, 0, 0, 4, 0,  20, 2500, 1, "Sada Titanovy Krve"),
-    ("Boty Titana",           "boots",  "Masivní boty z titanovy kůže. Pevný krok nepřítele zastraší.",
-     "👢",   0,18, 8,  0, 0,  5, 0, 0, 8, 0,  20, 2200, 1, "Sada Titanovy Krve"),
-    ("Pečeť Titána",          "ring",   "Prsten nesoucí pečeť titána. Zesiluje každý útok nositele.",
-     "💍",   0, 0, 0,  0, 0, 14, 0, 0, 4, 0,  20, 2000, 1, "Sada Titanovy Krve"),
-    ("Duše Titána",           "amulet", "Amulet obsahující duši dávného titána. Přetéká surovou mocí.",
-     "🔮",   0, 0, 0, 90, 0, 12, 0, 0,10, 0,  20, 2300, 1, "Sada Titanovy Krve"),
-
-    # ── MAGE SET — "Sada Arkanního Mistra" (set_id=2) ─────────────────────────
-    ("Žezlo Arkanního Mistra",    "weapon", "Starověké žezlo naplněné arkánnou mocí. Kouzla z něj vylétají jako blesky.",
-     "⚡",  50, 0, 5,  0,50,  0, 0,18, 0, 0,  20, 3500, 2, "Sada Arkanního Mistra"),
-    ("Koruna Arkanních Mistrů",   "helmet", "Koruna zasvěcená prastaré magii. Mysl nositele je jasná jako křišťál.",
-     "👑",   0,18, 0,  0,40,  0, 0,16, 0, 7,  20, 2800, 2, "Sada Arkanního Mistra"),
-    ("Roucho Arkanního Mistra",   "armor",  "Roucho tkaná z čisté arkánné energie. Lehké, ale magicky odolné.",
-     "✨",   0,30, 0, 20,80,  0, 0,18, 0, 0,  20, 4000, 2, "Sada Arkanního Mistra"),
-    ("Rukavice Arkanního Mistra", "gloves", "Rukavice zesilující magické schopnosti. Kouzla proudí snáze.",
-     "🌟",   0, 0, 3,  0,20,  0, 0,20, 0, 0,  20, 2500, 2, "Sada Arkanního Mistra"),
-    ("Sandály Arkanního Mistra",  "boots",  "Lehké sandály umožňující rychlé přesunování i v boji.",
-     "💫",   0,12,12,  0,15,  0, 0, 9, 0, 0,  20, 2200, 2, "Sada Arkanního Mistra"),
-    ("Prsten Arkanního Mistra",   "ring",   "Prsten zesilující každé kouzlo. Nositel cítí moc v každém prstu.",
-     "💜",   0, 0, 0,  0,25,  0, 0,24, 0, 0,  20, 2000, 2, "Sada Arkanního Mistra"),
-    ("Přívěsek Arkanního Mistra", "amulet", "Přívěsek plný arkánné energie. Každé kouzlo je s ním destruktivnější.",
-     "🌐",   0, 0, 0,  0,100, 0, 0,26, 0, 5,  20, 2300, 2, "Sada Arkanního Mistra"),
-
-    # ── RANGER SET — "Sada Zákeřného Lovce" (set_id=3) ────────────────────────
-    ("Luk Zákeřného Lovce",        "weapon", "Luk ze dřeva černého stromu. Šípy z něj nikdy neminout.",
-     "🏹",  60, 0, 8,  0, 0,  0,16, 0, 0, 7,  20, 3500, 3, "Sada Zákeřného Lovce"),
-    ("Kukla Zákeřného Lovce",      "helmet", "Temná kukla skrývající identitu lovce. Zvyšuje přesnost.",
-     "🎭",   0,24, 5,  0, 0,  0,14, 0, 0, 7,  20, 2800, 3, "Sada Zákeřného Lovce"),
-    ("Plášť Zákeřného Lovce",      "armor",  "Plášť splývající se stíny. Lovec se v něm stává přízrakem.",
-     "🌑",   0,35,10, 30, 0,  0,12, 0, 0, 0,  20, 4000, 3, "Sada Zákeřného Lovce"),
-    ("Rukavice Zákeřného Lovce",   "gloves", "Rukavice ze zákeřné kůže. Každý šíp je vystřelen s přesností.",
-     "🍃",   0, 0, 4,  0, 0,  0,18, 0, 0, 5,  20, 2500, 3, "Sada Zákeřného Lovce"),
-    ("Boty Zákeřného Lovce",       "boots",  "Boty lovce pohybujícího se jako duch. Rychlost nad vše.",
-     "💨",   0,14,20,  0, 0,  0,18, 0, 0, 4,  20, 2200, 3, "Sada Zákeřného Lovce"),
-    ("Prsten Zákeřného Lovce",     "ring",   "Prsten nabitý loveckou magií. Šance na kritický zásah roste.",
-     "🍀",   0, 0, 3,  0, 0,  0,12, 0, 0,15,  20, 2000, 3, "Sada Zákeřného Lovce"),
-    ("Amulet Zákeřného Lovce",     "amulet", "Amulet zákeřného lovce. Každý kus sady zesiluje smrtonosnost.",
-     "🌿",   0, 0, 0, 25, 0,  0,18, 0, 0,15,  20, 2300, 3, "Sada Zákeřného Lovce"),
-]
+SEED_SET_ITEMS: list = []  # prázdné — sety dočasně vypnuty
 
 
 SEED_CLASS_ITEMS = [
