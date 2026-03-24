@@ -27,17 +27,9 @@ from game.loot import get_random_item_for_quest, get_dungeon_set_item
 from game.achievements import check_and_award
 from game.combatant_builder import build_combatant_config
 from game.factions import REP_FROM_QUEST
-from game.professions import (
-    add_resonance_to_equipped_runes,
-    get_oracle_xp_bonus,
-    get_broker_gold_bonus,
-)
 from models.faction import FactionReputation
 from routers.auth import get_current_user
 from routers.character import char_dict_with_equipment
-from routers.diviner import verify_prophecies_for_quest
-from routers.gambler import resolve_quest_bets
-from routers.fateweaver import check_bonds_on_quest_complete
 
 router = APIRouter(prefix="/quest", tags=["quest"])
 
@@ -589,39 +581,10 @@ async def collect_quest(
 
     # ── Profesní hooky ────────────────────────────────────────────────────────
 
-    # Runovník: rezonance do run na nasazených předmětech po každém boji
     rune_evolutions: list[dict] = []
-    if was_success and saved_quest_def:
-        qdef_full = next((q for q in QUEST_DEFINITIONS if q[0] == saved_quest_def), None)
-        resonance_amount = {"easy": 3, "normal": 7, "hard": 15, "boss": 25}.get(
-            qdef_full[3] if qdef_full else "normal", 7
-        )
-        rune_evolutions = await add_resonance_to_equipped_runes(char, resonance_amount, db)
-
-    # Věštec: verifikace svitků proroctví pro tento quest
-    if saved_quest_def:
-        await verify_prophecies_for_quest(saved_quest_def, was_success, actual_drop_rarity, db)
-
-    # Šarlatán: uzavření sázek navázaných na tento quest
-    if saved_quest_def:
-        await resolve_quest_bets(char.id, saved_quest_def, was_success, actual_drop_rarity, db)
-
-    # Tkadlec: fire cooperation pout
-    bond_fires = await check_bonds_on_quest_complete(char.id, was_success, db)
-
-    # Oracle pasivní: Prozření — +2 % XP za rank při sebrání úspěšného questu
+    bond_fires: list[dict] = []
     oracle_bonus_xp = 0
-    if was_success and earned_xp > 0:
-        oracle_bonus_xp = await get_oracle_xp_bonus(char.id, earned_xp, db)
-        if oracle_bonus_xp > 0:
-            char.xp += oracle_bonus_xp
-
-    # Broker pasivní: Riziková prémie — +5 % gold za rank při sebrání úspěšného questu
     broker_bonus_gold = 0
-    if was_success and earned_gold > 0:
-        broker_bonus_gold = await get_broker_gold_bonus(char.id, earned_gold, db)
-        if broker_bonus_gold > 0:
-            char.gold += broker_bonus_gold
 
     # Guild Weekly Quest hooky
     if was_success and char.guild_id:

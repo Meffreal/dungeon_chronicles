@@ -35,12 +35,6 @@ from models.shop_sale    import ShopSale            # noqa: F401
 from models.faction      import FactionReputation  # noqa: F401
 # Profesní systém
 from models.profession   import CharacterProfession  # noqa: F401
-from models.runosmith    import Rune, ItemRune        # noqa: F401
-from models.diviner      import ProphecyScroll        # noqa: F401
-from models.soulforger   import ForgeLog              # noqa: F401
-from models.gambler      import Bet, Lottery, LotteryEntry  # noqa: F401
-from models.agent        import AgentOperation, AgentIdentity, SabotageEffect  # noqa: F401
-from models.fateweaver   import FateBond              # noqa: F401
 # Nové combat systémy
 from models.world_boss   import WorldBoss, BossParticipation  # noqa: F401
 from models.dungeon_run  import DungeonRun                    # noqa: F401
@@ -63,7 +57,7 @@ from models.dungeon_boss    import DungeonBossProgress                          
 from routers import auth, character, quest, inventory, market, arena, notifications, guild, achievements, admin, shop
 from routers import faction
 from routers import attunement
-from routers import profession, runosmith, diviner, soulforger, gambler, agent, fateweaver
+from routers import profession
 from routers import boss, dungeon
 from routers import weekly_quest
 from routers import season_pass as season_pass_router
@@ -165,12 +159,6 @@ app.include_router(faction.router)
 app.include_router(attunement.router)
 # Profesní systém
 app.include_router(profession.router)
-app.include_router(runosmith.router)
-app.include_router(diviner.router)
-app.include_router(soulforger.router)
-app.include_router(gambler.router)
-app.include_router(agent.router)
-app.include_router(fateweaver.router)
 # Nové combat systémy
 app.include_router(boss.router)
 app.include_router(dungeon.router)

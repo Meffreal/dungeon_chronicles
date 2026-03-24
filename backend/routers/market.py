@@ -16,7 +16,6 @@ from models.market import MarketListing, MARKET_FEE, LISTING_FEE_PCT, LISTING_FE
 from models.economy import log_gold, GoldReason
 from game.achievements import check_and_award
 from routers.auth import get_current_user
-from routers.soulforger import on_forged_item_sold
 
 router = APIRouter(prefix="/market", tags=["market"])
 
@@ -285,9 +284,6 @@ async def buy_item(
     listing.buyer_id = char.id
 
     await check_and_award(char, db)
-
-    # ── Profesní hook: Dušekoval dostane retroaktivní XP pokud byl item forged ──
-    await on_forged_item_sold(listing.item_id, db)
 
     await db.commit()
 

@@ -1,123 +1,66 @@
 """
-models/profession.py — Profesní systém: core tracking (naučené profese, rank, XP, sloty)
+models/profession.py — Profese v3: Enchanter, Alchymista, Blacksmith
 """
-import json
-from datetime import datetime, timedelta, timezone
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, UniqueConstraint
+from datetime import datetime
+from sqlalchemy import String, Integer, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from database import Base
 
-# ── Konstanty ─────────────────────────────────────────────────────────────────
+PROFESSION_KEYS = ["enchanter", "alchymista", "blacksmith"]
 
-PROFESSION_KEYS = ["runist", "oracle", "broker"]
-
-# Mapování starých klíčů na nové (pro migraci a backward compat)
-PROFESSION_MIGRATION_MAP: dict[str, str] = {
-    "runosmith":  "runist",
-    "soulforger": "runist",
-    "diviner":    "oracle",
-    "fateweaver": "oracle",
-    "gambler":    "broker",
-    "agent":      "broker",
-}
+RANK_XP_THRESHOLDS = [100, 400, 1000, 2500, 5000]
+RANK_NAMES = ["Novic", "Učedník", "Tovaryš", "Expert", "Mistr", "Velmistr"]
+MAX_RANK = 5
 
 PROFESSION_META = {
-    "runist": {
-        "name":        "Runist",
-        "icon":        "✦",
+    "enchanter": {
+        "name": "Enchanter",
+        "icon": "⚗",
         "description": (
-            "Mistr run a kování duší. Dvě aktivní schopnosti: "
-            "✦ Inscripce run — vyrývá magické runy do vybavení, které časem sílí v boji. "
-            "⚒ Soul Forge — taví existující předměty a z jejich esence kuje nové. "
-            "Pasivní: Rezonance — vybavené runy automaticky absorbují bojovou energii."
+            "Vdechuješ předmětům magické vlastnosti a víš jak je zase rozložit na prach. "
+            "Enchant — přidá magický efekt na item. "
+            "Disenchant — rozloží item na reagenty (Arcane Dust, Enchanted Shard, Void Crystal). "
+            "Rank 5: výroba Enchant Scrollů pro trh."
         ),
     },
-    "oracle": {
-        "name":        "Věštec",
-        "icon":        "🔮",
+    "alchymista": {
+        "name": "Alchymista",
+        "icon": "🧪",
         "description": (
-            "Čtenář nití osudu a tkadlec pout. Dvě aktivní schopnosti: "
-            "📜 Proroctví — vytváří a prodává věštecké svitky, odměňován za přesnost. "
-            "🌀 Pouta osudu — tká magická pouta mezi hráči i duchy na 72 hodin. "
-            "Pasivní: Prozření — +2 % XP z questů za každý rank (max +10 % na rank 5)."
+            "Vaříš věci co mění průběh boje a víš jak každý lektvar rozebrat na součástky. "
+            "Brew — uvaří lektvar nebo elixír. "
+            "Dissolve — rozloží lektvar na reagenty (Alchemic Residue, Potent Extract, Essence Concentrate)."
         ),
     },
-    "broker": {
-        "name":        "Makléř",
-        "icon":        "🎲",
+    "blacksmith": {
+        "name": "Kovář",
+        "icon": "⚒",
         "description": (
-            "Mistr rizika a stínových operací. Dvě aktivní schopnosti: "
-            "🎲 Sázky — uzavírá sázky na výsledky questů a arény, pořádá loterie. "
-            "🕵 Operace — provádí tajné průzkumy, infiltrace a sabotáže. "
-            "Pasivní: Riziková prémie — +5 % zlata z questů za každý rank (max +25 % na rank 5)."
+            "Ničíš aby ses znovu postavil. Na nejvyšším ranku posouváš gear za hranice legendary. "
+            "Destroy — rozloží item na kovové materiály (Metal Scraps, Refined Ore, Soulsteel Fragment). "
+            "Upgrade — povýší item o jeden rarity tier. Rank 5: Upgrade legendary → Soul Crafted."
         ),
     },
 }
 
-# Cena za naučení N-té profese (index = pořadí, 0-based; 1. a 2. jsou zdarma)
-PROFESSION_LEARN_COSTS = [0, 0, 1500]
-
-# XP potřeba pro přechod z ranku N na N+1 (index = aktuální rank)
-RANK_XP_THRESHOLDS = [100, 400, 1000, 2500, 5000]
-
-RANK_NAMES = ["Novic", "Učedník", "Tovaryš", "Expert", "Mistr", "Velmistr"]
-
-MAX_RANK           = 5
-ACTIVE_SLOTS       = 2          # hráč má vždy právě 2 aktivní profese
-SLOT_COOLDOWN_HOURS = 48        # cooldown slotu po přepnutí profese
-
-# Karma limity pro Tkadlece (globálně dostupné)
-KARMA_SOFT_CAP = 5    # při karma >= 5: -5% quest success rate
-KARMA_HARD_CAP = 10   # při karma >= 10: nemůže vytvářet nová pouta
-
-
-# ── Model ─────────────────────────────────────────────────────────────────────
 
 class CharacterProfession(Base):
-    """Jeden záznam pro každou kombinaci (postava × profese). Max 6 záznamů na postavu."""
+    """Jedna profese na postavu navždy. Rank 0–5."""
     __tablename__ = "character_professions"
-    __table_args__ = (UniqueConstraint("character_id", "profession_key"),)
+    __table_args__ = (UniqueConstraint("character_id"),)
 
-    id:             Mapped[int]  = mapped_column(primary_key=True)
-    character_id:   Mapped[int]  = mapped_column(Integer, ForeignKey("characters.id"))
-    profession_key: Mapped[str]  = mapped_column(String(32))   # jeden z PROFESSION_KEYS
-
-    rank:           Mapped[int]  = mapped_column(Integer, default=0)   # 0–5
-    xp:             Mapped[int]  = mapped_column(Integer, default=0)   # XP směrem k dalšímu ranku
-
-    is_active:      Mapped[bool]          = mapped_column(Boolean, default=False)
-    slot:           Mapped[int | None]    = mapped_column(Integer, nullable=True)   # 1 nebo 2; None = dormant
-
-    learned_at:     Mapped[datetime]      = mapped_column(DateTime(timezone=True), server_default=func.now())
-    activated_at:   Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # kdy byl vložen do aktivního slotu
-
-    # Tkadlec: karma body za seslání prokletí (globálně sdílené přes tento sloupec)
-    karma_points:   Mapped[int]  = mapped_column(Integer, default=0, server_default="0")
+    id:             Mapped[int]      = mapped_column(primary_key=True)
+    character_id:   Mapped[int]      = mapped_column(Integer, ForeignKey("characters.id"), unique=True)
+    profession_key: Mapped[str]      = mapped_column(String(32))
+    rank:           Mapped[int]      = mapped_column(Integer, default=0)
+    xp:             Mapped[int]      = mapped_column(Integer, default=0)
+    chosen_at:      Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     character = relationship("Character", back_populates="professions")
 
-    # ── Slot cooldown ────────────────────────────────────────────────────────
-
-    @property
-    def slot_locked_until(self) -> datetime | None:
-        """Profese nesmí být deaktivována (vyňata ze slotu) dřív než 48h po aktivaci."""
-        if self.activated_at is None:
-            return None
-        return self.activated_at + timedelta(hours=SLOT_COOLDOWN_HOURS)
-
-    @property
-    def can_deactivate(self) -> bool:
-        until = self.slot_locked_until
-        if until is None:
-            return True
-        return datetime.now(timezone.utc).replace(tzinfo=None) >= until
-
-    # ── XP a rank ────────────────────────────────────────────────────────────
-
     @property
     def xp_to_next_rank(self) -> int | None:
-        """XP potřeba pro přechod na následující rank. None pokud jsme na MAX_RANK."""
         if self.rank >= MAX_RANK:
             return None
         return RANK_XP_THRESHOLDS[self.rank]
@@ -127,10 +70,6 @@ class CharacterProfession(Base):
         return RANK_NAMES[min(self.rank, len(RANK_NAMES) - 1)]
 
     def add_xp(self, amount: int) -> bool:
-        """
-        Přidá XP a zpracuje případný rank-up (může proběhnout i vícenásobný).
-        Vrátí True pokud došlo k alespoň jednomu rank-up.
-        """
         if self.rank >= MAX_RANK or amount <= 0:
             return False
         self.xp += amount
@@ -141,37 +80,16 @@ class CharacterProfession(Base):
             ranked_up = True
         return ranked_up
 
-    # ── Karma (Tkadlec) ───────────────────────────────────────────────────────
-
-    def add_karma(self, amount: int) -> None:
-        self.karma_points = max(0, self.karma_points + amount)
-
-    @property
-    def karma_penalty_active(self) -> bool:
-        return self.karma_points >= KARMA_SOFT_CAP
-
-    @property
-    def karma_blocked(self) -> bool:
-        """Tkadlec nemůže vytvářet nová pouta."""
-        return self.karma_points >= KARMA_HARD_CAP
-
-    # ── Serialization ─────────────────────────────────────────────────────────
-
     def to_dict(self) -> dict:
         meta = PROFESSION_META.get(self.profession_key, {})
         return {
-            "profession_key":    self.profession_key,
-            "name":              meta.get("name", self.profession_key),
-            "icon":              meta.get("icon", "?"),
-            "description":       meta.get("description", ""),
-            "rank":              self.rank,
-            "rank_name":         self.rank_name,
-            "xp":                self.xp,
-            "xp_to_next":        self.xp_to_next_rank,
-            "is_active":         self.is_active,
-            "slot":              self.slot,
-            "can_deactivate":    self.can_deactivate,
-            "slot_locked_until": self.slot_locked_until.isoformat() if self.slot_locked_until else None,
-            "learned_at":        self.learned_at.isoformat(),
-            "karma_points":      self.karma_points,
+            "profession_key": self.profession_key,
+            "name":           meta.get("name", self.profession_key),
+            "icon":           meta.get("icon", "?"),
+            "description":    meta.get("description", ""),
+            "rank":           self.rank,
+            "rank_name":      self.rank_name,
+            "xp":             self.xp,
+            "xp_to_next":     self.xp_to_next_rank,
+            "chosen_at":      self.chosen_at.isoformat() if self.chosen_at else None,
         }

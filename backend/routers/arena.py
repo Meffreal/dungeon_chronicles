@@ -22,7 +22,6 @@ from game.combatant_builder import build_combatant_config
 from models.guild import Guild
 from game.guild_xp import award_guild_xp
 from game.season import process_expired_season, ensure_active_season
-from game.professions import add_resonance_to_equipped_runes
 from routers.auth import get_current_user
 from routers.character import char_dict_with_equipment
 from routers.world_event import add_world_event_contribution
@@ -284,10 +283,7 @@ async def attack(
 
     # ── Profesní hooky ────────────────────────────────────────────────────────
 
-    # Runovník: rezonance za arénový boj (méně než za quest — boj je rychlý)
     rune_evolutions: list[dict] = []
-    if attacker_won:
-        rune_evolutions = await add_resonance_to_equipped_runes(char, 5, db)
 
     # World Event příspěvek — PvP kill
     if attacker_won:

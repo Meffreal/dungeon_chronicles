@@ -492,6 +492,26 @@
 /* ── Hint box ───────────────────────────────────────────────────────────── */
 .pr-hint{background:rgba(255,255,255,.025);border:1px solid var(--border);border-left:3px solid var(--border2);border-radius:4px;padding:9px 12px;font-size:0.78rem;color:var(--text2);line-height:1.55;margin-bottom:14px;}
 
+/* ── Profession two-panel layout ────────────────────────────────────────── */
+.pr-panel-layout{display:flex;min-height:480px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--panel);}
+.pr-sidebar{width:172px;flex-shrink:0;background:rgba(0,0,0,.28);border-right:1px solid var(--border);padding:10px 6px;display:flex;flex-direction:column;gap:3px;}
+.pr-sidebar-item{display:flex;align-items:center;gap:9px;padding:10px 10px;border-radius:5px;transition:background .15s;border-left:3px solid transparent;}
+.pr-sidebar-item.is-active{background:rgba(255,255,255,.06);border-left-color:var(--pcol,var(--gold2));}
+.pr-sidebar-item.is-locked{opacity:.28;cursor:default;}
+.pr-sidebar-ico{font-size:1.25rem;flex-shrink:0;line-height:1;}
+.pr-sidebar-name{font-family:'Cinzel',serif;font-size:.72rem;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pr-sidebar-check{color:var(--gold2);font-size:.8rem;margin-left:auto;flex-shrink:0;}
+.pr-main-panel{flex:1;min-width:0;padding:18px;overflow-y:auto;}
+@media(max-width:768px){
+  .pr-panel-layout{flex-direction:column;min-height:auto;}
+  .pr-sidebar{width:100%;flex-direction:row;border-right:none;border-bottom:1px solid var(--border);padding:6px;overflow-x:auto;gap:2px;}
+  .pr-sidebar-item{flex-direction:column;gap:3px;padding:7px 12px;text-align:center;flex-shrink:0;border-left:none;border-bottom:3px solid transparent;}
+  .pr-sidebar-item.is-active{border-bottom-color:var(--pcol,var(--gold2));background:rgba(255,255,255,.05);}
+  .pr-sidebar-name{font-size:.6rem;}
+  .pr-sidebar-check{display:none;}
+  .pr-main-panel{padding:12px;}
+}
+
 /* ── Player search autocomplete ─────────────────────────────────────────── */
 .ps-wrap{position:relative;}
 .ps-dropdown{position:absolute;left:0;right:0;top:calc(100% + 2px);background:var(--panel2);border:1px solid var(--gold2);border-radius:4px;z-index:200;box-shadow:0 6px 20px rgba(0,0,0,.5);overflow:hidden;}
@@ -512,6 +532,24 @@
 .pr-input{width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:0.92rem;outline:none;transition:all .2s;}
 .pr-input:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(192,57,43,.3);}
 select.pr-input option{background:var(--panel2);}
+
+/* ── Item icon grid (profese výběr) ────────────────────────────────────── */
+.pr-item-grid{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0;}
+.inv-card.selected{border-color:var(--rc,var(--border2));box-shadow:0 0 0 2px var(--rc,#9d9d9d),0 4px 14px rgba(0,0,0,.5);background:rgba(255,255,255,.07);}
+.pr-item-card{position:relative;width:48px;height:48px;border:2px solid var(--rc,#9d9d9d);border-radius:5px;background:var(--panel2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,box-shadow .12s,border-color .12s;flex-shrink:0;}
+.pr-item-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.4);}
+.pr-item-card.selected{border-color:var(--rc,#9d9d9d);box-shadow:0 0 0 2px var(--rc,#9d9d9d),0 4px 14px rgba(0,0,0,.5);background:rgba(255,255,255,.07);}
+.pr-item-card-ico{font-size:1.55rem;line-height:1;pointer-events:none;}
+.pr-item-card-qty{position:absolute;bottom:1px;right:3px;font-size:0.58rem;color:#fff;font-family:'Cinzel',serif;pointer-events:none;}
+
+/* ── Action preview (disenchant / dissolve / destroy) ──────────────────── */
+.pr-preview{margin:8px 0;}
+.pr-preview-box{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-left:3px solid var(--gold2);border-radius:4px;padding:8px 12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:0.8rem;animation:pg-in .15s ease;}
+.pr-preview-label{font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);flex-shrink:0;}
+.pr-preview-item{background:rgba(232,176,32,.1);border:1px solid rgba(232,176,32,.22);border-radius:3px;padding:3px 8px;color:var(--text);font-family:'Crimson Text',Georgia,serif;}
+.pr-preview-item strong{color:var(--gold2);}
+.pr-preview-locked{font-size:0.78rem;color:var(--accent2);font-style:italic;padding:4px 0;}
+.pr-preview-empty{font-size:0.78rem;color:var(--text3);font-style:italic;padding:4px 0;}
 
 /* ── Inline action buttons ──────────────────────────────────────────────── */
 .pr-inline-btn{padding:7px 16px;border-radius:3px;border:1px solid;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;}

@@ -2,26 +2,31 @@
 models/item.py — Itemy, rarity, stats
 """
 import enum
+import json
 from typing import Optional
 from sqlalchemy import String, Integer, Text, Enum as SAEnum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
 class Rarity(str, enum.Enum):
-    COMMON    = "common"
-    UNCOMMON  = "uncommon"
-    RARE      = "rare"
-    EPIC      = "epic"
-    LEGENDARY = "legendary"
-    SET       = "set"
+    COMMON       = "common"
+    UNCOMMON     = "uncommon"
+    RARE         = "rare"
+    EPIC         = "epic"
+    LEGENDARY    = "legendary"
+    SET          = "set"
+    SOUL_CRAFTED = "soul_crafted"
+    MYTHIC       = "mythic"
 
 RARITY_COLOR = {
-    Rarity.COMMON:    "#9d9d9d",
-    Rarity.UNCOMMON:  "#1eff00",
-    Rarity.RARE:      "#0070dd",
-    Rarity.EPIC:      "#a335ee",
-    Rarity.LEGENDARY: "#ff8000",
-    Rarity.SET:       "#00d4ff",
+    Rarity.COMMON:       "#9d9d9d",
+    Rarity.UNCOMMON:     "#1eff00",
+    Rarity.RARE:         "#0070dd",
+    Rarity.EPIC:         "#a335ee",
+    Rarity.LEGENDARY:    "#ff8000",
+    Rarity.SET:          "#00d4ff",
+    Rarity.SOUL_CRAFTED: "#ff69b4",  # pink
+    Rarity.MYTHIC:       "#cc0000",  # red
 }
 
 class ItemType(str, enum.Enum):
@@ -33,6 +38,9 @@ class ItemType(str, enum.Enum):
     RING    = "ring"
     AMULET  = "amulet"
     POTION  = "potion"
+    REAGENT = "reagent"
+    ELIXIR  = "elixir"
+    SCROLL  = "scroll"
 
 class Item(Base):
     __tablename__ = "items"
@@ -114,6 +122,9 @@ class InventoryItem(Base):
     # Legacy systém: item čekající na příštího hrdinu
     is_legacy_pending:    Mapped[Optional[bool]] = mapped_column(__import__('sqlalchemy').Boolean, nullable=True, default=False)
     legacy_owner_user_id: Mapped[Optional[int]]  = mapped_column(Integer, nullable=True)
+    # Profese v3
+    enchants_json:   Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    override_rarity: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
 
     character = relationship("Character", back_populates="inventory")
     item      = relationship("Item")
@@ -130,12 +141,20 @@ class InventoryItem(Base):
             for bk in ("atk", "def", "hp"):
                 if d["bonuses"][bk]:
                     d["bonuses"][bk] = max(1, int(d["bonuses"][bk] * mult))
-            # Posunutá rarity pro zobrazení
-            base_idx = UPGRADE_RARITY_CHAIN.index(d["rarity"]) if d["rarity"] in UPGRADE_RARITY_CHAIN else 0
-            new_idx = min(base_idx + ul, len(UPGRADE_RARITY_CHAIN) - 1)
-            new_rarity = UPGRADE_RARITY_CHAIN[new_idx]
-            d["rarity"] = new_rarity
-            d["rarity_color"] = RARITY_COLOR.get(Rarity(new_rarity), "#fff")
+            # Posunutá rarity pro zobrazení (jen pokud nemáme override_rarity)
+            if not self.override_rarity:
+                base_idx = UPGRADE_RARITY_CHAIN.index(d["rarity"]) if d["rarity"] in UPGRADE_RARITY_CHAIN else 0
+                new_idx = min(base_idx + ul, len(UPGRADE_RARITY_CHAIN) - 1)
+                new_rarity = UPGRADE_RARITY_CHAIN[new_idx]
+                d["rarity"] = new_rarity
+                d["rarity_color"] = RARITY_COLOR.get(Rarity(new_rarity), "#fff")
+        # override_rarity má přednost před upgrade-level rarity shiftem
+        if self.override_rarity:
+            d["rarity"] = self.override_rarity
+            try:
+                d["rarity_color"] = RARITY_COLOR.get(Rarity(self.override_rarity), "#fff")
+            except ValueError:
+                d["rarity_color"] = "#fff"
         d["upgrade_level"] = ul
         return d
 
@@ -148,4 +167,6 @@ class InventoryItem(Base):
             "upgrade_level": self.upgrade_level or 0,
             "durability":    dur,
             "legacy_chain":  self.legacy_chain_json or [],
+            "enchants":      json.loads(self.enchants_json) if self.enchants_json else [],
+            "override_rarity": self.override_rarity,
         }
