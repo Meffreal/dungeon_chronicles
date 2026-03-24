@@ -61,15 +61,21 @@ class CharacterProfession(Base):
 
     @property
     def xp_to_next_rank(self) -> int | None:
-        if self.rank >= MAX_RANK:
+        rank = self.rank if self.rank is not None else 0
+        if rank >= MAX_RANK:
             return None
-        return RANK_XP_THRESHOLDS[self.rank]
+        return RANK_XP_THRESHOLDS[rank]
 
     @property
     def rank_name(self) -> str:
-        return RANK_NAMES[min(self.rank, len(RANK_NAMES) - 1)]
+        rank = self.rank if self.rank is not None else 0
+        return RANK_NAMES[min(rank, len(RANK_NAMES) - 1)]
 
     def add_xp(self, amount: int) -> bool:
+        if self.rank is None:
+            self.rank = 0
+        if self.xp is None:
+            self.xp = 0
         if self.rank >= MAX_RANK or amount <= 0:
             return False
         self.xp += amount
@@ -81,15 +87,15 @@ class CharacterProfession(Base):
         return ranked_up
 
     def to_dict(self) -> dict:
-        meta = PROFESSION_META.get(self.profession_key, {})
+        meta = PROFESSION_META.get(self.profession_key or "", {})
         return {
-            "profession_key": self.profession_key,
-            "name":           meta.get("name", self.profession_key),
+            "profession_key": self.profession_key or "",
+            "name":           meta.get("name", self.profession_key or ""),
             "icon":           meta.get("icon", "?"),
             "description":    meta.get("description", ""),
-            "rank":           self.rank,
+            "rank":           self.rank if self.rank is not None else 0,
             "rank_name":      self.rank_name,
-            "xp":             self.xp,
+            "xp":             self.xp if self.xp is not None else 0,
             "xp_to_next":     self.xp_to_next_rank,
             "chosen_at":      self.chosen_at.isoformat() if self.chosen_at else None,
         }

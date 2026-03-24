@@ -29,6 +29,7 @@ async def get_profession(char_id: int, db: AsyncSession) -> Optional[CharacterPr
         )
         return result.scalars().first()
     except Exception:
+        await db.rollback()
         return None
 
 
