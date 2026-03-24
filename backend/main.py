@@ -77,6 +77,17 @@ from routers import playtest_dungeon as playtest_dungeon_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Spusť migrace před startem
+    try:
+        import subprocess, sys
+        subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            check=True, capture_output=True
+        )
+        log.info("Alembic migrations applied")
+    except Exception as e:
+        log.warning("Alembic migration failed", extra={"data": {"error": str(e)}})
+
     await init_cache()
     await init_db()
     try:
