@@ -391,6 +391,20 @@ class Character(Base):
             if int(chain_id) not in attunements:
                 attunements.append(int(chain_id))
                 self.attunements_json = json.dumps(attunements)
+
+    def get_completed_dungeon_quests(self) -> list[int]:
+        """Vrátí seznam ID dokončených dungeon questů (po attunementu)."""
+        return self.get_attunement_progress().get("dungeon_done", [])
+
+    def add_completed_dungeon_quest(self, quest_id: int) -> None:
+        """Zaznamená dokončení dungeon questu — zabraňuje opakování."""
+        progress = self.get_attunement_progress()
+        if "dungeon_done" not in progress:
+            progress["dungeon_done"] = []
+        if quest_id not in progress["dungeon_done"]:
+            progress["dungeon_done"].append(quest_id)
+        self.attunement_progress_json = json.dumps(progress)
+
     # ── Talent helpers ────────────────────────────────────────────────────────
 
     def get_talents(self) -> list[str]:

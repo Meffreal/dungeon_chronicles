@@ -14,7 +14,7 @@ from game.dungeon_boss_data import (
 )
 from game.combat_engine import CombatantConfig
 
-BOSS_COOLDOWN_HOURS = 1
+BOSS_COOLDOWN_HOURS = 0.5
 TOTAL_BOSSES = 50
 
 

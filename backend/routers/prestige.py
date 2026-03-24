@@ -93,8 +93,8 @@ async def prestige_info(
         "upcoming_title":  upcoming_title,
         "upcoming_frame":  upcoming_frame,
         "prestige_portrait_frame": char.prestige_portrait_frame,
-        "resets": ["level → 1", "XP → 0", "Stat body → 0", "Primary stats → základ třídy", "Talenty → znovu odemčeny při levelování"],
-        "keeps":  ["Gold", "Inventář & equipment", "Guild", "Frakce", "Specializace (subclass)", "Arena rank", "Crystaly + odměna"],
+        "resets": ["level → 1", "XP → 0", "Stat body → 0", "Primary stats → základ třídy", "Talenty → znovu odemčeny při levelování", "Inventář → vymazán", "Vybavení → sundáno a vymazáno"],
+        "keeps":  ["Gold", "Guild", "Frakce", "Specializace (subclass)", "Arena rank", "Crystaly + odměna"],
         "history": [
             {
                 "prestige_level": h.prestige_level,
@@ -137,6 +137,18 @@ async def prestige_ascend(
     char.intelligence = base.get("intelligence", 5)
     char.endurance    = base.get("endurance",    5)
     char.luck         = base.get("luck",         5)
+
+    # ── Reset inventáře a vybavení ────────────────────────────────────────────
+    from sqlalchemy import delete as sql_delete
+    from models.item import InventoryItem
+    await db.execute(sql_delete(InventoryItem).where(InventoryItem.character_id == char.id))
+    char.eq_weapon  = None
+    char.eq_helmet  = None
+    char.eq_armor   = None
+    char.eq_gloves  = None
+    char.eq_boots   = None
+    char.eq_ring    = None
+    char.eq_amulet  = None
 
     char.prestige_level = new_pl
 

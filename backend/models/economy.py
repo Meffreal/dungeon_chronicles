@@ -43,6 +43,7 @@ class GoldReason(str, enum.Enum):
     GAMBLER_REFUND      = "gambler_refund"
     TRANSMOG_FEE        = "transmog_fee"
     REPAIR_FEE          = "repair_fee"
+    RESPEC_FEE          = "respec_fee"
 
 
 class GoldTransaction(Base):

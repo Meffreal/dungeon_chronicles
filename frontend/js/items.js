@@ -65,10 +65,11 @@ function renderInv() {
   try { renderEquipStrip(); } catch(e) { console.error('[Inventory] renderEquipStrip error:', e); }
 
   const other = ['gloves','boots','ring','amulet'];
-  let filtered = invFilter === 'all'   ? invData
-    : invFilter === 'other' ? invData.filter(i => other.includes(i.item?.type))
-    : invFilter === 'set'   ? invData.filter(i => i.item?.rarity === 'set')
-    : invData.filter(i => i.item?.type === invFilter);
+  const unequipped = invData.filter(i => !i.equipped);
+  let filtered = invFilter === 'all'   ? unequipped
+    : invFilter === 'other' ? unequipped.filter(i => other.includes(i.item?.type))
+    : invFilter === 'set'   ? unequipped.filter(i => i.item?.rarity === 'set')
+    : unequipped.filter(i => i.item?.type === invFilter);
   filtered = _sortedInv(filtered);
 
   const bagCount = invData.filter(i => !i.equipped).length;
@@ -301,6 +302,7 @@ async function repairItem(invId, cost) {
   try {
     const d = await api('POST', `/inventory/repair/${invId}`);
     toast(d.message, 's', 3000);
+    if (d.character) Object.assign(char, d.character);
     updateUI(d.character);
     closeModal('modal-item');
     renderEquip();
@@ -313,6 +315,7 @@ async function repairAll() {
     const d = await api('POST', '/inventory/repair');
     toast(d.message, 's', 3000);
     addAct(`🔧 Opraveno vybavení za ${d.total_cost} G`);
+    if (d.character) Object.assign(char, d.character);
     updateUI(d.character);
     renderEquip();
     await loadInventory();

@@ -824,6 +824,36 @@ async def choose_subclass(
     raise HTTPException(status_code=500, detail="Failed to fetch avatar")
 
 
+RESPEC_COST = 100_000
+
+@router.post("/respec-subclass")
+async def respec_subclass(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Resetuje specializaci a T2 talent za 100 000 gold."""
+    from models.economy import log_gold, GoldReason
+    char = await _get_char(current_user, db)
+
+    if not char.subclass:
+        raise HTTPException(400, "Nemáš zvolenou specializaci — není co resetovat.")
+    if char.gold < RESPEC_COST:
+        raise HTTPException(400, f"Nedostatek gold. Respec stojí {RESPEC_COST:,} G, máš {char.gold:,} G.")
+
+    old_subclass = char.subclass
+    char.gold -= RESPEC_COST
+    await log_gold(db, char, -RESPEC_COST, GoldReason.RESPEC_FEE, {"old_subclass": old_subclass})
+
+    char.subclass = None
+    char.talent_t2_key = None
+    char.recalculate_stats()
+
+    await db.commit()
+    await db.refresh(char)
+    log.info("Subclass respec", extra={"data": {"char": char.name, "old_subclass": old_subclass}})
+    return await char_dict_with_equipment(char, db)
+
+
 # ── Talent Tier 2 ──────────────────────────────────────────────────────────────
 
 class ChooseT2Req(BaseModel):

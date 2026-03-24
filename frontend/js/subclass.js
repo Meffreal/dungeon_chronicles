@@ -103,8 +103,11 @@ function _renderChosenSubclass(d) {
                 <div class="sub-stats-row">${statHtml}</div>
             </div>
             <div class="sub-chosen-locked">
-                🔒 Specializace je trvalá a nelze ji změnit.
+                🔒 Specializace je trvalá — lze ji změnit pouze přes Respec (100 000 G).
             </div>
+            <button class="sub-respec-btn" onclick="confirmRespecSubclass()">
+                🔄 Respec (100 000 G)
+            </button>
         </div>`;
 }
 
@@ -112,6 +115,25 @@ async function confirmChooseSubclass(key, name) {
     const confirmed = confirm(`Opravdu chceš zvolit specializaci "${name}"?\n\nTato volba je TRVALÁ a nelze ji změnit.`);
     if (!confirmed) return;
     await chooseSubclass(key);
+}
+
+async function confirmRespecSubclass() {
+    const ok = confirm(
+        `⚠️ Respec specializace — Cena: 100 000 G\n\n` +
+        `Resetuje specializaci a T2 talent.\n` +
+        `Budeš si moci zvolit novou specializaci (vyžaduje level 10).\n\n` +
+        `Opravdu chceš provést Respec?`
+    );
+    if (!ok) return;
+    try {
+        const d = await api('POST', '/character/respec-subclass');
+        if (typeof char !== 'undefined') Object.assign(char, d);
+        updateUI(d);
+        toast('Specializace resetována. Zvol si novou.', 's', 4000);
+        await loadSubclass();
+    } catch (e) {
+        toast(e.message || 'Chyba při respecu.', 'e');
+    }
 }
 
 async function chooseSubclass(key) {

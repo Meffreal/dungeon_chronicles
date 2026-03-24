@@ -340,12 +340,14 @@ async def start_quest(
     if char.level < qdef[8]:
         raise HTTPException(400, f"Potřebuješ level {qdef[8]}. Ty jsi level {char.level}.")
 
-    # Dungeon quest — vyžaduje attunement
+    # Dungeon quest — vyžaduje attunement, nelze opakovat
     if req.quest_id in DUNGEON_QUEST_ATTUNEMENT:
         required_chain_id = DUNGEON_QUEST_ATTUNEMENT[req.quest_id]
         if required_chain_id not in char.get_attunements():
             chain = next(c for c in ATTUNEMENT_CHAINS if c["id"] == required_chain_id)
             raise HTTPException(403, f"Nemáš attunement '{chain['name']}'. Dokonči sérii questů '{chain['name']}'.")
+        if req.quest_id in char.get_completed_dungeon_quests():
+            raise HTTPException(400, "Tento dungeon quest jsi již dokončil. Vstup do dungeonu přímo přes sekci Dungeons.")
 
     # Chain quest — musí to být aktuální krok (ne přeskočený nebo hotový)
     if req.quest_id in QUEST_CHAIN_MAP:
@@ -578,6 +580,10 @@ async def collect_quest(
             "dungeon_name": ci["chain"]["dungeon_name"],
             "dungeon_icon": ci["chain"]["dungeon_icon"],
         }
+
+    # Dungeon quest — zaznamenej dokončení (prevence opakování)
+    if was_success and saved_quest_def and saved_quest_def in DUNGEON_QUEST_ATTUNEMENT:
+        char.add_completed_dungeon_quest(saved_quest_def)
 
     new_achievements = await check_and_award(char, db)
 
