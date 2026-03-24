@@ -56,32 +56,48 @@ async def list_professions(
     db:   AsyncSession = Depends(get_db),
 ):
     """Přehled všech 3 profesí + aktuální volba hráče."""
-    char = await get_char(user, db)
-    current = await get_profession(char.id, db)
+    import traceback
+    step = "start"
+    try:
+        step = "load character"
+        char = await get_char(user, db)
 
-    professions = []
-    for key in PROFESSION_KEYS:
-        meta = PROFESSION_META[key]
-        if current and current.profession_key == key:
-            professions.append({**current.to_dict(), "status": "chosen"})
-        else:
-            professions.append({
-                "profession_key": key,
-                "name":          meta["name"],
-                "icon":          meta["icon"],
-                "description":   meta["description"],
-                "rank":          0,
-                "rank_name":     "Novic",
-                "xp":            0,
-                "xp_to_next":    100,
-                "chosen_at":     None,
-                "status":        "locked" if current else "available",
-            })
-    return {
-        "professions":    professions,
-        "has_profession": current is not None,
-        "current":        current.to_dict() if current else None,
-    }
+        step = "load profession"
+        current = await get_profession(char.id, db)
+
+        step = "build professions list"
+        professions = []
+        for key in PROFESSION_KEYS:
+            meta = PROFESSION_META[key]
+            if current and current.profession_key == key:
+                professions.append({**current.to_dict(), "status": "chosen"})
+            else:
+                professions.append({
+                    "profession_key": key,
+                    "name":          meta["name"],
+                    "icon":          meta["icon"],
+                    "description":   meta["description"],
+                    "rank":          0,
+                    "rank_name":     "Novic",
+                    "xp":            0,
+                    "xp_to_next":    100,
+                    "chosen_at":     None,
+                    "status":        "locked" if current else "available",
+                })
+
+        step = "serialize response"
+        return {
+            "professions":    professions,
+            "has_profession": current is not None,
+            "current":        current.to_dict() if current else None,
+        }
+    except Exception as e:
+        return {
+            "error":     str(e),
+            "type":      type(e).__name__,
+            "step":      step,
+            "traceback": traceback.format_exc(),
+        }
 
 
 @router.post("/choose")
