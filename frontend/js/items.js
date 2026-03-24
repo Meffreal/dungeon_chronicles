@@ -303,10 +303,10 @@ async function repairItem(invId, cost) {
     const d = await api('POST', `/inventory/repair/${invId}`);
     toast(d.message, 's', 3000);
     if (d.character) Object.assign(char, d.character);
-    updateUI(d.character);
+    updateUI(char);
     closeModal('modal-item');
-    renderEquip();
     await loadInventory();
+    renderEquip();
   } catch(e) { toast(e.message, 'e'); }
 }
 
@@ -316,9 +316,9 @@ async function repairAll() {
     toast(d.message, 's', 3000);
     addAct(`🔧 Opraveno vybavení za ${d.total_cost} G`);
     if (d.character) Object.assign(char, d.character);
-    updateUI(d.character);
-    renderEquip();
+    updateUI(char);
     await loadInventory();
+    renderEquip();
   } catch(e) { toast(e.message, 'e'); }
 }
 
