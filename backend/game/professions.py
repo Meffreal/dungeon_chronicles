@@ -23,14 +23,10 @@ async def get_char(user, db: AsyncSession) -> Character:
 
 
 async def get_profession(char_id: int, db: AsyncSession) -> Optional[CharacterProfession]:
-    try:
-        result = await db.execute(
-            select(CharacterProfession).where(CharacterProfession.character_id == char_id)
-        )
-        return result.scalars().first()
-    except Exception:
-        await db.rollback()
-        return None
+    result = await db.execute(
+        select(CharacterProfession).where(CharacterProfession.character_id == char_id)
+    )
+    return result.scalars().first()
 
 
 async def require_profession(char_id: int, profession_key: str, db: AsyncSession) -> CharacterProfession:
